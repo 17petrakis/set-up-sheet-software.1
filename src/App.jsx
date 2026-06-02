@@ -12,6 +12,7 @@ import Home from '@/pages/Home';
 import PrintView from '@/pages/PrintView';
 import ToolListPrint from '@/pages/ToolListPrint';
 import EmployeeManagement from '@/pages/EmployeeManagement';
+import Login from '@/pages/Login';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
   // Render the main app with protected routes
   return (
     <Routes>
+      <Route path="/login" element={<Login />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/" element={<Home />} />
         <Route path="/sheet/:id" element={<SetupSheet />} />
