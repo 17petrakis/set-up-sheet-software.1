@@ -95,17 +95,24 @@ export const AuthProvider = ({ children }) => {
       
       // Check for employee session first (from employee login)
       const sessionStr = localStorage.getItem('employee_session');
+      console.log('Employee session check:', sessionStr ? 'found' : 'not found');
       if (sessionStr) {
-        const session = JSON.parse(sessionStr);
-        setUser({
-          employee_number: session.employee_number,
-          role: session.role,
-          id: session.employee_id
-        });
-        setIsAuthenticated(true);
-        setIsLoadingAuth(false);
-        setAuthChecked(true);
-        return;
+        try {
+          const session = JSON.parse(sessionStr);
+          console.log('Employee session loaded:', session);
+          setUser({
+            employee_number: session.employee_number,
+            role: session.role,
+            id: session.employee_id
+          });
+          setIsAuthenticated(true);
+          setIsLoadingAuth(false);
+          setAuthChecked(true);
+          return;
+        } catch (parseError) {
+          console.error('Failed to parse employee session:', parseError);
+          localStorage.removeItem('employee_session');
+        }
       }
       
       // Otherwise check Base44 auth
