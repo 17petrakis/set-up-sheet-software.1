@@ -25,20 +25,23 @@ export function parseExcel(file) {
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
         const general = {};
-        const labelMap = {
-          machine: "machine",
-          "job#": "job_number",
-          customer: "customer",
-          programmer: "programmer",
-          "part#": "part_number",
-          rev: "revision",
-          date: "date",
-          qty: "quantity",
-          material: "material",
-          operation: "operation_description",
-          program: "program",
-          units: "units",
-        };
+
+        // Each entry: [normalizedLabelKey, fieldName]
+        // Value is ONLY column 1 of that row — never concatenated with other columns.
+        const labelMap = [
+          ["machine",    "machine"],
+          ["job#",       "job_number"],
+          ["customer",   "customer"],
+          ["programmer", "programmer"],
+          ["part#",      "part_number"],
+          ["rev",        "revision"],
+          ["date",       "date"],
+          ["qty",        "quantity"],
+          ["material",   "material"],
+          ["operation",  "operation_description"],
+          ["program",    "program"],
+          ["units",      "units"],
+        ];
 
         let toolHeaderIdx = -1;
         let partZeroIdx = -1;
@@ -48,9 +51,10 @@ export function parseExcel(file) {
           const cell0 = row[0] != null ? String(row[0]).trim() : "";
           const key = cell0.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-          // Match general fields
-          for (const [lbl, field] of Object.entries(labelMap)) {
-            if (key === lbl.replace(/[^a-z0-9]/g, "")) {
+          // Match general fields — value is strictly column 1 only
+          for (const [lbl, field] of labelMap) {
+            if (key === lbl) {
+              // column 1 only — do NOT read col 2 or beyond
               let val = row[1] != null ? String(row[1]).trim() : "";
               if (field === "date" && row[1] instanceof Date) {
                 val = row[1].toISOString().split("T")[0];
@@ -137,6 +141,60 @@ export function parseExcel(file) {
   });
 }
 
+function extractPDFFields(text) {
+  const labels = [
+    { key: "job_number",            pattern: "JOB #" },
+    { key: "customer",              pattern: "CUSTOMER" },
+    { key: "programmer",            pattern: "PROGRAMMER" },
+    { key: "part_number",           pattern: "PART #" },
+    { key: "revision",              pattern: "REV" },
+    { key: "date",                  pattern: "DATE" },
+    { key: "quantity",              pattern: "QTY" },
+    { key: "material",              pattern: "MATERIAL" },
+    { key: "operation_description", pattern: "OPERATION" },
+    { key: "program",               pattern: "PROGRAM" },
+    { key: "machine",               pattern: "Machine" },
+    { key: "total_cycle_time",      pattern: "TOTAL CYCLE TIME" },
+  ];
+
+  // Build boundary alternation from all label patterns
+  const allPatterns = labels.map((l) => l.pattern.replace(/[#]/g, "\\#")).join("|");
+
+  const result = {};
+
+  for (const { key, pattern } of labels) {
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\#]/g, "\\$&");
+    // Capture everything after "LABEL:" up to where the next known label begins
+    const re = new RegExp(
+      escaped + "\\s*:?\\s*(.*?)(?=\\s*(?:" + allPatterns + ")\\s*:|$)",
+      "is"
+    );
+    const m = text.match(re);
+    if (m) {
+      result[key] = m[1].trim().replace(/\s+/g, " ");
+    }
+  }
+
+  // Convert "0 HOURS, 5 MINUTES, 12 SECONDS" → "HH:MM:SS"
+  if (result.total_cycle_time) {
+    const hm = result.total_cycle_time.match(
+      /(\d+)\s*HOURS?,\s*(\d+)\s*MINUTES?,\s*(\d+)\s*SECONDS?/i
+    );
+    if (hm) {
+      result.total_cycle_time =
+        String(hm[1]).padStart(2, "0") + ":" +
+        String(hm[2]).padStart(2, "0") + ":" +
+        String(hm[3]).padStart(2, "0");
+    }
+  }
+
+  // Machine may appear before "GENERAL INFORMATION" as "Machine: <name>"
+  const machineMatch = text.match(/Machine:\s*([^\n]+)/i);
+  if (machineMatch) result.machine = machineMatch[1].trim();
+
+  return result;
+}
+
 export async function parsePDF(file) {
   const pdfjsLib = window.pdfjsLib;
   if (!pdfjsLib) throw new Error("PDF.js not loaded");
@@ -153,37 +211,7 @@ export async function parsePDF(file) {
     fullText += content.items.map((item) => item.str).join(" ") + "\n";
   }
 
-  const general = {};
-
-  const regexMap = {
-    machine: "machine",
-    "JOB\\s*#": "job_number",
-    customer: "customer",
-    programmer: "programmer",
-    "PART\\s*#": "part_number",
-    rev: "revision",
-    date: "date",
-    qty: "quantity",
-    material: "material",
-    operation: "operation_description",
-    program: "program",
-    units: "units",
-  };
-
-  for (const [label, field] of Object.entries(regexMap)) {
-    const re = new RegExp(label + "\\s*:?\\s*([^\\n]+)", "i");
-    const m = fullText.match(re);
-    if (m) general[field] = m[1].trim().split(/\s{2,}/)[0].trim();
-  }
-
-  // Total cycle time from "0 HOURS, 5 MINUTES, 12 SECONDS"
-  const timeMatch = fullText.match(/(\d+)\s*HOURS?\s*,?\s*(\d+)\s*MINUTES?\s*,?\s*(\d+)\s*SECONDS?/i);
-  if (timeMatch) {
-    const h = parseInt(timeMatch[1]);
-    const m = parseInt(timeMatch[2]);
-    const s = parseInt(timeMatch[3]);
-    general.total_cycle_time = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }
+  const general = extractPDFFields(fullText);
 
   // Tool list
   const tools = [];
