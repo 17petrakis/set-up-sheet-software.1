@@ -141,71 +141,6 @@ export function parseExcel(file) {
   });
 }
 
-function extractPDFFields(text) {
-  // Labels ordered as they actually appear in the document top-to-bottom.
-  // The boundary stop regex uses this order — a label's value stops when the
-  // NEXT label in this list is encountered, so order matters.
-  const labels = [
-    { key: "machine",               pattern: "MACHINE" },
-    { key: "job_number",            pattern: "JOB #" },
-    { key: "customer",              pattern: "CUSTOMER" },
-    { key: "programmer",            pattern: "PROGRAMMER" },
-    { key: "quantity",              pattern: "QTY" },
-    { key: "date",                  pattern: "DATE" },
-    { key: "material",              pattern: "MATERIAL" },
-    { key: "operation_description", pattern: "OPERATION" },
-    { key: "program",               pattern: "PROGRAM" },
-    { key: "part_number",           pattern: "PART #" },
-    { key: "revision",              pattern: "REV" },
-    { key: "units",                 pattern: "UNITS" },
-    { key: "total_cycle_time",      pattern: "TOTAL CYCLE TIME" },
-  ];
-
-  // Escape each pattern for use in a regex alternation
-  const escapedPatterns = labels.map((l) =>
-    l.pattern.replace(/[.*+?^${}()|[\]\\#]/g, "\\$&")
-  );
-  // Boundary: lookahead for any known label followed by optional colon
-  const boundaryAlt = escapedPatterns.join("|");
-
-  const result = {};
-
-  for (let i = 0; i < labels.length; i++) {
-    const { key, pattern } = labels[i];
-    const escaped = escapedPatterns[i];
-
-    // Match: <LABEL> followed by optional colon/spaces, then capture until
-    // the next known label+colon boundary or end-of-string.
-    const re = new RegExp(
-      escaped + "\\s*:?\\s*(.*?)(?=\\s*(?:" + boundaryAlt + ")\\s*:?\\s|$)",
-      "is"
-    );
-    const m = text.match(re);
-    if (m) {
-      const val = m[1].trim().replace(/\s+/g, " ");
-      // Reject if the captured value looks like it bled into a section header
-      if (val && !/^(GENERAL INFORMATION|OPERATION LIST|TOOL LIST|IMAGE)/i.test(val)) {
-        result[key] = val;
-      }
-    }
-  }
-
-  // Convert "0 HOURS, 5 MINUTES, 12 SECONDS" → "HH:MM:SS"
-  if (result.total_cycle_time) {
-    const hm = result.total_cycle_time.match(
-      /(\d+)\s*HOURS?,\s*(\d+)\s*MINUTES?,\s*(\d+)\s*SECONDS?/i
-    );
-    if (hm) {
-      result.total_cycle_time =
-        String(hm[1]).padStart(2, "0") + ":" +
-        String(hm[2]).padStart(2, "0") + ":" +
-        String(hm[3]).padStart(2, "0");
-    }
-  }
-
-  return result;
-}
-
 export async function parsePDF(file) {
   const pdfjsLib = window.pdfjsLib;
   if (!pdfjsLib) throw new Error("PDF.js not loaded");
@@ -214,106 +149,156 @@ export async function parsePDF(file) {
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  let fullText = "";
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
+  // Collect all items with position from all pages
+  const allItems = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
     const content = await page.getTextContent();
-    fullText += content.items.map((item) => item.str).join(" ") + "\n";
-  }
-
-  const general = extractPDFFields(fullText);
-
-  // ── OPERATION LIST ─────────────────────────────────────────────────────────
-  // PDF columns: OP #  OPERATION NAME  COMMENT  TOOL #  MIN-Z  CYCLE TIME
-  // Each data row starts with an integer OP number.
-  // Operation name may contain spaces; TOOL # is a bare integer; MIN-Z is a
-  // signed decimal; CYCLE TIME is HH:MM:SS.
-  const operations = [];
-  const opsSectionMatch = fullText.match(/OPERATION\s*LIST([\s\S]*?)(?:TOOL\s*LIST|$)/i);
-  if (opsSectionMatch) {
-    // Skip the header row (OP # OPERATION NAME COMMENT TOOL # MIN-Z CYCLE TIME)
-    const lines = opsSectionMatch[1]
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l && !/^OP\s*#/i.test(l));
-
-    for (const line of lines) {
-      // Row pattern: <op_num>  <op_name (may contain spaces)>  <comment>  <tool#>  <min_z>  <HH:MM:SS>
-      // CYCLE TIME is always HH:MM:SS at the end — anchor on that.
-      const m = line.match(
-        /^(\d+)\s+(.*?)\s{2,}(.*?)\s{2,}(\d+)\s+([-\d.]+)\s+(\d{2}:\d{2}:\d{2})/
-      );
-      if (m) {
-        operations.push({
-          op_number:      m[1].trim(),
-          operation_name: m[2].trim(),
-          comment:        m[3].trim(),
-          tool_number:    m[4].trim(),
-          min_z:          m[5].trim(),
-          max_z:          "",
-          cycle_time:     m[6].trim(),
-          spindle_rpm:    "",
-        });
-        continue;
-      }
-      // Fallback: split on 2+ spaces
-      const fb = line.match(/^(\d+)\s+(.+)/);
-      if (fb) {
-        const parts = fb[2].split(/\s{2,}/);
-        operations.push({
-          op_number:      fb[1],
-          operation_name: parts[0] || "",
-          comment:        parts[1] || "",
-          tool_number:    parts[2] || "",
-          min_z:          parts[3] || "",
-          max_z:          "",
-          cycle_time:     parts[4] || "",
-          spindle_rpm:    "",
-        });
-      }
-    }
-  }
-
-  // ── TOOL LIST ───────────────────────────────────────────────────────────────
-  // PDF columns: Tool #  Description  Tool Dia  Cm Rad  Offset Length  Holder
-  // Header row may include "FILTERED:" — skip it.
-  const tools = [];
-  const toolSectionMatch = fullText.match(/TOOL\s*LIST([\s\S]*?)$/i);
-  if (toolSectionMatch) {
-    const lines = toolSectionMatch[1]
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l && !/^Tool\s*#/i.test(l) && !/^FILTERED/i.test(l));
-
-    for (const line of lines) {
-      const m = line.match(/^(\d+)\s+(.+)/);
-      if (!m) continue;
-      const parts = m[2].split(/\s{2,}/);
-      // parts[0]=Description, [1]=Tool Dia, [2]=Cm Rad, [3]=Offset Length, [4]=Holder
-      tools.push({
-        tool_number:   m[1].trim(),
-        description:   parts[0] || "",
-        diameter:      parts[1] || "",
-        flutes:        "",
-        length:        parts[3] || "",   // Offset Length → Length
-        corner_radius: parts[2] || "",   // Cm Rad → Corner Radius
-        holder:        parts[4] || "",
+    for (const item of content.items) {
+      if (item.str.trim() === '') continue;
+      allItems.push({
+        str: item.str.trim(),
+        x: Math.round(item.transform[4]),
+        y: Math.round(item.transform[5]),
+        page: p,
       });
     }
   }
 
-  // ── PART ZERO ───────────────────────────────────────────────────────────────
-  const partZero = {};
-  const pzSection = fullText.match(/PART\s*ZERO([\s\S]*?)(?:OPERATION|TOOL|$)/i);
-  if (pzSection) {
-    const xMatch = pzSection[1].match(/X\s*[:\s]*([+-]?[\d.]+)\s+([+-]?[\d.]+)/i);
-    const yMatch = pzSection[1].match(/Y\s*[:\s]*([+-]?[\d.]+)\s+([+-]?[\d.]+)/i);
-    const zMatch = pzSection[1].match(/Z\s*[:\s]*([+-]?[\d.]+)\s+([+-]?[\d.]+)/i);
-    if (xMatch) { partZero.x_max = xMatch[1]; partZero.x_min = xMatch[2]; }
-    if (yMatch) { partZero.y_max = yMatch[1]; partZero.y_min = yMatch[2]; }
-    if (zMatch) { partZero.z_max = zMatch[1]; partZero.z_min = zMatch[2]; }
+  // Group items into rows by matching Y values (within 3px tolerance)
+  function groupByY(items) {
+    const rows = [];
+    for (const item of items) {
+      const existing = rows.find(r => Math.abs(r.y - item.y) <= 3);
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        rows.push({ y: item.y, page: item.page, items: [item] });
+      }
+    }
+    // Sort each row's items left to right by X
+    for (const row of rows) {
+      row.items.sort((a, b) => a.x - b.x);
+      row.text = row.items.map(i => i.str).join(' ');
+    }
+    return rows;
   }
 
-  return { general, tools, partZero, operations };
+  const page1Items = allItems.filter(i => i.page === 1);
+  const page2Items = allItems.filter(i => i.page === 2);
+  const rows1 = groupByY(page1Items);
+  const rows2 = groupByY(page2Items);
+
+  // --- GENERAL INFORMATION (page 1) ---
+  // Labels are at x~77, values are at x~181
+  // Find value at x~181 on the same Y as a label at x~77
+
+  function findValue(rows, labelText) {
+    for (const row of rows) {
+      const label = row.items.find(i => i.x < 160 && i.str.toUpperCase().includes(labelText.toUpperCase()));
+      if (label) {
+        const value = row.items.find(i => i.x >= 160);
+        if (value) return value.str.trim();
+      }
+    }
+    return null;
+  }
+
+  const sheet = {
+    job_number:            findValue(rows1, 'JOB #'),
+    customer:              findValue(rows1, 'CUSTOMER'),
+    programmer:            findValue(rows1, 'PROGRAMMER'),
+    part_number:           findValue(rows1, 'PART #'),
+    revision:              findValue(rows1, 'REV:'),
+    date:                  findValue(rows1, 'DATE'),
+    quantity:              findValue(rows1, 'QTY'),
+    material:              findValue(rows1, 'MATERIAL'),
+    operation_description: findValue(rows1, 'OPERATION'),
+    program:               findValue(rows1, 'PROGRAM'),
+    machine:               findValue(rows1, 'MACHINE'),
+    units:                 'Inch',
+    total_cycle_time:      null,
+  };
+
+  // Cycle time row
+  const ctRow = rows1.find(r => r.text.includes('TOTAL CYCLE TIME'));
+  if (ctRow) {
+    const ctMatch = ctRow.text.match(/(\d+)\s*HOURS?,\s*(\d+)\s*MINUTES?,\s*(\d+)\s*SECONDS?/i);
+    if (ctMatch) {
+      sheet.total_cycle_time =
+        String(ctMatch[1]).padStart(2,'0') + ':' +
+        String(ctMatch[2]).padStart(2,'0') + ':' +
+        String(ctMatch[3]).padStart(2,'0');
+    }
+  }
+
+  // --- TOOL LIST (page 2) ---
+  // Tool rows: Tool # at x~78, Description at x~109, Diameter at x~271, Holder at x~448
+  // Find the TOOL LIST header row first, then read rows below it
+
+  const tools = [];
+  const toolHeaderIdx = page2Items.findIndex(i => i.str === 'TOOL LIST');
+  if (toolHeaderIdx >= 0) {
+    const toolHeaderY = page2Items[toolHeaderIdx].y;
+    // Get all rows below the tool header (lower Y value in PDF coords = lower on page)
+    const toolRows = groupByY(page2Items.filter(i => i.y < toolHeaderY - 5));
+    // Filter to rows that have an item at x~78 that is a number (tool number)
+    for (const row of toolRows) {
+      const toolNumItem = row.items.find(i => i.x < 95 && /^\d+$/.test(i.str));
+      if (!toolNumItem) continue;
+      const desc    = row.items.find(i => i.x >= 100 && i.x < 265);
+      const dia     = row.items.find(i => i.x >= 265 && i.x < 320);
+      const holder  = row.items.find(i => i.x >= 440);
+      tools.push({
+        tool_number:   parseInt(toolNumItem.str),
+        description:   desc ? desc.str : null,
+        diameter:      dia ? parseFloat(dia.str) : null,
+        flutes:        null,
+        length:        null,
+        corner_radius: null,
+        holder:        holder ? holder.str : null,
+      });
+    }
+  }
+
+  // --- OPERATIONS (page 1 bottom + page 2) ---
+  // Op rows: OP# at x~78, Operation Name at x~116, Comment at x~211, Tool# at x~334, Min-Z at x~375, Cycle Time at x~423
+  // Operations are on page 1 (last op) and page 2
+
+  const operations = [];
+
+  function parseOpRows(rows) {
+    for (const row of rows) {
+      const opNumItem = row.items.find(i => i.x < 95 && /^\d+$/.test(i.str));
+      if (!opNumItem) continue;
+      const opName   = row.items.find(i => i.x >= 110 && i.x < 210);
+      const comment  = row.items.find(i => i.x >= 210 && i.x < 330);
+      const toolNum  = row.items.find(i => i.x >= 330 && i.x < 375);
+      const minZ     = row.items.find(i => i.x >= 375 && i.x < 420);
+      const cycleT   = row.items.find(i => i.x >= 420);
+      operations.push({
+        op_number:      parseInt(opNumItem.str),
+        operation_name: opName ? opName.str : null,
+        comment:        comment ? comment.str : null,
+        tool_number:    toolNum ? parseInt(toolNum.str) : null,
+        min_z:          minZ ? parseFloat(minZ.str) : null,
+        max_z:          1.0,
+        cycle_time:     cycleT ? cycleT.str : null,
+        spindle_rpm:    null,
+      });
+    }
+  }
+
+  // Page 1: op rows are below the OPERATION LIST header (y < ~144)
+  const opRows1 = groupByY(page1Items.filter(i => i.y < 130));
+  parseOpRows(opRows1);
+
+  // Page 2: op rows are above the TOOL LIST header
+  const toolListItem = page2Items.find(i => i.str === 'TOOL LIST');
+  const toolListY = toolListItem ? toolListItem.y : 0;
+  const opRows2 = groupByY(page2Items.filter(i => i.y > toolListY + 5));
+  parseOpRows(opRows2);
+
+  return { general: sheet, tools, partZero: {}, operations };
 }
