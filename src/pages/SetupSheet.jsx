@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Printer, Upload, FileSpreadsheet, Bug, ArrowLeft, Eye } from "lucide-react";
+import { Printer, Upload, FileSpreadsheet, Bug, ArrowLeft, Eye, Wrench } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -205,6 +205,10 @@ export default function SetupSheet() {
             <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-8 text-xs gap-1.5">
               <Eye className="w-3.5 h-3.5" />
               Print View
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-8 text-xs gap-1.5">
+              <Wrench className="w-3.5 h-3.5" />
+              Print Tool List
             </Button>
           </div>
         </div>

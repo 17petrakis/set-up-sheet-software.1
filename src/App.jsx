@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import SetupSheet from '@/pages/SetupSheet';
 import Home from '@/pages/Home';
 import PrintView from '@/pages/PrintView';
+import ToolListPrint from '@/pages/ToolListPrint';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Home />} />
       <Route path="/sheet/:id" element={<SetupSheet />} />
       <Route path="/sheet/:id/print" element={<PrintView />} />
+      <Route path="/sheet/:id/print-tools" element={<ToolListPrint />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
