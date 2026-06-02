@@ -142,36 +142,51 @@ export function parseExcel(file) {
 }
 
 function extractPDFFields(text) {
+  // Labels ordered as they actually appear in the document top-to-bottom.
+  // The boundary stop regex uses this order — a label's value stops when the
+  // NEXT label in this list is encountered, so order matters.
   const labels = [
+    { key: "machine",               pattern: "MACHINE" },
     { key: "job_number",            pattern: "JOB #" },
     { key: "customer",              pattern: "CUSTOMER" },
     { key: "programmer",            pattern: "PROGRAMMER" },
-    { key: "part_number",           pattern: "PART #" },
-    { key: "revision",              pattern: "REV" },
-    { key: "date",                  pattern: "DATE" },
     { key: "quantity",              pattern: "QTY" },
+    { key: "date",                  pattern: "DATE" },
     { key: "material",              pattern: "MATERIAL" },
     { key: "operation_description", pattern: "OPERATION" },
     { key: "program",               pattern: "PROGRAM" },
-    { key: "machine",               pattern: "Machine" },
+    { key: "part_number",           pattern: "PART #" },
+    { key: "revision",              pattern: "REV" },
+    { key: "units",                 pattern: "UNITS" },
     { key: "total_cycle_time",      pattern: "TOTAL CYCLE TIME" },
   ];
 
-  // Build boundary alternation from all label patterns
-  const allPatterns = labels.map((l) => l.pattern.replace(/[#]/g, "\\#")).join("|");
+  // Escape each pattern for use in a regex alternation
+  const escapedPatterns = labels.map((l) =>
+    l.pattern.replace(/[.*+?^${}()|[\]\\#]/g, "\\$&")
+  );
+  // Boundary: lookahead for any known label followed by optional colon
+  const boundaryAlt = escapedPatterns.join("|");
 
   const result = {};
 
-  for (const { key, pattern } of labels) {
-    const escaped = pattern.replace(/[.*+?^${}()|[\]\\#]/g, "\\$&");
-    // Capture everything after "LABEL:" up to where the next known label begins
+  for (let i = 0; i < labels.length; i++) {
+    const { key, pattern } = labels[i];
+    const escaped = escapedPatterns[i];
+
+    // Match: <LABEL> followed by optional colon/spaces, then capture until
+    // the next known label+colon boundary or end-of-string.
     const re = new RegExp(
-      escaped + "\\s*:?\\s*(.*?)(?=\\s*(?:" + allPatterns + ")\\s*:|$)",
+      escaped + "\\s*:?\\s*(.*?)(?=\\s*(?:" + boundaryAlt + ")\\s*:?\\s|$)",
       "is"
     );
     const m = text.match(re);
     if (m) {
-      result[key] = m[1].trim().replace(/\s+/g, " ");
+      const val = m[1].trim().replace(/\s+/g, " ");
+      // Reject if the captured value looks like it bled into a section header
+      if (val && !/^(GENERAL INFORMATION|OPERATION LIST|TOOL LIST|IMAGE)/i.test(val)) {
+        result[key] = val;
+      }
     }
   }
 
@@ -187,10 +202,6 @@ function extractPDFFields(text) {
         String(hm[3]).padStart(2, "0");
     }
   }
-
-  // Machine may appear before "GENERAL INFORMATION" as "Machine: <name>"
-  const machineMatch = text.match(/Machine:\s*([^\n]+)/i);
-  if (machineMatch) result.machine = machineMatch[1].trim();
 
   return result;
 }
@@ -213,29 +224,86 @@ export async function parsePDF(file) {
 
   const general = extractPDFFields(fullText);
 
-  // Tool list
-  const tools = [];
-  const toolSection = fullText.match(/TOOL\s*LIST([\s\S]*?)(?:OPERATION|PART\s*ZERO|$)/i);
-  if (toolSection) {
-    const lines = toolSection[1].split("\n").filter((l) => l.trim());
+  // ── OPERATION LIST ─────────────────────────────────────────────────────────
+  // PDF columns: OP #  OPERATION NAME  COMMENT  TOOL #  MIN-Z  CYCLE TIME
+  // Each data row starts with an integer OP number.
+  // Operation name may contain spaces; TOOL # is a bare integer; MIN-Z is a
+  // signed decimal; CYCLE TIME is HH:MM:SS.
+  const operations = [];
+  const opsSectionMatch = fullText.match(/OPERATION\s*LIST([\s\S]*?)(?:TOOL\s*LIST|$)/i);
+  if (opsSectionMatch) {
+    // Skip the header row (OP # OPERATION NAME COMMENT TOOL # MIN-Z CYCLE TIME)
+    const lines = opsSectionMatch[1]
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l && !/^OP\s*#/i.test(l));
+
     for (const line of lines) {
-      const m = line.match(/^\s*(\d+)\s+(.+)/);
+      // Row pattern: <op_num>  <op_name (may contain spaces)>  <comment>  <tool#>  <min_z>  <HH:MM:SS>
+      // CYCLE TIME is always HH:MM:SS at the end — anchor on that.
+      const m = line.match(
+        /^(\d+)\s+(.*?)\s{2,}(.*?)\s{2,}(\d+)\s+([-\d.]+)\s+(\d{2}:\d{2}:\d{2})/
+      );
       if (m) {
-        const parts = m[2].trim().split(/\s{2,}/);
-        tools.push({
-          tool_number: m[1],
-          description: parts[0] || "",
-          diameter: parts[1] || "",
-          flutes: parts[2] || "",
-          length: parts[3] || "",
-          corner_radius: "",
-          holder: "",
+        operations.push({
+          op_number:      m[1].trim(),
+          operation_name: m[2].trim(),
+          comment:        m[3].trim(),
+          tool_number:    m[4].trim(),
+          min_z:          m[5].trim(),
+          max_z:          "",
+          cycle_time:     m[6].trim(),
+          spindle_rpm:    "",
+        });
+        continue;
+      }
+      // Fallback: split on 2+ spaces
+      const fb = line.match(/^(\d+)\s+(.+)/);
+      if (fb) {
+        const parts = fb[2].split(/\s{2,}/);
+        operations.push({
+          op_number:      fb[1],
+          operation_name: parts[0] || "",
+          comment:        parts[1] || "",
+          tool_number:    parts[2] || "",
+          min_z:          parts[3] || "",
+          max_z:          "",
+          cycle_time:     parts[4] || "",
+          spindle_rpm:    "",
         });
       }
     }
   }
 
-  // Part zero
+  // ── TOOL LIST ───────────────────────────────────────────────────────────────
+  // PDF columns: Tool #  Description  Tool Dia  Cm Rad  Offset Length  Holder
+  // Header row may include "FILTERED:" — skip it.
+  const tools = [];
+  const toolSectionMatch = fullText.match(/TOOL\s*LIST([\s\S]*?)$/i);
+  if (toolSectionMatch) {
+    const lines = toolSectionMatch[1]
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l && !/^Tool\s*#/i.test(l) && !/^FILTERED/i.test(l));
+
+    for (const line of lines) {
+      const m = line.match(/^(\d+)\s+(.+)/);
+      if (!m) continue;
+      const parts = m[2].split(/\s{2,}/);
+      // parts[0]=Description, [1]=Tool Dia, [2]=Cm Rad, [3]=Offset Length, [4]=Holder
+      tools.push({
+        tool_number:   m[1].trim(),
+        description:   parts[0] || "",
+        diameter:      parts[1] || "",
+        flutes:        "",
+        length:        parts[3] || "",   // Offset Length → Length
+        corner_radius: parts[2] || "",   // Cm Rad → Corner Radius
+        holder:        parts[4] || "",
+      });
+    }
+  }
+
+  // ── PART ZERO ───────────────────────────────────────────────────────────────
   const partZero = {};
   const pzSection = fullText.match(/PART\s*ZERO([\s\S]*?)(?:OPERATION|TOOL|$)/i);
   if (pzSection) {
@@ -245,29 +313,6 @@ export async function parsePDF(file) {
     if (xMatch) { partZero.x_max = xMatch[1]; partZero.x_min = xMatch[2]; }
     if (yMatch) { partZero.y_max = yMatch[1]; partZero.y_min = yMatch[2]; }
     if (zMatch) { partZero.z_max = zMatch[1]; partZero.z_min = zMatch[2]; }
-  }
-
-  // Operations
-  const operations = [];
-  const opsSection = fullText.match(/OPERATION\s*LIST([\s\S]*?)$/i);
-  if (opsSection) {
-    const lines = opsSection[1].split("\n").filter((l) => l.trim());
-    for (const line of lines) {
-      const m = line.match(/^\s*(\d+)\s+(.+)/);
-      if (m) {
-        const parts = m[2].trim().split(/\s{2,}/);
-        operations.push({
-          op_number: m[1],
-          operation_name: parts[0] || "",
-          comment: parts[1] || "",
-          tool_number: parts[2] || "",
-          min_z: parts[3] || "",
-          max_z: parts[4] || "",
-          cycle_time: parts[5] || "",
-          spindle_rpm: "",
-        });
-      }
-    }
   }
 
   return { general, tools, partZero, operations };
