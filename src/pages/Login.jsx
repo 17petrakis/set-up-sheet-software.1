@@ -1,101 +1,125 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, BadgeCheck } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
-  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleEmployeeVerify = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const employees = await base44.entities.Employee.filter({ 
-        employee_number: employeeNumber.trim().toUpperCase()
-      });
-
-      if (employees.length === 0) {
-        setError("Invalid employee number. Please contact your administrator.");
-        setLoading(false);
-        return;
-      }
-
-      const employee = employees[0];
-
-      // Call backend function to handle employee-based login (no email required)
-      const response = await base44.functions.invoke('loginEmployee', { 
-        employeeNumber: employeeNumber.trim().toUpperCase()
-      });
-      
-      if (response.data.access_token) {
-        // Store employee session in localStorage
-        localStorage.setItem('employee_session', JSON.stringify({
-          token: response.data.access_token,
-          employee_number: response.data.employee_number,
-          employee_id: response.data.employee_id,
-          role: response.data.role
-        }));
-        window.location.href = "/";
-      } else {
-        throw new Error('Login failed');
-      }
+      await base44.auth.loginViaEmailPassword(email, password);
+      window.location.href = "/";
     } catch (err) {
-      setError("Login failed. Please contact your administrator.");
+      setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-      <AuthLayout
-        icon={BadgeCheck}
-        title="Employee Access"
-        subtitle="Verify your employee number to continue"
-      >
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-            {error}
-          </div>
-        )}
+  const handleGoogle = () => {
+    base44.auth.loginWithProvider("google", "/");
+  };
 
-        <form onSubmit={handleEmployeeVerify} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="employeeNumber">Employee Number</Label>
+  return (
+    <AuthLayout
+      icon={LogIn}
+      title="Welcome back"
+      subtitle="Log in to your account"
+      footer={
+        <>
+          Don't have an account?{" "}
+          <Link to="/register" className="text-primary font-medium hover:underline">
+            Create one
+          </Link>
+        </>
+      }
+    >
+      <Button
+        variant="outline"
+        className="w-full h-12 text-sm font-medium mb-6"
+        onClick={handleGoogle}
+      >
+        <GoogleIcon className="w-5 h-5 mr-2" />
+        Continue with Google
+      </Button>
+
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-3 text-muted-foreground">or</span>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
-              id="employeeNumber"
-              type="text"
+              id="email"
+              type="email"
+              autoComplete="email"
               autoFocus
-              placeholder="e.g., EMP001"
-              value={employeeNumber}
-              onChange={(e) => setEmployeeNumber(e.target.value.toUpperCase())}
-              className="h-12"
-              disabled={loading}
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 h-12"
               required
             />
           </div>
-          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              "Continue"
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Don't have an employee number?{" "}
-          <span className="text-foreground font-medium">Contact your administrator</span>
         </div>
-      </AuthLayout>
-    );
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 h-12"
+              required
+            />
+          </div>
+        </div>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Logging in...
+            </>
+          ) : (
+            "Log in"
+          )}
+        </Button>
+      </form>
+    </AuthLayout>
+  );
 }

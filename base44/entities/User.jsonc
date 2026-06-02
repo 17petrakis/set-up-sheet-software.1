@@ -1,6 +1,4 @@
 {
-  "name": "User",
-  "type": "object",
   "properties": {
     "role": {
       "type": "string",
@@ -8,12 +6,12 @@
       "enum": [
         "admin",
         "user"
-      ],
-      "default": "user"
-    },
-    "employee_id": {
-      "type": "string",
-      "description": "Reference to the Employee entity"
+      ]
     }
-  }
+  },
+  "required": [
+    "role"
+  ],
+  "name": "User",
+  "type": "object"
 }

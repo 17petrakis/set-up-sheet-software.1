@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, Shield, LogOut } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -84,7 +83,6 @@ function SheetCard({ sheet, onOpen, onDelete }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [sheets, setSheets] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -97,12 +95,8 @@ export default function Home() {
 
   const load = async () => {
     setLoading(true);
-    try {
-      const data = await base44.entities.SetupSheet.list("-updated_date", 200);
-      setSheets(data);
-    } catch (err) {
-      console.error("Failed to load sheets:", err);
-    }
+    const data = await base44.entities.SetupSheet.list("-updated_date", 200);
+    setSheets(data);
     setLoading(false);
   };
 
@@ -182,23 +176,6 @@ export default function Home() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
-          </button>
-          {user?.role === 'admin' && (
-            <button
-              onClick={() => navigate("/admin/employees")}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-2"
-            >
-              <Shield className="w-4 h-4 shrink-0" /> Employee Access
-            </button>
-          )}
-          <button
-            onClick={async () => {
-              await base44.auth.logout();
-              window.location.href = "/login";
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-auto"
-          >
-            <LogOut className="w-4 h-4 shrink-0" /> Logout
           </button>
         </nav>
       </aside>

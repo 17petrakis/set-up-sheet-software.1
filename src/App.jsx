@@ -1,18 +1,15 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import SetupSheet from '@/pages/SetupSheet';
 import Home from '@/pages/Home';
 import PrintView from '@/pages/PrintView';
 import ToolListPrint from '@/pages/ToolListPrint';
-import EmployeeManagement from '@/pages/EmployeeManagement';
-import Login from '@/pages/Login';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -38,17 +35,13 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Render the main app with protected routes
+  // Render the main app
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/sheet/:id" element={<SetupSheet />} />
-        <Route path="/sheet/:id/print" element={<PrintView />} />
-        <Route path="/sheet/:id/print-tools" element={<ToolListPrint />} />
-        <Route path="/admin/employees" element={<EmployeeManagement />} />
-      </Route>
+      <Route path="/" element={<Home />} />
+      <Route path="/sheet/:id" element={<SetupSheet />} />
+      <Route path="/sheet/:id/print" element={<PrintView />} />
+      <Route path="/sheet/:id/print-tools" element={<ToolListPrint />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
