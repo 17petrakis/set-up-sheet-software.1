@@ -21,10 +21,16 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    onUpload(file_url);
-    setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      onUpload(result.file_url);
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+      alert("Upload failed: " + (err?.message || "Unknown error"));
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   };
 
   return (
