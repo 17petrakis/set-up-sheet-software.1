@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Folder, FolderOpen, ChevronRight, Pencil, Trash2, FileText } from "lucide-react";
+import { Folder, FolderOpen, ChevronRight, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,8 @@ export default function CustomerFolder({ customer, sheets, onOpen, onDelete }) {
             .map(sheet => (
               <div
                 key={sheet.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-accent/5 transition-colors group"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-accent/10 transition-colors group cursor-pointer"
+                onClick={() => onOpen(sheet.id)}
               >
                 <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -61,28 +62,12 @@ export default function CustomerFolder({ customer, sheets, onOpen, onDelete }) {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7"
-                    onClick={() => onOpen(sheet.id)}
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
                     className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => onDelete(sheet.id)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(sheet.id); }}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs shrink-0"
-                  onClick={() => onOpen(sheet.id)}
-                >
-                  Open
-                </Button>
               </div>
             ))}
         </div>
