@@ -109,7 +109,7 @@ export default function Home() {
       {/* Sidebar */}
       <aside className="w-56 bg-slate-900 text-white flex flex-col shrink-0">
         {/* Logo */}
-        <div className="px-4 py-5 border-b border-white/10 bg-[hsl(var(--popover))]">
+        <div className="px-4 py-5 border-b border-white/10 bg-[hsl(var(--background))]">
           <img src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
 
           alt="Logo"
