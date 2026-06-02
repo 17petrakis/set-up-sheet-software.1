@@ -15,6 +15,7 @@ export const emptyGeneral = {
   total_cycle_time: "",
   work_holding_notes: "",
   operation_notes: "",
+  status: "Active",
 };
 
 export const emptyTool = {

@@ -67,6 +67,18 @@
     "photos": {
       "type": "object",
       "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Repeating",
+        "One Time",
+        "Completed",
+        "On Hold"
+      ],
+      "default": "Active",
+      "description": "Current job status"
     }
   },
   "required": [

@@ -13,6 +13,14 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const statusColors = {
+  Active: "bg-green-100 text-green-700",
+  Repeating: "bg-blue-100 text-blue-700",
+  "One Time": "bg-amber-100 text-amber-700",
+  Completed: "bg-gray-100 text-gray-700",
+  "On Hold": "bg-red-100 text-red-700"
+};
+
 function SheetCard({ sheet, onOpen, onDelete }) {
   return (
     <div
@@ -43,6 +51,11 @@ function SheetCard({ sheet, onOpen, onDelete }) {
             <p className="text-xs text-muted-foreground truncate mt-0.5">{sheet.customer}</p>
           )}
         </div>
+      </div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[sheet.status] || statusColors.Active}`}>
+          {sheet.status || "Active"}
+        </span>
       </div>
       <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
         {sheet.job_number && (
@@ -78,6 +91,7 @@ export default function Home() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null); // sheet to confirm delete
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const load = async () => {
     setLoading(true);
@@ -88,14 +102,15 @@ export default function Home() {
 
   useEffect(() => { load(); }, []);
 
-  const filtered = search.trim()
-    ? sheets.filter(s =>
+  const filtered = sheets.filter(s => {
+    const searchMatch = !search.trim() ||
         s.part_number?.toLowerCase().includes(search.toLowerCase()) ||
         s.customer?.toLowerCase().includes(search.toLowerCase()) ||
         s.job_number?.toLowerCase().includes(search.toLowerCase()) ||
-        s.machine?.toLowerCase().includes(search.toLowerCase())
-      )
-    : sheets;
+        s.machine?.toLowerCase().includes(search.toLowerCase());
+    const statusMatch = statusFilter === "all" || s.status === statusFilter;
+    return searchMatch && statusMatch;
+  });
 
   // Group by customer
   const grouped = {};
@@ -255,14 +270,28 @@ export default function Home() {
                   <FilePlus className="w-4 h-4" /> New Setup Sheet
                 </Button>
               </div>
-              <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search by part #, customer, job #, or machine..."
-                  className="pl-9 h-10 text-sm bg-card border-border"
-                />
+              <div className="flex gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search by part #, customer, job #, or machine..."
+                    className="pl-9 h-10 text-sm bg-card border-border"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="h-10 px-3 text-sm bg-card border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="all">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Repeating">Repeating</option>
+                  <option value="One Time">One Time</option>
+                  <option value="Completed">Completed</option>
+                  <option value="On Hold">On Hold</option>
+                </select>
               </div>
               {loading ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">Loading…</div>

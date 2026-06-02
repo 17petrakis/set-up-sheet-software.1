@@ -58,6 +58,24 @@ export default function GeneralInfo({ data, onChange }) {
           </div>
 
           <Field label="Total Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
+
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Status
+            </Label>
+            <Select value={data.status || "Active"} onValueChange={update("status")}>
+              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Repeating">Repeating</SelectItem>
+                <SelectItem value="One Time">One Time</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+                <SelectItem value="On Hold">On Hold</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="mt-3">
