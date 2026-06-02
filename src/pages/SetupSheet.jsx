@@ -1,6 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Printer, Upload, FileSpreadsheet, RotateCcw, Bug } from "lucide-react";
+import { Printer, Upload, FileSpreadsheet, RotateCcw, Bug, ArrowLeft, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -14,15 +16,59 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/se
 import { parseExcel, parsePDF } from "@/lib/fileImport";
 
 export default function SetupSheet() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [general, setGeneral] = useState({ ...emptyGeneral });
   const [tools, setTools] = useState([{ ...emptyTool }]);
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // "saved" | null
   const [debugText, setDebugText] = useState(null);
+  const [loading, setLoading] = useState(!!id);
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
+  const saveTimer = useRef(null);
+
+  // Load existing sheet
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const sheet = await base44.entities.SetupSheet.get(id);
+      const { tools: t, part_zero: pz, operations: ops, ...gen } = sheet;
+      setGeneral({ ...emptyGeneral, ...gen });
+      setTools(t?.length ? t : [{ ...emptyTool }]);
+      setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
+      setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
+      setLoading(false);
+    })();
+  }, [id]);
+
+  // Auto-save debounce
+  const triggerSave = useCallback((gen, t, pz, ops) => {
+    if (!id) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      await base44.entities.SetupSheet.update(id, {
+        ...gen,
+        tools: t,
+        part_zero: pz,
+        operations: ops,
+      });
+      setSaving(false);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(null), 2000);
+    }, 800);
+  }, [id]);
+
+  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, tools, partZero, operations); };
+  const handleToolsChange = (val) => { setTools(val); triggerSave(general, val, partZero, operations); };
+  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(general, tools, val, operations); };
+  const handleOperationsChange = (val) => { setOperations(val); triggerSave(general, tools, partZero, val); };
 
   const handleDebugPDF = async (e) => {
     const file = e.target.files?.[0];
@@ -56,34 +102,27 @@ export default function SetupSheet() {
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setImporting(true);
     setImportError(null);
-
     try {
       let result;
       const ext = file.name.split(".").pop().toLowerCase();
+      if (ext === "xlsx" || ext === "xls") result = await parseExcel(file);
+      else if (ext === "pdf") result = await parsePDF(file);
+      else throw new Error("Unsupported file type. Please use .xlsx or .pdf files.");
 
-      if (ext === "xlsx" || ext === "xls") {
-        result = await parseExcel(file);
-      } else if (ext === "pdf") {
-        result = await parsePDF(file);
-      } else {
-        throw new Error("Unsupported file type. Please use .xlsx or .pdf files.");
-      }
+      const newGen = result.general && Object.keys(result.general).length
+        ? { ...general, ...result.general } : general;
+      const newTools = result.tools?.length ? result.tools : tools;
+      const newPZ = result.partZero && Object.keys(result.partZero).length
+        ? { ...partZero, ...result.partZero } : partZero;
+      const newOps = result.operations?.length ? result.operations : operations;
 
-      if (result.general && Object.keys(result.general).length > 0) {
-        setGeneral((prev) => ({ ...prev, ...result.general }));
-      }
-      if (result.tools && result.tools.length > 0) {
-        setTools(result.tools);
-      }
-      if (result.partZero && Object.keys(result.partZero).length > 0) {
-        setPartZero((prev) => ({ ...prev, ...result.partZero }));
-      }
-      if (result.operations && result.operations.length > 0) {
-        setOperations(result.operations);
-      }
+      setGeneral(newGen);
+      setTools(newTools);
+      setPartZero(newPZ);
+      setOperations(newOps);
+      triggerSave(newGen, newTools, newPZ, newOps);
     } catch (err) {
       setImportError("Could not read file — please fill in manually");
       console.error("Import error:", err);
@@ -101,7 +140,13 @@ export default function SetupSheet() {
     setImportError(null);
   };
 
-  const handlePrint = () => window.print();
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -109,65 +154,38 @@ export default function SetupSheet() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => navigate("/")}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
               <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-foreground leading-none">
-                CNC Setup Sheet
+                {general.part_number || "CNC Setup Sheet"}
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Machine Shop Manager</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls,.pdf"
-              onChange={handleImport}
-              className="hidden"
-            />
-            <input
-              ref={debugFileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleDebugPDF}
-              className="hidden"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing}
-              className="h-8 text-xs gap-1.5"
-            >
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.pdf" onChange={handleImport} className="hidden" />
+            <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
               <Upload className="w-3.5 h-3.5" />
               {importing ? "Importing..." : "Import File"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => debugFileInputRef.current?.click()}
-              className="h-8 text-xs gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50"
-            >
+            <Button variant="outline" size="sm" onClick={() => debugFileInputRef.current?.click()} className="h-8 text-xs gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50">
               <Bug className="w-3.5 h-3.5" />
               Debug PDF
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="h-8 text-xs gap-1.5"
-            >
+            <Button variant="outline" size="sm" onClick={handleReset} className="h-8 text-xs gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
               Reset
             </Button>
-            <Button
-              size="sm"
-              onClick={handlePrint}
-              className="h-8 text-xs gap-1.5"
-            >
+            <Button size="sm" onClick={() => window.print()} className="h-8 text-xs gap-1.5">
               <Printer className="w-3.5 h-3.5" />
               Print
             </Button>
@@ -184,33 +202,20 @@ export default function SetupSheet() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <GeneralInfo data={general} onChange={setGeneral} />
+          <GeneralInfo data={general} onChange={handleGeneralChange} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <motion.div
-            className="lg:col-span-2"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-          >
-            <ToolList tools={tools} onChange={setTools} />
+          <motion.div className="lg:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+            <ToolList tools={tools} onChange={handleToolsChange} />
           </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <PartZero data={partZero} onChange={setPartZero} />
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+            <PartZero data={partZero} onChange={handlePartZeroChange} />
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <OperationsList operations={operations} onChange={setOperations} />
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+          <OperationsList operations={operations} onChange={handleOperationsChange} />
         </motion.div>
       </main>
     </div>
