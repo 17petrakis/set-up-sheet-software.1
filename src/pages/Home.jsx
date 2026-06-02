@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, Shield } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, Shield, LogOut } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -196,6 +196,15 @@ export default function Home() {
               <Shield className="w-4 h-4 shrink-0" /> Employee Access
             </button>
           )}
+          <button
+            onClick={async () => {
+              await base44.auth.logout();
+              window.location.href = "/login";
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-auto"
+          >
+            <LogOut className="w-4 h-4 shrink-0" /> Logout
+          </button>
         </nav>
       </aside>
 
