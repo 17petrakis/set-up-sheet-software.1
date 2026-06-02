@@ -1,6 +1,7 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
-import { useEmployeeAuth } from "@/lib/EmployeeAuthContext";
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 const DefaultFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -8,15 +9,28 @@ const DefaultFallback = () => (
   </div>
 );
 
-export default function ProtectedRoute({ fallback = <DefaultFallback /> }) {
-  const { isAuthenticated, isLoading } = useEmployeeAuth();
+export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement }) {
+  const { isAuthenticated, isLoadingAuth, authChecked, authError, checkUserAuth } = useAuth();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!authChecked && !isLoadingAuth) {
+      checkUserAuth();
+    }
+  }, [authChecked, isLoadingAuth, checkUserAuth]);
+
+  if (isLoadingAuth || !authChecked) {
     return fallback;
   }
 
+  if (authError) {
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
+    }
+    return unauthenticatedElement;
+  }
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return unauthenticatedElement;
   }
 
   return <Outlet />;
