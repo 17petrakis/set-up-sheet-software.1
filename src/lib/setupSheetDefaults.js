@@ -8,10 +8,13 @@ export const emptyGeneral = {
   date: "",
   quantity: "",
   material: "",
+  pre_machine_size: "",
   operation_description: "",
   program: "",
   units: "Inch",
   total_cycle_time: "",
+  work_holding_notes: "",
+  operation_notes: "",
 };
 
 export const emptyTool = {
@@ -19,8 +22,8 @@ export const emptyTool = {
   description: "",
   diameter: "",
   flutes: "",
-  length: "",
-  corner_radius: "",
+  exposed_length: "",
+  cut_length: "",
   holder: "",
 };
 

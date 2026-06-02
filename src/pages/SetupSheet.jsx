@@ -12,6 +12,7 @@ import OperationsList from "@/components/setup-sheet/OperationsList";
 import ImportBanner from "@/components/setup-sheet/ImportBanner";
 import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
 import PhotoSection from "@/components/setup-sheet/PhotoSection";
+import OperationNotes from "@/components/setup-sheet/OperationNotes";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
@@ -232,6 +233,10 @@ export default function SetupSheet() {
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
           <OperationsList operations={operations} onChange={handleOperationsChange} />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
+          <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange({ ...general, operation_notes: val })} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>

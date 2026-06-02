@@ -39,6 +39,7 @@ export default function GeneralInfo({ data, onChange }) {
           <Field label="Date" value={data.date} onChange={update("date")} type="date" />
           <Field label="Quantity" value={data.quantity} onChange={update("quantity")} />
           <Field label="Material" value={data.material} onChange={update("material")} />
+          <Field label="Pre Machine Size" value={data.pre_machine_size} onChange={update("pre_machine_size")} />
           <Field label="Program" value={data.program} onChange={update("program")} />
 
           <div>
@@ -66,6 +67,17 @@ export default function GeneralInfo({ data, onChange }) {
           <Textarea
             value={data.operation_description}
             onChange={(e) => update("operation_description")(e.target.value)}
+            className="h-16 text-sm bg-background border-border/60 resize-none"
+          />
+        </div>
+
+        <div className="mt-3">
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            Work Holding Notes
+          </Label>
+          <Textarea
+            value={data.work_holding_notes}
+            onChange={(e) => update("work_holding_notes")(e.target.value)}
             className="h-16 text-sm bg-background border-border/60 resize-none"
           />
         </div>
