@@ -11,6 +11,7 @@ import PartZero from "@/components/setup-sheet/PartZero";
 import OperationsList from "@/components/setup-sheet/OperationsList";
 import ImportBanner from "@/components/setup-sheet/ImportBanner";
 import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
+import PhotoSection from "@/components/setup-sheet/PhotoSection";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF } from "@/lib/fileImport";
@@ -23,6 +24,7 @@ export default function SetupSheet() {
   const [tools, setTools] = useState([{ ...emptyTool }]);
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
+  const [photos, setPhotos] = useState({});
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -38,17 +40,18 @@ export default function SetupSheet() {
     if (!id) return;
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, part_zero: pz, operations: ops, ...gen } = sheet;
+      const { tools: t, part_zero: pz, operations: ops, photos: ph, ...gen } = sheet;
       setGeneral({ ...emptyGeneral, ...gen });
       setTools(t?.length ? t : [{ ...emptyTool }]);
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
+      setPhotos(ph || {});
       setLoading(false);
     })();
   }, [id]);
 
   // Auto-save debounce
-  const triggerSave = useCallback((gen, t, pz, ops) => {
+  const triggerSave = useCallback((gen, t, pz, ops, ph) => {
     if (!id) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
@@ -58,6 +61,7 @@ export default function SetupSheet() {
         tools: t,
         part_zero: pz,
         operations: ops,
+        photos: ph,
       });
       setSaving(false);
       setSaveStatus("saved");
@@ -65,10 +69,11 @@ export default function SetupSheet() {
     }, 800);
   }, [id]);
 
-  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, tools, partZero, operations); };
-  const handleToolsChange = (val) => { setTools(val); triggerSave(general, val, partZero, operations); };
-  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(general, tools, val, operations); };
-  const handleOperationsChange = (val) => { setOperations(val); triggerSave(general, tools, partZero, val); };
+  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, tools, partZero, operations, photos); };
+  const handleToolsChange = (val) => { setTools(val); triggerSave(general, val, partZero, operations, photos); };
+  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(general, tools, val, operations, photos); };
+  const handleOperationsChange = (val) => { setOperations(val); triggerSave(general, tools, partZero, val, photos); };
+  const handlePhotosChange = (val) => { setPhotos(val); triggerSave(general, tools, partZero, operations, val); };
 
   const handleDebugPDF = async (e) => {
     const file = e.target.files?.[0];
@@ -216,6 +221,10 @@ export default function SetupSheet() {
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
           <OperationsList operations={operations} onChange={handleOperationsChange} />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+          <PhotoSection photos={photos} onChange={handlePhotosChange} />
         </motion.div>
       </main>
     </div>

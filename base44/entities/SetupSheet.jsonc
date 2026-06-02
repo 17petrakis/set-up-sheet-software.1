@@ -63,6 +63,10 @@
       "items": {
         "type": "object"
       }
+    },
+    "photos": {
+      "type": "object",
+      "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"
     }
   },
   "required": [
