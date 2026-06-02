@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, Shield } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -92,11 +92,22 @@ export default function Home() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null); // sheet to confirm delete
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentUser, setCurrentUser] = useState(null);
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.SetupSheet.list("-updated_date", 200);
-    setSheets(data);
+    try {
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+    } catch (err) {
+      console.error("Failed to load user:", err);
+    }
+    try {
+      const data = await base44.entities.SetupSheet.list("-updated_date", 200);
+      setSheets(data);
+    } catch (err) {
+      console.error("Failed to load sheets:", err);
+    }
     setLoading(false);
   };
 
@@ -177,6 +188,14 @@ export default function Home() {
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
           </button>
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => navigate("/admin/employees")}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-2"
+            >
+              <Shield className="w-4 h-4 shrink-0" /> Employee Access
+            </button>
+          )}
         </nav>
       </aside>
 

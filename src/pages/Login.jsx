@@ -4,17 +4,47 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, BadgeCheck } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
+  const [step, setStep] = useState("employee"); // "employee" | "credentials"
+  const [employeeNumber, setEmployeeNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleEmployeeVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const employees = await base44.entities.Employee.filter({ 
+        employee_number: employeeNumber.trim().toUpperCase()
+      });
+
+      if (employees.length === 0) {
+        setError("Invalid employee number. Please contact your administrator.");
+        setLoading(false);
+        return;
+      }
+
+      const employee = employees[0];
+      if (employee.email) {
+        setEmail(employee.email);
+      }
+      setStep("credentials");
+    } catch (err) {
+      setError("Verification failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -28,49 +58,80 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/");
+  const handleBack = () => {
+    setStep("employee");
+    setError("");
   };
+
+  if (step === "employee") {
+    return (
+      <AuthLayout
+        icon={BadgeCheck}
+        title="Employee Access"
+        subtitle="Verify your employee number to continue"
+      >
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleEmployeeVerify} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="employeeNumber">Employee Number</Label>
+            <Input
+              id="employeeNumber"
+              type="text"
+              autoFocus
+              placeholder="e.g., EMP001"
+              value={employeeNumber}
+              onChange={(e) => setEmployeeNumber(e.target.value.toUpperCase())}
+              className="h-12"
+              disabled={loading}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Continue"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          Don't have an employee number?{" "}
+          <span className="text-foreground font-medium">Contact your administrator</span>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout
       icon={LogIn}
       title="Welcome back"
-      subtitle="Log in to your account"
+      subtitle={`Logged in as ${employeeNumber}`}
       footer={
         <>
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
-            Create one
-          </Link>
+          Wrong employee number?{" "}
+          <button onClick={handleBack} className="text-primary font-medium hover:underline">
+            Go back
+          </button>
         </>
       }
     >
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={handleGoogle}
-      >
-        <GoogleIcon className="w-5 h-5 mr-2" />
-        Continue with Google
-      </Button>
-
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
-        </div>
-      </div>
-
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">

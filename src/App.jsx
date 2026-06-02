@@ -10,6 +10,7 @@ import SetupSheet from '@/pages/SetupSheet';
 import Home from '@/pages/Home';
 import PrintView from '@/pages/PrintView';
 import ToolListPrint from '@/pages/ToolListPrint';
+import EmployeeManagement from '@/pages/EmployeeManagement';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
       <Route path="/sheet/:id" element={<SetupSheet />} />
       <Route path="/sheet/:id/print" element={<PrintView />} />
       <Route path="/sheet/:id/print-tools" element={<ToolListPrint />} />
+      <Route path="/admin/employees" element={<EmployeeManagement />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
