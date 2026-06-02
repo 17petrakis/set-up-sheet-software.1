@@ -171,7 +171,7 @@ export default function PhotoSection({ photos = {}, onChange }) {
         </button>
       </div>
       <div className="border-b border-border mb-5" />
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {allSlots.map(({ key, label }) => {
           const isExtra = extraSlots.some((s) => s.key === key);
           return (
