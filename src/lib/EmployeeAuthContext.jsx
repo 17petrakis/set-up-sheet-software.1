@@ -40,13 +40,30 @@ export function EmployeeAuthProvider({ children }) {
     setCurrentEmployee(null);
   };
 
+  const refreshSession = async () => {
+    const employeeNumber = localStorage.getItem("employee_number");
+    if (!employeeNumber) return;
+
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      const employees = await base44.entities.Employee.filter({ employee_number: employeeNumber, is_active: true });
+      if (employees.length > 0) {
+        const employee = employees[0];
+        login(employee);
+      }
+    } catch (error) {
+      console.error("Failed to refresh session:", error);
+    }
+  };
+
   const value = {
     currentEmployee,
     isLoading,
     isAuthenticated: !!currentEmployee,
     isAdmin: currentEmployee?.role === "admin",
     login,
-    logout
+    logout,
+    refreshSession
   };
 
   return (

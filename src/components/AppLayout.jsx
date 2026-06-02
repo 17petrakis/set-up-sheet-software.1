@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useEmployeeAuth } from "@/lib/EmployeeAuthContext";
+import { RefreshCw } from "lucide-react";
 import { 
   Home, 
   FileText, 
@@ -13,13 +14,17 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
-  const { currentEmployee, isAdmin, logout } = useEmployeeAuth();
+  const { currentEmployee, isAdmin, logout, refreshSession } = useEmployeeAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleRefresh = () => {
+    refreshSession();
   };
 
   const navItems = [
@@ -91,14 +96,24 @@ export default function AppLayout() {
               <div className="font-medium text-foreground">{currentEmployee?.full_name}</div>
               <div>{currentEmployee?.employee_number}</div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={handleRefresh}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Session
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </aside>
