@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, Upload, FileSpreadsheet, RotateCcw } from "lucide-react";
+import { Printer, Upload, FileSpreadsheet, RotateCcw, Bug } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -8,6 +8,7 @@ import ToolList from "@/components/setup-sheet/ToolList";
 import PartZero from "@/components/setup-sheet/PartZero";
 import OperationsList from "@/components/setup-sheet/OperationsList";
 import ImportBanner from "@/components/setup-sheet/ImportBanner";
+import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF } from "@/lib/fileImport";
@@ -19,7 +20,38 @@ export default function SetupSheet() {
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [debugText, setDebugText] = useState(null);
   const fileInputRef = useRef(null);
+  const debugFileInputRef = useRef(null);
+
+  const handleDebugPDF = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const pdfjsLib = window.pdfjsLib;
+      if (!pdfjsLib) throw new Error("PDF.js not loaded");
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const lines = [];
+      for (let p = 1; p <= pdf.numPages; p++) {
+        lines.push(`\n─── PAGE ${p} ───\n`);
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        content.items.forEach((item, idx) => {
+          const x = item.transform ? item.transform[4].toFixed(2) : "?";
+          const y = item.transform ? item.transform[5].toFixed(2) : "?";
+          lines.push(`[${idx}] "${item.str}" (x: ${x}, y: ${y})`);
+        });
+      }
+      setDebugText(lines.join("\n"));
+    } catch (err) {
+      setDebugText(`ERROR: ${err.message}`);
+    } finally {
+      if (debugFileInputRef.current) debugFileInputRef.current.value = "";
+    }
+  };
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
@@ -96,6 +128,13 @@ export default function SetupSheet() {
               onChange={handleImport}
               className="hidden"
             />
+            <input
+              ref={debugFileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleDebugPDF}
+              className="hidden"
+            />
             <Button
               variant="outline"
               size="sm"
@@ -105,6 +144,15 @@ export default function SetupSheet() {
             >
               <Upload className="w-3.5 h-3.5" />
               {importing ? "Importing..." : "Import File"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => debugFileInputRef.current?.click()}
+              className="h-8 text-xs gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50"
+            >
+              <Bug className="w-3.5 h-3.5" />
+              Debug PDF
             </Button>
             <Button
               variant="outline"
@@ -126,6 +174,8 @@ export default function SetupSheet() {
           </div>
         </div>
       </header>
+
+      <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 print-container space-y-5">
