@@ -312,36 +312,27 @@ export async function extractPDFImage(file) {
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
 
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const ops = await page.getOperatorList();
-      const imgKeys = Object.keys(page.commonObjs._objs ?? {})
-        .concat(Object.keys(page.objs._objs ?? {}))
-        .filter(k => k.startsWith('img_') || k.startsWith('Im'));
-
-      if (imgKeys.length > 0) {
-        const viewport = page.getViewport({ scale: 2 });
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d');
-        await page.render({ canvasContext: ctx, viewport }).promise;
-
-        const cropY = Math.floor(canvas.height * 0.10);
-        const cropH = Math.floor(canvas.height * 0.60);
-        const cropCanvas = document.createElement('canvas');
-        cropCanvas.width = canvas.width;
-        cropCanvas.height = cropH;
-        const cropCtx = cropCanvas.getContext('2d');
-        cropCtx.drawImage(canvas, 0, cropY, canvas.width, cropH, 0, 0, canvas.width, cropH);
-        return cropCanvas.toDataURL('image/png');
-      }
-    }
+    // Crop the middle section where the 3D model image lives
+    const cropY = Math.floor(canvas.height * 0.25);
+    const cropH = Math.floor(canvas.height * 0.55);
+    const cropCanvas = document.createElement('canvas');
+    cropCanvas.width = canvas.width;
+    cropCanvas.height = cropH;
+    const cropCtx = cropCanvas.getContext('2d');
+    cropCtx.drawImage(canvas, 0, cropY, canvas.width, cropH, 0, 0, canvas.width, cropH);
+    return cropCanvas.toDataURL('image/png');
   } catch (e) {
-    // silently skip
+    console.error('PDF image extraction failed:', e);
+    return null;
   }
-  return null;
 }
 
 export async function extractExcelImage(file) {

@@ -125,6 +125,7 @@ export default function SetupSheet() {
       const newPZ = result.partZero && Object.keys(result.partZero).length
         ? { ...partZero, ...result.partZero } : partZero;
       const newOps = result.operations?.length ? result.operations : operations;
+      console.log('Extracted image:', isoImage ? 'YES - length ' + isoImage.length : 'NULL');
       const newPhotos = isoImage ? { ...photos, iso: isoImage } : photos;
 
       setGeneral(newGen);
