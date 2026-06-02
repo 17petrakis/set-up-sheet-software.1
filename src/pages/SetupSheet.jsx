@@ -126,13 +126,22 @@ export default function SetupSheet() {
         ? { ...partZero, ...result.partZero } : partZero;
       const newOps = result.operations?.length ? result.operations : operations;
       console.log('Extracted image:', isoImage ? 'YES - length ' + isoImage.length : 'NULL');
-      const newPhotos = isoImage ? { ...photos, iso: isoImage } : photos;
+
+      // Convert base64 data URL to a hosted file URL before saving
+      let isoUrl = null;
+      if (isoImage) {
+        const blob = await (await fetch(isoImage)).blob();
+        const uploadResult = await base44.integrations.Core.UploadFile({ file: new File([blob], 'iso.png', { type: 'image/png' }) });
+        isoUrl = uploadResult.file_url;
+      }
+
+      const newPhotos = isoUrl ? { ...photos, iso: isoUrl } : photos;
 
       setGeneral(newGen);
       setTools(newTools);
       setPartZero(newPZ);
       setOperations(newOps);
-      if (isoImage) setPhotos(newPhotos);
+      if (isoUrl) setPhotos(newPhotos);
       triggerSave(newGen, newTools, newPZ, newOps, newPhotos);
     } catch (err) {
       setImportError("Could not read file — please fill in manually");
