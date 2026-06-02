@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Image } from "lucide-react";
 import PhotoLightbox from "./PhotoLightbox";
@@ -13,7 +13,6 @@ const PHOTO_SLOTS = [
 ];
 
 function PhotoSlot({ label, url, onUpload, onRemove }) {
-  const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
@@ -29,33 +28,35 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+      e.target.value = "";
     }
   };
+
+  const inputId = `photo-input-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  const replaceId = `photo-replace-${label.replace(/\s+/g, "-").toLowerCase()}`;
 
   return (
     <div className="flex flex-col gap-2">
       {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
       <span className="text-xs font-bold text-foreground uppercase tracking-widest">{label}</span>
-      <div
-        className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer"
-        style={{ minHeight: "220px" }}
-        onClick={() => url ? setLightbox(true) : inputRef.current?.click()}
-      >
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
 
+      <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10" style={{ minHeight: "220px" }}>
         {url ? (
           <>
-            <img src={url} alt={label} className="w-full h-full object-cover absolute inset-0" style={{ minHeight: "220px" }} />
+            <img
+              src={url}
+              alt={label}
+              className="w-full h-full object-cover absolute inset-0 cursor-pointer"
+              style={{ minHeight: "220px" }}
+              onClick={() => setLightbox(true)}
+            />
             <div className="absolute top-2 right-2 flex gap-1.5 no-print">
-              <button
-                onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-                className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 transition-colors"
-              >
+              <label htmlFor={replaceId} className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 transition-colors cursor-pointer">
                 <Upload className="w-3.5 h-3.5" />
-              </button>
+              </label>
+              <input id={replaceId} type="file" accept="image/*" className="hidden" onChange={handleFile} />
               <button
-                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                onClick={onRemove}
                 className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
@@ -63,7 +64,8 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
             </div>
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+          <label htmlFor={inputId} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors">
+            <input id={inputId} type="file" accept="image/*" className="hidden" onChange={handleFile} />
             {uploading ? (
               <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
             ) : (
@@ -72,7 +74,7 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
                 <span className="text-sm font-medium opacity-50">Click to upload</span>
               </>
             )}
-          </div>
+          </label>
         )}
       </div>
     </div>
