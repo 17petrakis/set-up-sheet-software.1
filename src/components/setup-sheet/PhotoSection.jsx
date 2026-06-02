@@ -8,7 +8,8 @@ const PHOTO_SLOTS = [
   { key: "drawing", label: "Drawing" },
   { key: "iso", label: "ISO View" },
   { key: "material_stock", label: "Material Stock" },
-  { key: "final_part", label: "Final Part" },
+  { key: "final_part", label: "Final Part 1" },
+  { key: "final_part_2", label: "Final Part 2" },
 ];
 
 function PhotoSlot({ label, url, onUpload, onRemove }) {
@@ -28,6 +29,7 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
 
   return (
     <div className="flex flex-col gap-2">
+      {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
       <span className="text-xs font-bold text-foreground uppercase tracking-widest">{label}</span>
       <div
         className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer"
@@ -36,7 +38,6 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
       >
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
 
-        {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
         {url ? (
           <>
             <img src={url} alt={label} className="w-full h-full object-cover absolute inset-0" style={{ minHeight: "220px" }} />
@@ -56,7 +57,7 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
             </div>
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground" style={{ minHeight: "220px" }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
             {uploading ? (
               <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
             ) : (
