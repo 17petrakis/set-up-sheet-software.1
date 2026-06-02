@@ -34,9 +34,18 @@ export default function Login() {
         return;
       }
 
-      // Auto-login without password requirement
-      await base44.auth.loginViaEmailPassword(employee.email, "");
-      window.location.href = "/";
+      // Call backend function to handle employee-based login
+      const response = await base44.functions.invoke('loginEmployee', { 
+        employeeNumber: employeeNumber.trim().toUpperCase(),
+        employeeEmail: employee.email 
+      });
+      
+      if (response.data.access_token) {
+        await base44.auth.setToken(response.data.access_token);
+        window.location.href = "/";
+      } else {
+        throw new Error('Login failed');
+      }
     } catch (err) {
       setError("Login failed. Please contact your administrator.");
     } finally {
