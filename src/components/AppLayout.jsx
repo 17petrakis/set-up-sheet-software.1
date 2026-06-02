@@ -59,7 +59,7 @@ export default function AppLayout() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-border">
+          <div className="p-6 border-b border-border shrink-0">
             <div className="flex items-center gap-2">
               <FileText className="w-6 h-6 text-primary" />
               <span className="font-semibold text-foreground">Setup Sheets</span>
@@ -90,30 +90,34 @@ export default function AppLayout() {
             })}
           </nav>
 
-          {/* User info and logout */}
-          <div className="p-4 border-t border-border">
-            <div className="text-xs text-muted-foreground mb-3">
-              <div className="font-medium text-foreground">{currentEmployee?.full_name}</div>
-              <div>{currentEmployee?.employee_number}</div>
-            </div>
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Session
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
+          {/* User info and logout - always visible for any logged-in user */}
+          <div className="p-4 border-t border-border shrink-0">
+            {currentEmployee && (
+              <>
+                <div className="text-xs text-muted-foreground mb-3">
+                  <div className="font-medium text-foreground">{currentEmployee.full_name}</div>
+                  <div>{currentEmployee.employee_number}</div>
+                </div>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleRefresh}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Session
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </aside>
