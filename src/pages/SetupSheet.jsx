@@ -206,10 +206,6 @@ export default function SetupSheet() {
               <Eye className="w-3.5 h-3.5" />
               Print View
             </Button>
-            <Button size="sm" onClick={() => window.print()} className="h-8 text-xs gap-1.5">
-              <Printer className="w-3.5 h-3.5" />
-              Print
-            </Button>
           </div>
         </div>
       </header>
