@@ -1,0 +1,31 @@
+{
+  "name": "Session",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "Reference to the logged-in Employee"
+    },
+    "token": {
+      "type": "string",
+      "description": "Session token"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "description": "User role"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Session expiration time"
+    }
+  },
+  "required": [
+    "employee_id",
+    "token"
+  ]
+}

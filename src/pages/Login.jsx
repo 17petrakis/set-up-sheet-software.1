@@ -35,7 +35,13 @@ export default function Login() {
       });
       
       if (response.data.access_token) {
-        await base44.auth.setToken(response.data.access_token);
+        // Store employee session in localStorage
+        localStorage.setItem('employee_session', JSON.stringify({
+          token: response.data.access_token,
+          employee_number: response.data.employee_number,
+          employee_id: response.data.employee_id,
+          role: response.data.role
+        }));
         window.location.href = "/";
       } else {
         throw new Error('Login failed');

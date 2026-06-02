@@ -20,16 +20,34 @@ Deno.serve(async (req) => {
 
     const employee = employees[0];
 
+    if (!employee.active) {
+      return Response.json({ error: 'Employee account is inactive' }, { status: 403 });
+    }
+
     // Determine role based on employee number
     const role = employeeNumber === 'ADMIN001' ? 'admin' : 'user';
 
-    // Create a login token using employee number as identifier
-    const loginResult = await base44.asServiceRole.auth.createTokenForUser(`${employeeNumber}@internal`);
+    // Generate a session token
+    const token = crypto.getRandomValues(new Uint8Array(32));
+    const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
     
-    // Update the user's role in the User entity
-    await base44.asServiceRole.entities.User.update(loginResult.user_id, { role });
+    // Create session record
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 day expiry
     
-    return Response.json({ access_token: loginResult.token, role });
+    await base44.asServiceRole.entities.Session.create({
+      employee_id: employee.id,
+      token: tokenHex,
+      role: role,
+      expires_at: expiresAt.toISOString()
+    });
+    
+    return Response.json({ 
+      access_token: tokenHex, 
+      role, 
+      employee_number: employeeNumber,
+      employee_id: employee.id 
+    });
   } catch (error) {
     console.error('Employee login error:', error);
     return Response.json({ error: error.message || 'Login failed' }, { status: 500 });

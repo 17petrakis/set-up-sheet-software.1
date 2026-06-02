@@ -91,8 +91,24 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserAuth = async () => {
     try {
-      // Now check if the user is authenticated
       setIsLoadingAuth(true);
+      
+      // Check for employee session first (from employee login)
+      const sessionStr = localStorage.getItem('employee_session');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        setUser({
+          employee_number: session.employee_number,
+          role: session.role,
+          id: session.employee_id
+        });
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+      
+      // Otherwise check Base44 auth
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -118,12 +134,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     
+    // Clear employee session
+    localStorage.removeItem('employee_session');
+    
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
-    } else {
-      // Just remove the token without redirect
-      base44.auth.logout();
+      window.location.href = "/login";
     }
   };
 
