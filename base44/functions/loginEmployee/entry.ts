@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClient } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -8,8 +8,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing employee number' }, { status: 400 });
     }
 
-    // Verify employee exists in database
-    const base44 = createClientFromRequest(req);
+    // Use service role directly (no user auth needed for login)
+    const base44 = createClient({
+      baseURL: Deno.env.get('BASE44_API_URL') || 'https://api.base44.com',
+      serviceRoleKey: Deno.env.get('BASE44_SERVICE_ROLE_KEY')
+    });
+    
     const employees = await base44.asServiceRole.entities.Employee.filter({
       employee_number: employeeNumber
     });
