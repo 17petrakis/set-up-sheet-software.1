@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Image } from "lucide-react";
+import PhotoLightbox from "./PhotoLightbox";
 
 const PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -13,6 +14,7 @@ const PHOTO_SLOTS = [
 function PhotoSlot({ label, url, onUpload, onRemove }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -30,10 +32,11 @@ function PhotoSlot({ label, url, onUpload, onRemove }) {
       <div
         className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 hover:bg-muted/30 transition-colors cursor-pointer"
         style={{ minHeight: "220px" }}
-        onClick={() => !url && inputRef.current?.click()}
+        onClick={() => url ? setLightbox(true) : inputRef.current?.click()}
       >
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
 
+        {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
         {url ? (
           <>
             <img src={url} alt={label} className="w-full h-full object-cover absolute inset-0" style={{ minHeight: "220px" }} />

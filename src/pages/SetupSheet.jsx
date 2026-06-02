@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Printer, Upload, FileSpreadsheet, RotateCcw, Bug, ArrowLeft, Save } from "lucide-react";
+import { Printer, Upload, FileSpreadsheet, Bug, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -185,10 +185,6 @@ export default function SetupSheet() {
             <Button variant="outline" size="sm" onClick={() => debugFileInputRef.current?.click()} className="h-8 text-xs gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50">
               <Bug className="w-3.5 h-3.5" />
               Debug PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleReset} className="h-8 text-xs gap-1.5">
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset
             </Button>
             <Button size="sm" onClick={() => window.print()} className="h-8 text-xs gap-1.5">
               <Printer className="w-3.5 h-3.5" />
