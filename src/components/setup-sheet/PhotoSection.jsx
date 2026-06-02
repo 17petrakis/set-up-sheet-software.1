@@ -1,55 +1,82 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X } from "lucide-react";
+import { Camera, Upload, X, ImagePlus } from "lucide-react";
 
 const PHOTO_SLOTS = [
-  { key: "work_holding", label: "Work Holding" },
-  { key: "drawing", label: "Drawing" },
-  { key: "iso", label: "ISO View" },
-  { key: "material_stock", label: "Material Stock" },
-  { key: "final_part", label: "Final Part" },
+  { key: "work_holding", label: "Work Holding", icon: "🔩" },
+  { key: "drawing", label: "Drawing", icon: "📐" },
+  { key: "iso", label: "ISO View", icon: "🧊" },
+  { key: "material_stock", label: "Material Stock", icon: "📦" },
+  { key: "final_part", label: "Final Part", icon: "✅" },
 ];
 
-function PhotoSlot({ label, url, onUpload, onRemove }) {
+function PhotoSlot({ label, icon, url, onUpload, onRemove }) {
   const inputRef = useRef(null);
+  const [uploading, setUploading] = React.useState(false);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     onUpload(file_url);
+    setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+    <div className="flex flex-col gap-2">
+      {/* Label bar */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-base leading-none">{icon}</span>
+        <span className="text-sm font-semibold text-foreground">{label}</span>
+      </div>
+
+      {/* Photo area */}
       <div
-        className="relative border-2 border-dashed border-border rounded-lg bg-muted/30 overflow-hidden flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+        className="relative rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group"
         style={{ aspectRatio: "4/3" }}
         onClick={() => !url && inputRef.current?.click()}
       >
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+
         {url ? (
           <>
             <img src={url} alt={label} className="w-full h-full object-cover" />
-            <button
-              onClick={(e) => { e.stopPropagation(); onRemove(); }}
-              className="absolute top-1.5 right-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full p-0.5 transition-colors no-print"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-              className="absolute bottom-1.5 right-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors no-print"
-            >
-              <Upload className="w-3 h-3" />
-            </button>
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors no-print" />
+            {/* Actions */}
+            <div className="absolute top-2 right-2 flex gap-1.5 no-print">
+              <button
+                onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+                className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 transition-colors backdrop-blur-sm"
+                title="Replace photo"
+              >
+                <Upload className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors backdrop-blur-sm"
+                title="Remove photo"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {/* Label overlay on image */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2 print-show">
+              <span className="text-white text-xs font-medium">{label}</span>
+            </div>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-muted-foreground p-4">
-            <Camera className="w-6 h-6" />
-            <span className="text-xs">Upload photo</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            {uploading ? (
+              <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+            ) : (
+              <>
+                <ImagePlus className="w-8 h-8 opacity-40" />
+                <span className="text-xs font-medium opacity-60">Click to upload</span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -65,17 +92,25 @@ export default function PhotoSection({ photos = {}, onChange }) {
     onChange(updated);
   };
 
+  const uploadedCount = PHOTO_SLOTS.filter(({ key }) => photos[key]).length;
+
   return (
-    <div className="bg-card border border-border rounded-xl p-4">
-      <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-        <Camera className="w-4 h-4 text-primary" />
-        Photos
-      </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {PHOTO_SLOTS.map(({ key, label }) => (
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+          <Camera className="w-4 h-4 text-primary" />
+          Photos
+        </h2>
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+          {uploadedCount} / {PHOTO_SLOTS.length} uploaded
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+        {PHOTO_SLOTS.map(({ key, label, icon }) => (
           <PhotoSlot
             key={key}
             label={label}
+            icon={icon}
             url={photos[key]}
             onUpload={(url) => handleUpload(key, url)}
             onRemove={() => handleRemove(key)}
