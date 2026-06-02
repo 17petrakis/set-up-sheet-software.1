@@ -21,11 +21,16 @@ Deno.serve(async (req) => {
 
     const employee = employees[0];
 
+    // Determine role based on employee number
+    const role = employeeNumber === 'ADMIN001' ? 'admin' : 'user';
+
     // Create a login token for the employee using their email
-    // This uses the base44 auth system to generate a valid token
     const loginResult = await base44.asServiceRole.auth.createTokenForUser(employeeEmail);
     
-    return Response.json({ access_token: loginResult.token });
+    // Update the user's role in the User entity
+    await base44.asServiceRole.entities.User.update(loginResult.user_id, { role });
+    
+    return Response.json({ access_token: loginResult.token, role });
   } catch (error) {
     console.error('Employee login error:', error);
     return Response.json({ error: error.message || 'Login failed' }, { status: 500 });

@@ -171,6 +171,9 @@ export default function EmployeeManagement() {
                     Email
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
                   <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -194,6 +197,15 @@ export default function EmployeeManagement() {
                     </td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">
                       {employee.email || "—"}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                        employee.employee_number === 'ADMIN001'
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {employee.employee_number === 'ADMIN001' ? "Admin" : "User"}
+                      </span>
                     </td>
                     <td className="py-3 px-4">
                       <button
