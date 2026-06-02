@@ -32,11 +32,8 @@ export default function Login() {
 
       const employee = employees[0];
       
-      // Store employee info in localStorage for session management
-      localStorage.setItem("employee_number", employee.employee_number);
-      localStorage.setItem("employee_name", employee.full_name);
-      localStorage.setItem("employee_role", employee.role);
-      localStorage.setItem("employee_id", employee.id);
+      // Use employee auth context to login
+      login(employee);
       
       // Redirect to home page
       window.location.href = "/";
