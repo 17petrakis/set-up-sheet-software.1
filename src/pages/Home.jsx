@@ -3,17 +3,29 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-function SheetCard({ sheet, onOpen }) {
+function SheetCard({ sheet, onOpen, onDelete }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+      className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
       onClick={() => onOpen(sheet.id)}
     >
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(sheet); }}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
+        title="Delete sheet"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
       <div className="flex items-start gap-3 mb-3">
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <FileText className="w-4 h-4 text-primary" />
@@ -65,6 +77,7 @@ export default function Home() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null); // sheet to confirm delete
 
   const load = async () => {
     setLoading(true);
@@ -95,9 +108,11 @@ export default function Home() {
     a === "No Customer" ? 1 : b === "No Customer" ? -1 : a.localeCompare(b)
   );
 
-  const handleDelete = async (id) => {
-    await base44.entities.SetupSheet.delete(id);
-    setSheets(prev => prev.filter(s => s.id !== id));
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await base44.entities.SetupSheet.delete(deleteTarget.id);
+    setSheets(prev => prev.filter(s => s.id !== deleteTarget.id));
+    setDeleteTarget(null);
   };
 
   const handleCreated = (sheet) => {
@@ -170,7 +185,7 @@ export default function Home() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {(grouped[selectedCustomer] || []).map(sheet => (
-                      <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} />
+                      <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
                     ))}
                   </div>
                 )}
@@ -269,7 +284,7 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {filtered.map(sheet => (
-                    <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} />
+                    <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
                   ))}
                 </div>
               )}
@@ -281,6 +296,23 @@ export default function Home() {
       {showNewDialog && (
         <NewSheetDialog onClose={() => setShowNewDialog(false)} onCreate={handleCreated} />
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Setup Sheet?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.part_number || "this sheet"}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
