@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import SetupSheet from '@/pages/SetupSheet';
 import Home from '@/pages/Home';
+import PrintView from '@/pages/PrintView';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/sheet/:id" element={<SetupSheet />} />
+      <Route path="/sheet/:id/print" element={<PrintView />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
