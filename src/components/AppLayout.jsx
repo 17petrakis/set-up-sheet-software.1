@@ -52,7 +52,7 @@ export default function AppLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border transition-transform",
+          "fixed top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border transition-transform lg:top-0",
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
