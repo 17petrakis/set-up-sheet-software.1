@@ -28,14 +28,10 @@ export default function Login() {
       }
 
       const employee = employees[0];
-      
-      // Use email from record, or generate one from employee number if missing
-      const employeeEmail = employee.email || `${employeeNumber.trim().toLowerCase()}@internal`;
 
-      // Call backend function to handle employee-based login
+      // Call backend function to handle employee-based login (no email required)
       const response = await base44.functions.invoke('loginEmployee', { 
-        employeeNumber: employeeNumber.trim().toUpperCase(),
-        employeeEmail 
+        employeeNumber: employeeNumber.trim().toUpperCase()
       });
       
       if (response.data.access_token) {

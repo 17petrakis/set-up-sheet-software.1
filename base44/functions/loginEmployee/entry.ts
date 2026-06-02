@@ -2,17 +2,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
-    const { employeeNumber, employeeEmail } = await req.json();
+    const { employeeNumber } = await req.json();
 
-    if (!employeeNumber || !employeeEmail) {
-      return Response.json({ error: 'Missing employee details' }, { status: 400 });
+    if (!employeeNumber) {
+      return Response.json({ error: 'Missing employee number' }, { status: 400 });
     }
 
     // Verify employee exists in database
     const base44 = createClientFromRequest(req);
     const employees = await base44.asServiceRole.entities.Employee.filter({
-      employee_number: employeeNumber,
-      email: employeeEmail
+      employee_number: employeeNumber
     });
 
     if (employees.length === 0) {
@@ -24,8 +23,8 @@ Deno.serve(async (req) => {
     // Determine role based on employee number
     const role = employeeNumber === 'ADMIN001' ? 'admin' : 'user';
 
-    // Create a login token for the employee using their email
-    const loginResult = await base44.asServiceRole.auth.createTokenForUser(employeeEmail);
+    // Create a login token using employee number as identifier
+    const loginResult = await base44.asServiceRole.auth.createTokenForUser(`${employeeNumber}@internal`);
     
     // Update the user's role in the User entity
     await base44.asServiceRole.entities.User.update(loginResult.user_id, { role });
