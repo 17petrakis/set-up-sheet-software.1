@@ -302,3 +302,69 @@ export async function parsePDF(file) {
 
   return { general: sheet, tools, partZero: {}, operations };
 }
+
+export async function extractPDFImage(file) {
+  try {
+    const pdfjsLib = window.pdfjsLib;
+    if (!pdfjsLib) return null;
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const ops = await page.getOperatorList();
+      const imgKeys = Object.keys(page.commonObjs._objs ?? {})
+        .concat(Object.keys(page.objs._objs ?? {}))
+        .filter(k => k.startsWith('img_') || k.startsWith('Im'));
+
+      if (imgKeys.length > 0) {
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const cropY = Math.floor(canvas.height * 0.10);
+        const cropH = Math.floor(canvas.height * 0.60);
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = canvas.width;
+        cropCanvas.height = cropH;
+        const cropCtx = cropCanvas.getContext('2d');
+        cropCtx.drawImage(canvas, 0, cropY, canvas.width, cropH, 0, 0, canvas.width, cropH);
+        return cropCanvas.toDataURL('image/png');
+      }
+    }
+  } catch (e) {
+    // silently skip
+  }
+  return null;
+}
+
+export async function extractExcelImage(file) {
+  try {
+    const XLSX = window.XLSX;
+    if (!XLSX) return null;
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const zip = workbook.zip;
+    if (!zip) return null;
+
+    const mediaFiles = Object.keys(zip.files).filter(f =>
+      f.startsWith('xl/media/') && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
+    );
+    if (mediaFiles.length === 0) return null;
+
+    const imgFile = zip.files[mediaFiles[0]];
+    const imgData = await imgFile.async('base64');
+    const ext = mediaFiles[0].split('.').pop().toLowerCase();
+    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
+    return `data:${mimeType};base64,${imgData}`;
+  } catch (e) {
+    // silently skip
+  }
+  return null;
+}

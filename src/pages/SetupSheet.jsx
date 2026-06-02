@@ -14,7 +14,7 @@ import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
 import PhotoSection from "@/components/setup-sheet/PhotoSection";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
-import { parseExcel, parsePDF } from "@/lib/fileImport";
+import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
 
 export default function SetupSheet() {
   const { id } = useParams();
@@ -111,10 +111,13 @@ export default function SetupSheet() {
     setImportError(null);
     try {
       let result;
+      let isoImage = null;
       const ext = file.name.split(".").pop().toLowerCase();
-      if (ext === "xlsx" || ext === "xls") result = await parseExcel(file);
-      else if (ext === "pdf") result = await parsePDF(file);
-      else throw new Error("Unsupported file type. Please use .xlsx or .pdf files.");
+      if (ext === "xlsx" || ext === "xls") {
+        [result, isoImage] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
+      } else if (ext === "pdf") {
+        [result, isoImage] = await Promise.all([parsePDF(file), extractPDFImage(file)]);
+      } else throw new Error("Unsupported file type. Please use .xlsx or .pdf files.");
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
@@ -122,12 +125,14 @@ export default function SetupSheet() {
       const newPZ = result.partZero && Object.keys(result.partZero).length
         ? { ...partZero, ...result.partZero } : partZero;
       const newOps = result.operations?.length ? result.operations : operations;
+      const newPhotos = isoImage ? { ...photos, iso: isoImage } : photos;
 
       setGeneral(newGen);
       setTools(newTools);
       setPartZero(newPZ);
       setOperations(newOps);
-      triggerSave(newGen, newTools, newPZ, newOps);
+      if (isoImage) setPhotos(newPhotos);
+      triggerSave(newGen, newTools, newPZ, newOps, newPhotos);
     } catch (err) {
       setImportError("Could not read file — please fill in manually");
       console.error("Import error:", err);
