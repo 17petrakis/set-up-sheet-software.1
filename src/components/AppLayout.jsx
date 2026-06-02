@@ -67,7 +67,7 @@ export default function AppLayout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -91,8 +91,8 @@ export default function AppLayout() {
           </nav>
 
           {/* User info and logout */}
-          <div className="p-4 border-t border-border space-y-3">
-            <div className="text-xs text-muted-foreground">
+          <div className="p-4 border-t border-border">
+            <div className="text-xs text-muted-foreground mb-3">
               <div className="font-medium text-foreground">{currentEmployee?.full_name}</div>
               <div>{currentEmployee?.employee_number}</div>
             </div>
