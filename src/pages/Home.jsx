@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileSpreadsheet, FolderOpen, Folder, Plus, Search, ChevronRight, Trash2, Pencil } from "lucide-react";
+import { FolderOpen, Plus, Search } from "lucide-react";
 import CustomerFolder from "@/components/home/CustomerFolder";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 
@@ -57,13 +57,11 @@ export default function Home() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-              <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground leading-none">CNC Setup Sheets</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Machine Shop Manager</p>
-            </div>
+            <img
+              src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/f322fce9b_Screenshot2026-06-01110521.png"
+              alt="Straightline Precision Industries"
+              className="h-10 w-auto object-contain"
+            />
           </div>
           <Button size="sm" onClick={() => setShowNewDialog(true)} className="h-8 text-xs gap-1.5">
             <Plus className="w-3.5 h-3.5" /> New Sheet
