@@ -28,16 +28,14 @@ export default function Login() {
       }
 
       const employee = employees[0];
-      if (!employee.email) {
-        setError("Employee record incomplete. Please contact your administrator.");
-        setLoading(false);
-        return;
-      }
+      
+      // Use email from record, or generate one from employee number if missing
+      const employeeEmail = employee.email || `${employeeNumber.trim().toLowerCase()}@internal`;
 
       // Call backend function to handle employee-based login
       const response = await base44.functions.invoke('loginEmployee', { 
         employeeNumber: employeeNumber.trim().toUpperCase(),
-        employeeEmail: employee.email 
+        employeeEmail 
       });
       
       if (response.data.access_token) {
