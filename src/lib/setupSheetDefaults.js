@@ -16,7 +16,6 @@ export const emptyGeneral = {
   work_holding_notes: "",
   operation_notes: "",
   status: "Active",
-  machine_type: "milling",
 };
 
 export const emptyTurningWorkHolding = {

@@ -47,6 +47,7 @@ export default function SetupSheet() {
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const latestData = useRef({});
+  const isHydrated = useRef(false);
 
   // ── Load existing sheet ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function SetupSheet() {
       setTurningTools(tt && Object.keys(tt).length ? tt : { ...emptyTurningTools });
       setTurningOperations(tops || []);
       setLoading(false);
+      isHydrated.current = true;
     })();
   }, [id]);
 
@@ -162,9 +164,8 @@ export default function SetupSheet() {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
-    }
+    if (!isHydrated.current) return;
+    triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
