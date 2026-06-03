@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -90,8 +90,18 @@ export default function Home() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null); // sheet to confirm delete
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Auth guard — after all hooks
+  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const isAdmin = session?.isAdmin === true;
+
+  useEffect(() => {
+    if (!session) {
+      navigate("/employee-login");
+    }
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -176,6 +186,20 @@ export default function Home() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
+          </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/employee-management")}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              <Users className="w-4 h-4 shrink-0" /> Employees
+            </button>
+          )}
+          <button
+            onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-2"
+          >
+            <LogOut className="w-4 h-4 shrink-0" /> Logout
           </button>
         </nav>
       </aside>
