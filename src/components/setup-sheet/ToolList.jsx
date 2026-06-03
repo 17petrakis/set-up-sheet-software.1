@@ -12,6 +12,8 @@ const columns = [
   { key: "description", label: "Description", w: "w-auto" },
   { key: "diameter", label: "Diameter", w: "w-20" },
   { key: "flutes", label: "Flutes", w: "w-16" },
+  { key: "flute_length", label: "Flute Length", w: "w-24" },
+  { key: "stickout_length", label: "Stickout Length", w: "w-28" },
   { key: "exposed_length", label: "Exposed Length", w: "w-28" },
   { key: "cut_length", label: "Cut Length", w: "w-24" },
   { key: "holder", label: "Holder", w: "w-24" },

@@ -23,6 +23,8 @@ export const emptyTool = {
   description: "",
   diameter: "",
   flutes: "",
+  flute_length: "",
+  stickout_length: "",
   exposed_length: "",
   cut_length: "",
   holder: "",
