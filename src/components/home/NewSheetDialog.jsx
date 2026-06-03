@@ -6,18 +6,33 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 
-export default function NewSheetDialog({ onClose, onCreate }) {
+export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
-  const [customer, setCustomer] = useState("");
+  const [customerMode, setCustomerMode] = useState("select"); // "select" | "new"
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [newCustomer, setNewCustomer] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const customerValue = customerMode === "new" ? newCustomer.trim() : selectedCustomer;
 
   const handleCreate = async () => {
     if (!partNumber.trim()) return;
     setSaving(true);
+
+    // If creating a new customer name, also save it to Customer entity
+    if (customerMode === "new" && newCustomer.trim()) {
+      const alreadyExists = existingCustomers.some(
+        c => c.toLowerCase() === newCustomer.trim().toLowerCase()
+      );
+      if (!alreadyExists) {
+        await base44.entities.Customer.create({ name: newCustomer.trim() });
+      }
+    }
+
     const sheet = await base44.entities.SetupSheet.create({
       ...emptyGeneral,
       part_number: partNumber.trim(),
-      customer: customer.trim(),
+      customer: customerValue,
       tools: [{ ...emptyTool }],
       part_zero: { ...emptyPartZero },
       operations: [{ ...emptyOperation }],
@@ -49,17 +64,49 @@ export default function NewSheetDialog({ onClose, onCreate }) {
               className="h-9 text-sm"
             />
           </div>
+
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Customer <span className="text-xs text-muted-foreground font-normal normal-case">(optional — used as folder)</span>
             </Label>
-            <Input
-              value={customer}
-              onChange={e => setCustomer(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleCreate()}
-              placeholder="e.g. Acme Corp"
-              className="h-9 text-sm"
-            />
+
+            {existingCustomers.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => setCustomerMode("select")}
+                  className={`text-xs px-3 py-1 rounded-md border transition-colors ${customerMode === "select" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  Existing
+                </button>
+                <button
+                  onClick={() => setCustomerMode("new")}
+                  className={`text-xs px-3 py-1 rounded-md border transition-colors ${customerMode === "new" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  New Customer
+                </button>
+              </div>
+            )}
+
+            {customerMode === "select" && existingCustomers.length > 0 ? (
+              <select
+                value={selectedCustomer}
+                onChange={e => setSelectedCustomer(e.target.value)}
+                className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">— No Customer —</option>
+                {existingCustomers.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                value={newCustomer}
+                onChange={e => setNewCustomer(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCreate()}
+                placeholder="e.g. Acme Corp"
+                className="h-9 text-sm"
+              />
+            )}
           </div>
         </div>
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">

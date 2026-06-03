@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, FolderX } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
+import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
@@ -84,13 +85,16 @@ function SheetCard({ sheet, onOpen, onDelete }) {
 export default function Home() {
   const navigate = useNavigate();
   const [sheets, setSheets] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Auth guard — after all hooks
@@ -105,8 +109,12 @@ export default function Home() {
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.SetupSheet.list("-updated_date", 200);
+    const [data, customerData] = await Promise.all([
+      base44.entities.SetupSheet.list("-updated_date", 200),
+      base44.entities.Customer.list("name", 200),
+    ]);
     setSheets(data);
+    setCustomers(customerData);
     setLoading(false);
   };
 
@@ -122,8 +130,12 @@ export default function Home() {
     return searchMatch && statusMatch;
   });
 
-  // Group by customer
+  // Group by customer — include standalone Customer records as empty folders
   const grouped = {};
+  for (const c of customers) {
+    const name = c.name?.trim();
+    if (name && !grouped[name]) grouped[name] = [];
+  }
   for (const sheet of sheets) {
     const customer = sheet.customer?.trim() || "No Customer";
     if (!grouped[customer]) grouped[customer] = [];
@@ -132,6 +144,19 @@ export default function Home() {
   const sortedCustomers = Object.keys(grouped).sort((a, b) =>
     a === "No Customer" ? 1 : b === "No Customer" ? -1 : a.localeCompare(b)
   );
+
+  // All known customer names (for dropdowns)
+  const allCustomerNames = sortedCustomers.filter(c => c !== "No Customer");
+
+  const handleDeleteCustomer = async () => {
+    if (!deleteCustomerTarget) return;
+    // Delete the Customer entity record if it exists
+    const match = customers.find(c => c.name === deleteCustomerTarget);
+    if (match) await base44.entities.Customer.delete(match.id);
+    setCustomers(prev => prev.filter(c => c.name !== deleteCustomerTarget));
+    setDeleteCustomerTarget(null);
+    if (selectedCustomer === deleteCustomerTarget) setSelectedCustomer(null);
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -237,7 +262,7 @@ export default function Home() {
                     <h1 className="text-2xl font-bold text-foreground">Customers</h1>
                     <p className="text-sm text-muted-foreground mt-1">Organize setup sheets by customer folders</p>
                   </div>
-                  <Button onClick={() => setShowNewDialog(true)} className="gap-2">
+                  <Button onClick={() => setShowAddCustomerDialog(true)} className="gap-2">
                     <Plus className="w-4 h-4" /> Add Customer
                   </Button>
                 </div>
@@ -259,24 +284,32 @@ export default function Home() {
                     {sortedCustomers
                       .filter(c => c.toLowerCase().includes(customerSearch.toLowerCase()))
                       .map(customer => (
-                        <button
-                          key={customer}
-                          onClick={() => setSelectedCustomer(customer)}
-                          className="w-full flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all text-left"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                            <FolderOpen className="w-5 h-5 text-amber-500" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-foreground">{customer}</p>
-                          </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-sm text-muted-foreground">
-                              {grouped[customer].length} {grouped[customer].length === 1 ? "sheet" : "sheets"}
-                            </span>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        </button>
+                        <div key={customer} className="relative group/folder flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
+                          <button
+                            onClick={() => setSelectedCustomer(customer)}
+                            className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                              <FolderOpen className="w-5 h-5 text-amber-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-foreground">{customer}</p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-sm text-muted-foreground">
+                                {grouped[customer].length} {grouped[customer].length === 1 ? "sheet" : "sheets"}
+                              </span>
+                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          </button>
+                          <button
+                            onClick={() => setDeleteCustomerTarget(customer)}
+                            className="opacity-0 group-hover/folder:opacity-100 p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive text-destructive hover:text-white transition-all shrink-0"
+                            title="Delete customer folder"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       ))}
                   </div>
                 )}
@@ -347,8 +380,35 @@ export default function Home() {
       </div>
 
       {showNewDialog && (
-        <NewSheetDialog onClose={() => setShowNewDialog(false)} onCreate={handleCreated} />
+        <NewSheetDialog onClose={() => setShowNewDialog(false)} onCreate={handleCreated} existingCustomers={allCustomerNames} />
       )}
+
+      {showAddCustomerDialog && (
+        <AddCustomerDialog
+          onClose={() => setShowAddCustomerDialog(false)}
+          onAdded={(name) => {
+            setCustomers(prev => [...prev, { name }]);
+            setShowAddCustomerDialog(false);
+          }}
+        />
+      )}
+
+      <AlertDialog open={!!deleteCustomerTarget} onOpenChange={(open) => !open && setDeleteCustomerTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Customer Folder?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the folder for <strong>{deleteCustomerTarget}</strong>? This will only remove the folder — existing setup sheets won't be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCustomer} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete Folder
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
