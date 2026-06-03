@@ -154,8 +154,8 @@ export default function Home() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-56 bg-background text-foreground flex flex-col shrink-0">
-        <div className="px-4 py-5 border-b border-white/10 bg-background">
+      <aside className="w-56 bg-slate-900 text-foreground flex flex-col shrink-0">
+        <div className="px-4 py-5 border-b border-white/10 bg-slate-900">
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
             alt="Logo"
