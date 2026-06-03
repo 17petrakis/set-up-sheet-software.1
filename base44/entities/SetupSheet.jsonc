@@ -35,6 +35,14 @@
     "operation_description": {
       "type": "string"
     },
+    "operation_notes": {
+      "type": "string",
+      "description": "Operation notes"
+    },
+    "work_holding_notes": {
+      "type": "string",
+      "description": "Work holding notes"
+    },
     "program": {
       "type": "string"
     },
