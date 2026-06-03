@@ -35,6 +35,7 @@ export default function SetupSheet() {
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
+  const latestData = useRef({});
 
   // Load existing sheet
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function SetupSheet() {
   // Auto-save debounce
   const triggerSave = useCallback((gen, t, pz, ops, ph) => {
     if (!id) return;
+    latestData.current = { gen, t, pz, ops, ph };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -68,6 +70,24 @@ export default function SetupSheet() {
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus(null), 2000);
     }, 800);
+  }, [id]);
+
+  // Flush save immediately on unmount so navigation doesn't lose data
+  useEffect(() => {
+    return () => {
+      if (!id || !saveTimer.current) return;
+      clearTimeout(saveTimer.current);
+      const { gen, t, pz, ops, ph } = latestData.current;
+      if (gen) {
+        base44.entities.SetupSheet.update(id, {
+          ...gen,
+          tools: t,
+          part_zero: pz,
+          operations: ops,
+          photos: ph,
+        });
+      }
+    };
   }, [id]);
 
   const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, tools, partZero, operations, photos); };
