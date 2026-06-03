@@ -25,6 +25,7 @@ export default function SetupSheet() {
   const navigate = useNavigate();
 
   const [general, setGeneral] = useState({ ...emptyGeneral });
+  const [machineType, setMachineType] = useState("milling"); // kept separate to avoid being lost in general spread
   const [tools, setTools] = useState([{ ...emptyTool }]);
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
@@ -48,10 +49,9 @@ export default function SetupSheet() {
     if (!id) return;
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_work_holding: twh, turning_tools: tt, turning_operations: tops, ...gen } = sheet;
-      // Ensure machine_type from DB always wins over emptyGeneral default
-      const resolvedMachineType = sheet.machine_type || "milling";
-      setGeneral({ ...emptyGeneral, ...gen, machine_type: resolvedMachineType });
+      const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_work_holding: twh, turning_tools: tt, turning_operations: tops, machine_type: mt, ...gen } = sheet;
+      setMachineType(mt || "milling");
+      setGeneral({ ...emptyGeneral, ...gen, machine_type: mt || "milling" });
       setTools(t?.length ? t : [{ ...emptyTool }]);
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
@@ -72,6 +72,7 @@ export default function SetupSheet() {
       setSaving(true);
       await base44.entities.SetupSheet.update(id, {
         ...gen,
+        machine_type: gen.machine_type,
         tools: t,
         part_zero: pz,
         operations: ops,
@@ -95,6 +96,7 @@ export default function SetupSheet() {
       if (gen) {
         base44.entities.SetupSheet.update(id, {
           ...gen,
+          machine_type: gen.machine_type,
           tools: t,
           part_zero: pz,
           operations: ops,
@@ -286,8 +288,8 @@ export default function SetupSheet() {
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${general.machine_type === "turning" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
-                  {general.machine_type === "turning" ? "Turning" : "Milling"}
+                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${machineType === "turning" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
+                  {machineType === "turning" ? "Turning" : "Milling"}
                 </span>
               </p>
             </div>
@@ -328,7 +330,7 @@ export default function SetupSheet() {
           <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
-        {general.machine_type === "turning" ? (
+        {machineType === "turning" ? (
           <>
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
               <TurningWorkHolding data={turningWorkHolding} onChange={handleTurningWorkHoldingChange} />
