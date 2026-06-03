@@ -103,21 +103,20 @@ export default function SetupSheet() {
   useEffect(() => { operationsRef.current = operations; }, [operations]);
   useEffect(() => { photosRef.current = photos; }, [photos]);
 
-  // All handlers use functional updaters + refs so no stale closures can overwrite fields
   const handleGeneralChange = useCallback((field, value) => {
-    setGeneral(prev => {
-      const next = { ...prev, [field]: value };
-      generalRef.current = next;
-      triggerSave(next, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
-      return next;
-    });
-  }, [triggerSave]);
+    setGeneral(prev => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleGeneralReplace = useCallback((val) => {
     setGeneral(val);
-    generalRef.current = val;
-    triggerSave(val, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
-  }, [triggerSave]);
+  }, []);
+
+  // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
+  useEffect(() => {
+    if (!loading) {
+      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
+    }
+  }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
