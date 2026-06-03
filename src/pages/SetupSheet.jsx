@@ -287,14 +287,13 @@ export default function SetupSheet() {
           <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <motion.div className="lg:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-            <ToolList tools={tools} onChange={handleToolsChange} />
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <PartZero data={partZero} onChange={handlePartZeroChange} />
-          </motion.div>
-        </div>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+          <ToolList tools={tools} onChange={handleToolsChange} />
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+          <PartZero data={partZero} onChange={handlePartZeroChange} />
+        </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
           <OperationsList operations={operations} onChange={handleOperationsChange} />

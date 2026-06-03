@@ -37,6 +37,8 @@ export const emptyPartZero = {
   y_min: "",
   z_max: "",
   z_min: "",
+  coordinate_system: "",
+  overall_depth_range: "",
 };
 
 export const emptyOperation = {

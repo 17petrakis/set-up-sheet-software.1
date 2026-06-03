@@ -19,34 +19,63 @@ export default function PartZero({ data, onChange }) {
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Crosshair} title="Part Zero" />
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* Axis boxes */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           {axes.map(({ axis, max, min, color }) => (
-            <div key={axis} className="space-y-2">
-              <div className="text-center">
-                <span className={`text-sm font-bold font-mono ${color}`}>{axis}</span>
-              </div>
-              <div>
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 block">
-                  Max
-                </Label>
-                <Input
-                  value={data[max]}
-                  onChange={update(max)}
-                  className="h-8 text-xs text-center font-mono bg-background border-border/60"
-                />
-              </div>
-              <div>
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 block">
-                  Min
-                </Label>
-                <Input
-                  value={data[min]}
-                  onChange={update(min)}
-                  className="h-8 text-xs text-center font-mono bg-background border-border/60"
-                />
+            <div key={axis} className="rounded-lg border border-border/60 bg-muted/30 p-3">
+              <div className={`text-sm font-semibold mb-2 ${color}`}>{axis} axis</div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                    MAX
+                  </Label>
+                  <Input
+                    value={data[max] ?? ""}
+                    onChange={update(max)}
+                    placeholder="0.0000"
+                    className="h-8 text-xs text-center font-mono bg-background border-border/60"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                    MIN
+                  </Label>
+                  <Input
+                    value={data[min] ?? ""}
+                    onChange={update(min)}
+                    placeholder="0.0000"
+                    className="h-8 text-xs text-center font-mono bg-background border-border/60"
+                  />
+                </div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Bottom row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Coordinate System
+            </Label>
+            <Input
+              value={data.coordinate_system ?? ""}
+              onChange={update("coordinate_system")}
+              placeholder="e.g. CS#2 — ZX plane"
+              className="h-9 text-sm bg-background border-border/60"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Overall Depth Range
+            </Label>
+            <Input
+              value={data.overall_depth_range ?? ""}
+              onChange={update("overall_depth_range")}
+              placeholder="e.g. MAX .25 / MIN -1.175"
+              className="h-9 text-sm bg-background border-border/60"
+            />
+          </div>
         </div>
       </CardContent>
     </Card>
