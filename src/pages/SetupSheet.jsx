@@ -59,6 +59,7 @@ export default function SetupSheet() {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
+      console.log('SAVING general object:', JSON.stringify(gen));
       await base44.entities.SetupSheet.update(id, {
         ...gen,
         tools: t,
@@ -104,6 +105,7 @@ export default function SetupSheet() {
   useEffect(() => { photosRef.current = photos; }, [photos]);
 
   const handleGeneralChange = useCallback((field, value) => {
+    console.log('handleGeneralChange called:', field, value);
     setGeneral(prev => ({ ...prev, [field]: value }));
   }, []);
 
