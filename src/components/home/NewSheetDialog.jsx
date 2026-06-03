@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningWorkHolding, emptyTurningTools } from "@/lib/setupSheetDefaults";
 
 export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
+  const [machineType, setMachineType] = useState("milling");
   const [customerMode, setCustomerMode] = useState("select"); // "select" | "new"
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [newCustomer, setNewCustomer] = useState("");
@@ -29,13 +30,18 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
       }
     }
 
+    const isTurning = machineType === "turning";
     const sheet = await base44.entities.SetupSheet.create({
       ...emptyGeneral,
       part_number: partNumber.trim(),
       customer: customerValue,
-      tools: [{ ...emptyTool }],
+      machine_type: machineType,
+      tools: isTurning ? [] : [{ ...emptyTool }],
       part_zero: { ...emptyPartZero },
       operations: [{ ...emptyOperation }],
+      turning_work_holding: isTurning ? { ...emptyTurningWorkHolding } : undefined,
+      turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+      turning_operations: isTurning ? [] : undefined,
     });
     setSaving(false);
     onCreate(sheet);
@@ -51,6 +57,23 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
           </Button>
         </div>
         <div className="px-5 py-4 space-y-4">
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Machine Type
+            </Label>
+            <div className="flex gap-2">
+              {["milling", "turning"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setMachineType(t)}
+                  className={`flex-1 py-2 rounded-lg border text-sm font-medium capitalize transition-colors ${machineType === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"}`}
+                >
+                  {t === "milling" ? "⚙️ Milling" : "🔄 Turning"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Part Number <span className="text-destructive">*</span>

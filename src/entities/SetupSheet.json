@@ -1,0 +1,99 @@
+{
+  "name": "SetupSheet",
+  "type": "object",
+  "properties": {
+    "machine_type": {
+      "type": "string",
+      "enum": ["milling", "turning"],
+      "default": "milling",
+      "description": "Type of machining operation"
+    },
+    "part_number": {
+      "type": "string",
+      "description": "Part number"
+    },
+    "revision": {
+      "type": "string",
+      "description": "Revision"
+    },
+    "customer": {
+      "type": "string",
+      "description": "Customer name (used as folder grouping)"
+    },
+    "job_number": {
+      "type": "string"
+    },
+    "machine": {
+      "type": "string"
+    },
+    "programmer": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string"
+    },
+    "operation_description": {
+      "type": "string"
+    },
+    "operation_notes": {
+      "type": "string",
+      "description": "Operation notes"
+    },
+    "work_holding_notes": {
+      "type": "string",
+      "description": "Work holding notes"
+    },
+    "program": {
+      "type": "string"
+    },
+    "units": {
+      "type": "string",
+      "enum": ["Inch", "Metric"],
+      "default": "Inch"
+    },
+    "total_cycle_time": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "part_zero": {
+      "type": "object"
+    },
+    "operations": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "photos": {
+      "type": "object",
+      "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Active", "Repeating", "One Time", "Completed", "On Hold"],
+      "default": "Active",
+      "description": "Current job status"
+    },
+    "turning_work_holding": {
+      "type": "object",
+      "description": "Turning-specific chuck and work holding data"
+    },
+    "turning_tools": {
+      "type": "object",
+      "description": "Turning turret tool list with axial and radial tools"
+    },
+    "turning_operations": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "Turning operations with N-block, CS#, etc."
+    }
+  },
+  "required": ["part_number"]
+}
