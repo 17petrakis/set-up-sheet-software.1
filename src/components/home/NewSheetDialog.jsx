@@ -32,10 +32,11 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
 
     const isTurning = machineType === "turning";
     const sheet = await base44.entities.SetupSheet.create({
-      ...emptyGeneral,
       part_number: partNumber.trim(),
       customer: customerValue,
       machine_type: machineType,
+      units: "Inch",
+      status: "Active",
       tools: isTurning ? [] : [{ ...emptyTool }],
       part_zero: { ...emptyPartZero },
       operations: [{ ...emptyOperation }],

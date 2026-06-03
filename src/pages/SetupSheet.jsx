@@ -49,7 +49,9 @@ export default function SetupSheet() {
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
       const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_work_holding: twh, turning_tools: tt, turning_operations: tops, ...gen } = sheet;
-      setGeneral({ ...emptyGeneral, ...gen });
+      // Ensure machine_type from DB always wins over emptyGeneral default
+      const resolvedMachineType = sheet.machine_type || "milling";
+      setGeneral({ ...emptyGeneral, ...gen, machine_type: resolvedMachineType });
       setTools(t?.length ? t : [{ ...emptyTool }]);
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
