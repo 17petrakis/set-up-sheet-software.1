@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionHeader from "./SectionHeader";
 import { Settings2 } from "lucide-react";
@@ -147,10 +147,10 @@ export default function GeneralInfo({ data, onChange }) {
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
             Operation Description
           </Label>
-          <Textarea
+          <AutoResizeTextarea
             value={data.operation_description}
             onChange={(e) => update("operation_description")(e.target.value)}
-            className="h-16 text-sm bg-background border-border/60 resize-none"
+            className="min-h-[64px] text-sm bg-background border-border/60"
           />
         </div>
 
@@ -158,10 +158,10 @@ export default function GeneralInfo({ data, onChange }) {
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
             Work Holding Notes
           </Label>
-          <Textarea
+          <AutoResizeTextarea
             value={data.work_holding_notes}
             onChange={(e) => update("work_holding_notes")(e.target.value)}
-            className="h-16 text-sm bg-background border-border/60 resize-none"
+            className="min-h-[64px] text-sm bg-background border-border/60"
           />
         </div>
       </CardContent>
