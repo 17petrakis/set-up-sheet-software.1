@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningWorkHolding, emptyTurningTools } from "@/lib/setupSheetDefaults";
+import { emptyPartZero, emptyTool, emptyOperation, emptyTurningWorkHolding, emptyTurningTools } from "@/lib/setupSheetDefaults";
 
 export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
@@ -31,19 +31,24 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
     }
 
     const isTurning = machineType === "turning";
+
+    // Step 2: pass fields explicitly — no emptyGeneral spread — machine_type is top-level
     const sheet = await base44.entities.SetupSheet.create({
+      machine_type: machineType,
       part_number: partNumber.trim(),
       customer: customerValue,
-      machine_type: machineType,
       units: "Inch",
       status: "Active",
       tools: isTurning ? [] : [{ ...emptyTool }],
       part_zero: { ...emptyPartZero },
       operations: [{ ...emptyOperation }],
-      turning_work_holding: isTurning ? { ...emptyTurningWorkHolding } : undefined,
-      turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
-      turning_operations: isTurning ? [] : undefined,
+      turning_work_holding: isTurning ? { ...emptyTurningWorkHolding } : null,
+      turning_tools: isTurning ? { ...emptyTurningTools } : null,
+      turning_operations: isTurning ? [] : null,
     });
+
+    console.log("Created sheet machine_type:", sheet.machine_type);
+
     setSaving(false);
     onCreate(sheet);
   };

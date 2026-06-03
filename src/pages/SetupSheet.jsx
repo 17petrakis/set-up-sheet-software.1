@@ -24,8 +24,10 @@ export default function SetupSheet() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // ── machineType is isolated from general state to prevent any spread from overwriting it ──
+  const [machineType, setMachineType] = useState("milling");
+
   const [general, setGeneral] = useState({ ...emptyGeneral });
-  const [machineType, setMachineType] = useState("milling"); // kept separate to avoid being lost in general spread
   const [tools, setTools] = useState([{ ...emptyTool }]);
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
@@ -33,25 +35,45 @@ export default function SetupSheet() {
   const [turningWorkHolding, setTurningWorkHolding] = useState({ ...emptyTurningWorkHolding });
   const [turningTools, setTurningTools] = useState({ ...emptyTurningTools });
   const [turningOperations, setTurningOperations] = useState([]);
+
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState(null); // "saved" | null
+  const [saveStatus, setSaveStatus] = useState(null);
   const [debugText, setDebugText] = useState(null);
   const [loading, setLoading] = useState(!!id);
+
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const latestData = useRef({});
 
-  // Load existing sheet
+  // ── Load existing sheet ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_work_holding: twh, turning_tools: tt, turning_operations: tops, machine_type: mt, ...gen } = sheet;
-      setMachineType(mt || "milling");
-      setGeneral({ ...emptyGeneral, ...gen, machine_type: mt || "milling" });
+
+      // Step 6: log machine_type from DB so we can verify it's being saved correctly
+      console.log("machine_type from DB:", sheet.machine_type);
+
+      // Step 3: destructure machine_type FIRST, before any spread
+      const {
+        machine_type,
+        tools: t,
+        part_zero: pz,
+        operations: ops,
+        photos: ph,
+        turning_work_holding: twh,
+        turning_tools: tt,
+        turning_operations: tops,
+        ...gen
+      } = sheet;
+
+      // Step 3: store in isolated state — never derive from general
+      setMachineType(machine_type || "milling");
+
+      setGeneral({ ...emptyGeneral, ...gen });
       setTools(t?.length ? t : [{ ...emptyTool }]);
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
@@ -63,16 +85,17 @@ export default function SetupSheet() {
     })();
   }, [id]);
 
-  // Auto-save debounce
-  const triggerSave = useCallback((gen, t, pz, ops, ph, twh, tt, tops) => {
+  // ── Auto-save ─────────────────────────────────────────────────────────────────
+  // Step 5: always include machine_type explicitly in save payload
+  const triggerSave = useCallback((gen, t, pz, ops, ph, twh, tt, tops, mt) => {
     if (!id) return;
-    latestData.current = { gen, t, pz, ops, ph, twh, tt, tops };
+    latestData.current = { gen, t, pz, ops, ph, twh, tt, tops, mt };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
       await base44.entities.SetupSheet.update(id, {
         ...gen,
-        machine_type: gen.machine_type,
+        machine_type: mt,          // explicit — never rely on gen spreading it in
         tools: t,
         part_zero: pz,
         operations: ops,
@@ -87,16 +110,16 @@ export default function SetupSheet() {
     }, 800);
   }, [id]);
 
-  // Flush save immediately on unmount so navigation doesn't lose data
+  // Flush save on unmount so navigation doesn't lose data
   useEffect(() => {
     return () => {
       if (!id || !saveTimer.current) return;
       clearTimeout(saveTimer.current);
-      const { gen, t, pz, ops, ph, twh, tt, tops } = latestData.current;
+      const { gen, t, pz, ops, ph, twh, tt, tops, mt } = latestData.current;
       if (gen) {
         base44.entities.SetupSheet.update(id, {
           ...gen,
-          machine_type: gen.machine_type,
+          machine_type: mt,
           tools: t,
           part_zero: pz,
           operations: ops,
@@ -109,7 +132,7 @@ export default function SetupSheet() {
     };
   }, [id]);
 
-  // Use refs to always have latest values for triggerSave closures
+  // ── Refs to hold latest values for stale-closure-safe triggerSave calls ──────
   const generalRef = useRef(general);
   const toolsRef = useRef(tools);
   const partZeroRef = useRef(partZero);
@@ -118,6 +141,7 @@ export default function SetupSheet() {
   const turningWorkHoldingRef = useRef(turningWorkHolding);
   const turningToolsRef = useRef(turningTools);
   const turningOperationsRef = useRef(turningOperations);
+  const machineTypeRef = useRef(machineType);
 
   useEffect(() => { generalRef.current = general; }, [general]);
   useEffect(() => { toolsRef.current = tools; }, [tools]);
@@ -127,6 +151,7 @@ export default function SetupSheet() {
   useEffect(() => { turningWorkHoldingRef.current = turningWorkHolding; }, [turningWorkHolding]);
   useEffect(() => { turningToolsRef.current = turningTools; }, [turningTools]);
   useEffect(() => { turningOperationsRef.current = turningOperations; }, [turningOperations]);
+  useEffect(() => { machineTypeRef.current = machineType; }, [machineType]);
 
   const handleGeneralChange = useCallback((field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
@@ -136,48 +161,48 @@ export default function SetupSheet() {
     setGeneral(val);
   }, []);
 
-  // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
     if (!loading) {
-      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current);
+      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
     }
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
-    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current);
+    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handlePartZeroChange = useCallback((val) => {
     setPartZero(val); partZeroRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current);
+    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handleOperationsChange = useCallback((val) => {
     setOperations(val); operationsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handlePhotosChange = useCallback((val) => {
     setPhotos(val); photosRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val, turningWorkHoldingRef.current, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handleTurningWorkHoldingChange = useCallback((val) => {
     setTurningWorkHolding(val); turningWorkHoldingRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningToolsRef.current, turningOperationsRef.current);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningToolsRef.current, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handleTurningToolsChange = useCallback((val) => {
     setTurningTools(val); turningToolsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, val, turningOperationsRef.current);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, val, turningOperationsRef.current, machineTypeRef.current);
   }, [triggerSave]);
 
   const handleTurningOperationsChange = useCallback((val) => {
     setTurningOperations(val); turningOperationsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, val);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningToolsRef.current, val, machineTypeRef.current);
   }, [triggerSave]);
 
+  // ── Debug PDF ─────────────────────────────────────────────────────────────────
   const handleDebugPDF = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -207,6 +232,7 @@ export default function SetupSheet() {
     }
   };
 
+  // ── File Import ───────────────────────────────────────────────────────────────
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -230,7 +256,6 @@ export default function SetupSheet() {
       const newOps = result.operations?.length ? result.operations : operations;
       console.log('Extracted image:', isoImage ? 'YES - length ' + isoImage.length : 'NULL');
 
-      // Convert base64 data URL to a hosted file URL before saving
       let isoUrl = null;
       if (isoImage) {
         const blob = await (await fetch(isoImage)).blob();
@@ -254,14 +279,7 @@ export default function SetupSheet() {
     }
   };
 
-  const handleReset = () => {
-    setGeneral({ ...emptyGeneral });
-    setTools([{ ...emptyTool }]);
-    setPartZero({ ...emptyPartZero });
-    setOperations([{ ...emptyOperation }]);
-    setImportError(null);
-  };
-
+  // ── Render ────────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -269,6 +287,9 @@ export default function SetupSheet() {
       </div>
     );
   }
+
+  // Step 4: isTurning derived only from isolated machineType state
+  const isTurning = machineType === "turning";
 
   return (
     <div className="min-h-screen bg-background">
@@ -288,8 +309,8 @@ export default function SetupSheet() {
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${machineType === "turning" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
-                  {machineType === "turning" ? "Turning" : "Milling"}
+                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${isTurning ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}>
+                  {isTurning ? "Turning" : "Milling"}
                 </span>
               </p>
             </div>
@@ -330,7 +351,7 @@ export default function SetupSheet() {
           <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
-        {machineType === "turning" ? (
+        {isTurning ? (
           <>
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
               <TurningWorkHolding data={turningWorkHolding} onChange={handleTurningWorkHoldingChange} />
