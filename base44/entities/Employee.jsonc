@@ -1,0 +1,22 @@
+{
+  "name": "Employee",
+  "type": "object",
+  "properties": {
+    "employeeNumber": {
+      "type": "string",
+      "description": "Unique employee login number"
+    },
+    "name": {
+      "type": "string",
+      "description": "Employee full name"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the employee can access the app"
+    }
+  },
+  "required": [
+    "employeeNumber"
+  ]
+}
