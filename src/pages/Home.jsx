@@ -176,28 +176,28 @@ export default function Home() {
             onClick={() => switchNav("customers")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "customers" ? "bg-primary text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"
+              activeNav === "customers" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
             )}
           >
             <Users className="w-4 h-4 shrink-0" /> Customers
           </button>
           <button
             onClick={() => setShowNewDialog(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
-          >
-            <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                        >
+                          <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
           </button>
           {isAdmin && (
             <button
               onClick={() => navigate("/employee-management")}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              <Users className="w-4 h-4 shrink-0" /> Employees
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                            >
+                              <Users className="w-4 h-4 shrink-0" /> Employees
             </button>
           )}
           <button
             onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors mt-2"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors mt-2"
           >
             <LogOut className="w-4 h-4 shrink-0" /> Logout
           </button>
