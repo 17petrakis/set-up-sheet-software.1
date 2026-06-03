@@ -103,11 +103,41 @@ export default function SetupSheet() {
   useEffect(() => { operationsRef.current = operations; }, [operations]);
   useEffect(() => { photosRef.current = photos; }, [photos]);
 
-  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current); };
-  const handleToolsChange = (val) => { setTools(val); triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current); };
-  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current); };
-  const handleOperationsChange = (val) => { setOperations(val); triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current); };
-  const handlePhotosChange = (val) => { setPhotos(val); triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val); };
+  // All handlers use functional updaters + refs so no stale closures can overwrite fields
+  const handleGeneralChange = useCallback((field, value) => {
+    setGeneral(prev => {
+      const next = { ...prev, [field]: value };
+      generalRef.current = next;
+      triggerSave(next, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
+      return next;
+    });
+  }, [triggerSave]);
+
+  const handleGeneralReplace = useCallback((val) => {
+    setGeneral(val);
+    generalRef.current = val;
+    triggerSave(val, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
+  }, [triggerSave]);
+
+  const handleToolsChange = useCallback((val) => {
+    setTools(val); toolsRef.current = val;
+    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current);
+  }, [triggerSave]);
+
+  const handlePartZeroChange = useCallback((val) => {
+    setPartZero(val); partZeroRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current);
+  }, [triggerSave]);
+
+  const handleOperationsChange = useCallback((val) => {
+    setOperations(val); operationsRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current);
+  }, [triggerSave]);
+
+  const handlePhotosChange = useCallback((val) => {
+    setPhotos(val); photosRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val);
+  }, [triggerSave]);
 
   const handleDebugPDF = async (e) => {
     const file = e.target.files?.[0];
@@ -171,12 +201,11 @@ export default function SetupSheet() {
 
       const newPhotos = isoUrl ? { ...photos, iso: isoUrl } : photos;
 
-      setGeneral(newGen);
-      setTools(newTools);
-      setPartZero(newPZ);
-      setOperations(newOps);
-      if (isoUrl) setPhotos(newPhotos);
-      triggerSave(newGen, newTools, newPZ, newOps, newPhotos);
+      handleGeneralReplace(newGen);
+      handleToolsChange(newTools);
+      handlePartZeroChange(newPZ);
+      handleOperationsChange(newOps);
+      if (isoUrl) handlePhotosChange(newPhotos);
     } catch (err) {
       setImportError("Could not read file — please fill in manually");
       console.error("Import error:", err);
@@ -256,7 +285,7 @@ export default function SetupSheet() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <GeneralInfo data={general} onChange={handleGeneralChange} />
+          <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -273,7 +302,7 @@ export default function SetupSheet() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
-          <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange({ ...generalRef.current, operation_notes: val })} />
+          <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>

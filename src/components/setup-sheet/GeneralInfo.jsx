@@ -22,8 +22,8 @@ const Field = ({ label, value, onChange, type = "text", className = "" }) => (
   </div>
 );
 
-export default function GeneralInfo({ data, onChange }) {
-  const update = (field) => (value) => onChange({ ...data, [field]: value });
+export default function GeneralInfo({ data, onChange, onReplace }) {
+  const update = (field) => (value) => onChange(field, value);
 
   const [customerNames, setCustomerNames] = useState([]);
   const [customerMode, setCustomerMode] = useState("select");
@@ -45,9 +45,9 @@ export default function GeneralInfo({ data, onChange }) {
   const handleCustomerSelect = (val) => {
     if (val === "__new__") {
       setCustomerMode("new");
-      update("customer")("");
+      onChange("customer", "");
     } else {
-      update("customer")(val === "__none__" ? "" : val);
+      onChange("customer", val === "__none__" ? "" : val);
     }
   };
 
