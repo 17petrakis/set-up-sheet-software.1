@@ -199,7 +199,7 @@ export default function PrintView() {
           {allPhotoSlots.length > 0 && (
             <section>
               <h2 className="print-section-title">Photos</h2>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-8">
                 {allPhotoSlots.map(({ key, label }) => (
                   <div key={key} className="space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{label}</p>
@@ -207,7 +207,7 @@ export default function PrintView() {
                       src={photos[key]}
                       alt={label}
                       className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"
-                      style={{ maxHeight: "380px" }}
+                      style={{ maxHeight: "600px" }}
                     />
                     {photos[`${key}__note`] && (
                       <p className="text-xs text-gray-600 italic">{photos[`${key}__note`]}</p>
