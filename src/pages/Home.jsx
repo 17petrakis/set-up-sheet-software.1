@@ -160,8 +160,19 @@ export default function Home() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    const customerName = deleteTarget.customer?.trim();
     await base44.entities.SetupSheet.delete(deleteTarget.id);
-    setSheets(prev => prev.filter(s => s.id !== deleteTarget.id));
+    const remaining = sheets.filter(s => s.id !== deleteTarget.id);
+    // Preserve the customer folder if this was the last sheet for that customer
+    if (customerName) {
+      const stillHasSheets = remaining.some(s => s.customer?.trim() === customerName);
+      const alreadyInCustomers = customers.some(c => c.name === customerName);
+      if (!stillHasSheets && !alreadyInCustomers) {
+        const newCustomer = await base44.entities.Customer.create({ name: customerName });
+        setCustomers(prev => [...prev, newCustomer]);
+      }
+    }
+    setSheets(remaining);
     setDeleteTarget(null);
   };
 
@@ -192,7 +203,7 @@ export default function Home() {
             onClick={() => switchNav("dashboard")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "dashboard" ? "bg-primary text-white" : "text-slate-300 hover:bg-white/10 hover:text-white"
+              activeNav === "dashboard" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
             )}
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" /> Dashboard
