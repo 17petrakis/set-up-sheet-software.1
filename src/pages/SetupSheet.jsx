@@ -90,11 +90,24 @@ export default function SetupSheet() {
     };
   }, [id]);
 
-  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, tools, partZero, operations, photos); };
-  const handleToolsChange = (val) => { setTools(val); triggerSave(general, val, partZero, operations, photos); };
-  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(general, tools, val, operations, photos); };
-  const handleOperationsChange = (val) => { setOperations(val); triggerSave(general, tools, partZero, val, photos); };
-  const handlePhotosChange = (val) => { setPhotos(val); triggerSave(general, tools, partZero, operations, val); };
+  // Use refs to always have latest values for triggerSave closures
+  const generalRef = useRef(general);
+  const toolsRef = useRef(tools);
+  const partZeroRef = useRef(partZero);
+  const operationsRef = useRef(operations);
+  const photosRef = useRef(photos);
+
+  useEffect(() => { generalRef.current = general; }, [general]);
+  useEffect(() => { toolsRef.current = tools; }, [tools]);
+  useEffect(() => { partZeroRef.current = partZero; }, [partZero]);
+  useEffect(() => { operationsRef.current = operations; }, [operations]);
+  useEffect(() => { photosRef.current = photos; }, [photos]);
+
+  const handleGeneralChange = (val) => { setGeneral(val); triggerSave(val, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current); };
+  const handleToolsChange = (val) => { setTools(val); triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current); };
+  const handlePartZeroChange = (val) => { setPartZero(val); triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current); };
+  const handleOperationsChange = (val) => { setOperations(val); triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current); };
+  const handlePhotosChange = (val) => { setPhotos(val); triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val); };
 
   const handleDebugPDF = async (e) => {
     const file = e.target.files?.[0];
@@ -260,7 +273,7 @@ export default function SetupSheet() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
-          <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange({ ...general, operation_notes: val })} />
+          <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange({ ...generalRef.current, operation_notes: val })} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
