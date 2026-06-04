@@ -18,17 +18,6 @@ export const emptyGeneral = {
   status: "Active",
 };
 
-export const emptyTurningWorkHolding = {
-  jaw_description: "",
-  chuck_type: "3-jaw",
-  chuck_pressure: "",
-  coolant_pressure: "",
-  concentricity: "",
-  fixturing_notes: "",
-};
-
-export const emptyTurningTools = { axial: [], radial: [] };
-
 export const emptyTool = {
   tool_number: "",
   description: "",
