@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, FolderX } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import { cn } from "@/lib/utils";
@@ -84,10 +84,14 @@ function SheetCard({ sheet, onOpen, onDelete }) {
 
 export default function Home() {
   const navigate = useNavigate();
+  const PAGE_SIZE = 50;
   const [sheets, setSheets] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(0);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -110,12 +114,23 @@ export default function Home() {
   const load = async () => {
     setLoading(true);
     const [data, customerData] = await Promise.all([
-      base44.entities.SetupSheet.list("-updated_date", 200),
+      base44.entities.SetupSheet.list("-updated_date", PAGE_SIZE, 0),
       base44.entities.Customer.list("name", 200),
     ]);
     setSheets(data);
+    setHasMore(data.length === PAGE_SIZE);
+    setPage(1);
     setCustomers(customerData);
     setLoading(false);
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const data = await base44.entities.SetupSheet.list("-updated_date", PAGE_SIZE, page * PAGE_SIZE);
+    setSheets(prev => [...prev, ...data]);
+    setHasMore(data.length === PAGE_SIZE);
+    setPage(prev => prev + 1);
+    setLoadingMore(false);
   };
 
   useEffect(() => { load(); }, []);
@@ -379,11 +394,25 @@ export default function Home() {
               ) : filtered.length === 0 ? (
                 <p className="text-center py-12 text-muted-foreground text-sm">No results found.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {filtered.map(sheet => (
-                    <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filtered.map(sheet => (
+                      <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
+                    ))}
+                  </div>
+                  {hasMore && !search && statusFilter === "all" && (
+                    <div className="flex justify-center mt-8">
+                      <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="gap-2">
+                        {loadingMore ? (
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                        Load More
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
