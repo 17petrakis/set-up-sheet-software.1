@@ -13,8 +13,11 @@ import ImportBanner from "@/components/setup-sheet/ImportBanner";
 import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
 import PhotoSection from "@/components/setup-sheet/PhotoSection";
 import OperationNotes from "@/components/setup-sheet/OperationNotes";
+import TurningChuckSection from "@/components/setup-sheet/TurningChuckSection";
+import TurningToolList from "@/components/setup-sheet/TurningToolList";
+import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
 
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
 
 export default function SetupSheet() {
@@ -26,6 +29,7 @@ export default function SetupSheet() {
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
   const [photos, setPhotos] = useState({});
+  const [turningChuck, setTurningChuck] = useState({ ...emptyTurningChuck });
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -42,20 +46,22 @@ export default function SetupSheet() {
     if (!id) return;
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, part_zero: pz, operations: ops, photos: ph, ...gen } = sheet;
+      const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = sheet;
+      const isTurning = gen.machine_type === "turning";
       setGeneral({ ...emptyGeneral, ...gen });
-      setTools(t?.length ? t : [{ ...emptyTool }]);
+      setTools(isTurning ? (t || { ...emptyTurningTools }) : (t?.length ? t : [{ ...emptyTool }]));
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
-      setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
+      setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
       setPhotos(ph || {});
+      setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
       setLoading(false);
     })();
   }, [id]);
 
   // Auto-save debounce
-  const triggerSave = useCallback((gen, t, pz, ops, ph) => {
+  const triggerSave = useCallback((gen, t, pz, ops, ph, tc) => {
     if (!id) return;
-    latestData.current = { gen, t, pz, ops, ph };
+    latestData.current = { gen, t, pz, ops, ph, tc };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -65,6 +71,7 @@ export default function SetupSheet() {
         part_zero: pz,
         operations: ops,
         photos: ph,
+        turning_chuck: latestData.current.tc,
       });
       setSaving(false);
       setSaveStatus("saved");
@@ -85,6 +92,7 @@ export default function SetupSheet() {
           part_zero: pz,
           operations: ops,
           photos: ph,
+          turning_chuck: latestData.current.tc,
         });
       }
     };
@@ -96,12 +104,14 @@ export default function SetupSheet() {
   const partZeroRef = useRef(partZero);
   const operationsRef = useRef(operations);
   const photosRef = useRef(photos);
+  const turningChuckRef = useRef(turningChuck);
 
   useEffect(() => { generalRef.current = general; }, [general]);
   useEffect(() => { toolsRef.current = tools; }, [tools]);
   useEffect(() => { partZeroRef.current = partZero; }, [partZero]);
   useEffect(() => { operationsRef.current = operations; }, [operations]);
   useEffect(() => { photosRef.current = photos; }, [photos]);
+  useEffect(() => { turningChuckRef.current = turningChuck; }, [turningChuck]);
 
   const handleGeneralChange = useCallback((field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
@@ -114,28 +124,33 @@ export default function SetupSheet() {
   // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
     if (!loading) {
-      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
+      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningChuckRef.current);
     }
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
-    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current);
+    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handlePartZeroChange = useCallback((val) => {
     setPartZero(val); partZeroRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current);
+    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handleOperationsChange = useCallback((val) => {
     setOperations(val); operationsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handlePhotosChange = useCallback((val) => {
     setPhotos(val); photosRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val, turningChuckRef.current);
+  }, [triggerSave]);
+
+  const handleTurningChuckChange = useCallback((val) => {
+    setTurningChuck(val); turningChuckRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val);
   }, [triggerSave]);
 
   const handleDebugPDF = async (e) => {
@@ -287,17 +302,39 @@ export default function SetupSheet() {
           <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-          <ToolList tools={tools} onChange={handleToolsChange} />
-        </motion.div>
+        {general.machine_type === "turning" ? (
+          <>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+              <TurningChuckSection data={turningChuck} onChange={handleTurningChuckChange} />
+            </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-          <PartZero data={partZero} onChange={handlePartZeroChange} />
-        </motion.div>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
+              <TurningToolList tools={tools} onChange={handleToolsChange} />
+            </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-          <OperationsList operations={operations} onChange={handleOperationsChange} />
-        </motion.div>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+              <PartZero data={partZero} onChange={handlePartZeroChange} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+              <TurningOperationsList operations={operations} onChange={handleOperationsChange} />
+            </motion.div>
+          </>
+        ) : (
+          <>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+              <ToolList tools={tools} onChange={handleToolsChange} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+              <PartZero data={partZero} onChange={handlePartZeroChange} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+              <OperationsList operations={operations} onChange={handleOperationsChange} />
+            </motion.div>
+          </>
+        )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
           <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} />

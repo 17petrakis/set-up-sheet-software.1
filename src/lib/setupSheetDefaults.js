@@ -1,4 +1,5 @@
 export const emptyGeneral = {
+  machine_type: "milling",
   machine: "",
   job_number: "",
   customer: "",
@@ -50,4 +51,26 @@ export const emptyOperation = {
   max_z: "",
   cycle_time: "",
   spindle_rpm: "",
+};
+
+export const emptyTurningChuck = {
+  jaw_description: "",
+  chuck_type: "3-jaw",
+  chuck_pressure_psi: 60,
+  coolant_pressure_psi: 120,
+  concentricity_requirement: "",
+  fixturing_notes: "",
+};
+
+export const emptyTurningTools = { axial: [], radial: [] };
+
+export const emptyTurningOperation = {
+  n_block: "",
+  op_number: "",
+  operation_name: "",
+  comment: "",
+  tool_number: "",
+  cs_number: "",
+  min_z: "",
+  max_z: "",
 };

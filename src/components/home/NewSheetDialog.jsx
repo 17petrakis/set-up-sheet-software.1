@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 
 export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
+  const [machineType, setMachineType] = useState("milling"); // "milling" | "turning"
   const [customerMode, setCustomerMode] = useState("select"); // "select" | "new"
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [newCustomer, setNewCustomer] = useState("");
@@ -29,13 +30,16 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
       }
     }
 
+    const isTurning = machineType === "turning";
     const sheet = await base44.entities.SetupSheet.create({
       ...emptyGeneral,
+      machine_type: machineType,
       part_number: partNumber.trim(),
       customer: customerValue,
-      tools: [{ ...emptyTool }],
+      tools: isTurning ? { ...emptyTurningTools } : [{ ...emptyTool }],
       part_zero: { ...emptyPartZero },
-      operations: [{ ...emptyOperation }],
+      operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
+      turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
     });
     setSaving(false);
     onCreate(sheet);
@@ -51,6 +55,28 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
           </Button>
         </div>
         <div className="px-5 py-4 space-y-4">
+          {/* Machine Type */}
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Machine Type
+            </Label>
+            <div className="flex gap-2">
+              {["milling", "turning"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setMachineType(type)}
+                  className={`flex-1 text-sm py-2 rounded-lg border font-medium transition-colors capitalize ${
+                    machineType === type
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:text-foreground bg-background"
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Part Number <span className="text-destructive">*</span>
