@@ -145,7 +145,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         <div className="mt-3">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            Operation Description
+            {machineType === "turning" ? "Pre-machining Notes" : "Operation Description"}
           </Label>
           <AutoResizeTextarea
             value={data.operation_description}
