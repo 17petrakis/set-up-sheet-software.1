@@ -51,3 +51,45 @@ export const emptyOperation = {
   cycle_time: "",
   spindle_rpm: "",
 };
+
+// Turning-specific defaults
+export const emptyTurningWorkHolding = {
+  jaw_description: "",
+  chuck_type: "3-jaw",
+  chuck_pressure: "",
+  coolant_pressure: "",
+  concentricity_requirement: "",
+  fixturing_notes: "",
+};
+
+export const emptyTurningAxialTool = {
+  tool_number: "",
+  description: "",
+  type: "",
+  diameter_radius: "",
+  angle: "",
+  holder: "",
+  stickout: "",
+};
+
+export const emptyTurningRadialTool = {
+  tool_number: "",
+  description: "",
+  type: "",
+  diameter_radius: "",
+  angle_insert: "",
+  holder: "",
+  stickout: "",
+  extension: "",
+};
+
+export const emptyTurningOperation = {
+  n_block: "",
+  op_number: "",
+  operation_name: "",
+  comment: "",
+  tool_number: "",
+  cs_number: "",
+  min_z: "",
+  max_z: "",
+};
