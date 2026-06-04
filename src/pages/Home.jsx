@@ -57,11 +57,6 @@ function SheetCard({ sheet, onOpen, onDelete }) {
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[sheet.status] || statusColors.Active}`}>
           {sheet.status || "Active"}
         </span>
-        {sheet.sheet_type === "turning" && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide bg-purple-100 text-purple-700">
-            Turning
-          </span>
-        )}
       </div>
       <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
         {sheet.job_number && (

@@ -3,16 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Wrench, Settings } from "lucide-react";
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningWorkHolding, emptyTurningAxialTool, emptyTurningRadialTool, emptyTurningOperation } from "@/lib/setupSheetDefaults";
-import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 
 export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
-  const [customerMode, setCustomerMode] = useState("select");
+  const [customerMode, setCustomerMode] = useState("select"); // "select" | "new"
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [newCustomer, setNewCustomer] = useState("");
-  const [sheetType, setSheetType] = useState("milling"); // "milling" | "turning"
   const [saving, setSaving] = useState(false);
 
   const customerValue = customerMode === "new" ? newCustomer.trim() : selectedCustomer;
@@ -21,6 +19,7 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
     if (!partNumber.trim()) return;
     setSaving(true);
 
+    // If creating a new customer name, also save it to Customer entity
     if (customerMode === "new" && newCustomer.trim()) {
       const alreadyExists = existingCustomers.some(
         c => c.toLowerCase() === newCustomer.trim().toLowerCase()
@@ -30,34 +29,14 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
       }
     }
 
-    const baseData = {
+    const sheet = await base44.entities.SetupSheet.create({
       ...emptyGeneral,
       part_number: partNumber.trim(),
       customer: customerValue,
-      sheet_type: sheetType,
-    };
-
-    let sheet;
-    if (sheetType === "turning") {
-      sheet = await base44.entities.SetupSheet.create({
-        ...baseData,
-        turning_work_holding: { ...emptyTurningWorkHolding },
-        turning_axial_tools: [{ ...emptyTurningAxialTool }],
-        turning_radial_tools: [{ ...emptyTurningRadialTool }],
-        turning_operations: [{ ...emptyTurningOperation }],
-        part_zero: { ...emptyPartZero },
-        photos: {},
-      });
-    } else {
-      sheet = await base44.entities.SetupSheet.create({
-        ...baseData,
-        tools: [{ ...emptyTool }],
-        part_zero: { ...emptyPartZero },
-        operations: [{ ...emptyOperation }],
-        photos: {},
-      });
-    }
-
+      tools: [{ ...emptyTool }],
+      part_zero: { ...emptyPartZero },
+      operations: [{ ...emptyOperation }],
+    });
     setSaving(false);
     onCreate(sheet);
   };
@@ -72,40 +51,6 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
           </Button>
         </div>
         <div className="px-5 py-4 space-y-4">
-
-          {/* Sheet type selector */}
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-              Sheet Type
-            </Label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setSheetType("milling")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all text-sm font-medium",
-                  sheetType === "milling"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                )}
-              >
-                <Settings className="w-5 h-5" />
-                Milling
-              </button>
-              <button
-                onClick={() => setSheetType("turning")}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all text-sm font-medium",
-                  sheetType === "turning"
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                )}
-              >
-                <Wrench className="w-5 h-5" />
-                Turning
-              </button>
-            </div>
-          </div>
-
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Part Number <span className="text-destructive">*</span>

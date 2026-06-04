@@ -13,11 +13,8 @@ import ImportBanner from "@/components/setup-sheet/ImportBanner";
 import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
 import PhotoSection from "@/components/setup-sheet/PhotoSection";
 import OperationNotes from "@/components/setup-sheet/OperationNotes";
-import TurningWorkHolding from "@/components/setup-sheet/TurningWorkHolding";
-import TurningToolList from "@/components/setup-sheet/TurningToolList";
-import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
 
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningWorkHolding, emptyTurningAxialTool, emptyTurningRadialTool, emptyTurningOperation } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
 
 export default function SetupSheet() {
@@ -29,11 +26,6 @@ export default function SetupSheet() {
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
   const [photos, setPhotos] = useState({});
-  const [sheetType, setSheetType] = useState("milling");
-  const [turningWorkHolding, setTurningWorkHolding] = useState({ ...emptyTurningWorkHolding });
-  const [turningAxialTools, setTurningAxialTools] = useState([{ ...emptyTurningAxialTool }]);
-  const [turningRadialTools, setTurningRadialTools] = useState([{ ...emptyTurningRadialTool }]);
-  const [turningOperations, setTurningOperations] = useState([{ ...emptyTurningOperation }]);
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -50,25 +42,20 @@ export default function SetupSheet() {
     if (!id) return;
     (async () => {
       const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, part_zero: pz, operations: ops, photos: ph, turning_work_holding: twh, turning_axial_tools: tat, turning_radial_tools: trt, turning_operations: tops, sheet_type: st, ...gen } = sheet;
+      const { tools: t, part_zero: pz, operations: ops, photos: ph, ...gen } = sheet;
       setGeneral({ ...emptyGeneral, ...gen });
-      setSheetType(st || "milling");
       setTools(t?.length ? t : [{ ...emptyTool }]);
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
       setPhotos(ph || {});
-      setTurningWorkHolding(twh && Object.keys(twh).length ? { ...emptyTurningWorkHolding, ...twh } : { ...emptyTurningWorkHolding });
-      setTurningAxialTools(tat?.length ? tat : [{ ...emptyTurningAxialTool }]);
-      setTurningRadialTools(trt?.length ? trt : [{ ...emptyTurningRadialTool }]);
-      setTurningOperations(tops?.length ? tops : [{ ...emptyTurningOperation }]);
       setLoading(false);
     })();
   }, [id]);
 
   // Auto-save debounce
-  const triggerSave = useCallback((gen, t, pz, ops, ph, twh, tat, trt, tops) => {
+  const triggerSave = useCallback((gen, t, pz, ops, ph) => {
     if (!id) return;
-    latestData.current = { gen, t, pz, ops, ph, twh, tat, trt, tops };
+    latestData.current = { gen, t, pz, ops, ph };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -78,10 +65,6 @@ export default function SetupSheet() {
         part_zero: pz,
         operations: ops,
         photos: ph,
-        turning_work_holding: twh,
-        turning_axial_tools: tat,
-        turning_radial_tools: trt,
-        turning_operations: tops,
       });
       setSaving(false);
       setSaveStatus("saved");
@@ -94,7 +77,7 @@ export default function SetupSheet() {
     return () => {
       if (!id || !saveTimer.current) return;
       clearTimeout(saveTimer.current);
-      const { gen, t, pz, ops, ph, twh, tat, trt, tops } = latestData.current;
+      const { gen, t, pz, ops, ph } = latestData.current;
       if (gen) {
         base44.entities.SetupSheet.update(id, {
           ...gen,
@@ -102,10 +85,6 @@ export default function SetupSheet() {
           part_zero: pz,
           operations: ops,
           photos: ph,
-          turning_work_holding: twh,
-          turning_axial_tools: tat,
-          turning_radial_tools: trt,
-          turning_operations: tops,
         });
       }
     };
@@ -117,20 +96,12 @@ export default function SetupSheet() {
   const partZeroRef = useRef(partZero);
   const operationsRef = useRef(operations);
   const photosRef = useRef(photos);
-  const turningWorkHoldingRef = useRef(turningWorkHolding);
-  const turningAxialToolsRef = useRef(turningAxialTools);
-  const turningRadialToolsRef = useRef(turningRadialTools);
-  const turningOperationsRef = useRef(turningOperations);
 
   useEffect(() => { generalRef.current = general; }, [general]);
   useEffect(() => { toolsRef.current = tools; }, [tools]);
   useEffect(() => { partZeroRef.current = partZero; }, [partZero]);
   useEffect(() => { operationsRef.current = operations; }, [operations]);
   useEffect(() => { photosRef.current = photos; }, [photos]);
-  useEffect(() => { turningWorkHoldingRef.current = turningWorkHolding; }, [turningWorkHolding]);
-  useEffect(() => { turningAxialToolsRef.current = turningAxialTools; }, [turningAxialTools]);
-  useEffect(() => { turningRadialToolsRef.current = turningRadialTools; }, [turningRadialTools]);
-  useEffect(() => { turningOperationsRef.current = turningOperations; }, [turningOperations]);
 
   const handleGeneralChange = useCallback((field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
@@ -140,49 +111,31 @@ export default function SetupSheet() {
     setGeneral(val);
   }, []);
 
-  const ts = () => [generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current];
-
   // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
     if (!loading) {
-      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current);
+      triggerSave(general, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current);
     }
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
-    triggerSave(...[generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current]);
+    triggerSave(generalRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current);
   }, [triggerSave]);
 
   const handlePartZeroChange = useCallback((val) => {
     setPartZero(val); partZeroRef.current = val;
-    triggerSave(...[generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current]);
+    triggerSave(generalRef.current, toolsRef.current, val, operationsRef.current, photosRef.current);
   }, [triggerSave]);
 
   const handleOperationsChange = useCallback((val) => {
     setOperations(val); operationsRef.current = val;
-    triggerSave(...[generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current]);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, val, photosRef.current);
   }, [triggerSave]);
 
   const handlePhotosChange = useCallback((val) => {
     setPhotos(val); photosRef.current = val;
-    triggerSave(...[generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current]);
-  }, [triggerSave]);
-
-  const handleTurningWorkHoldingChange = useCallback((val) => {
-    setTurningWorkHolding(val); turningWorkHoldingRef.current = val;
-    triggerSave(...[generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningAxialToolsRef.current, turningRadialToolsRef.current, turningOperationsRef.current]);
-  }, [triggerSave]);
-
-  const handleTurningToolsChange = useCallback(({ axialTools, radialTools }) => {
-    setTurningAxialTools(axialTools); turningAxialToolsRef.current = axialTools;
-    setTurningRadialTools(radialTools); turningRadialToolsRef.current = radialTools;
-    triggerSave(...[generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, axialTools, radialTools, turningOperationsRef.current]);
-  }, [triggerSave]);
-
-  const handleTurningOperationsChange = useCallback((val) => {
-    setTurningOperations(val); turningOperationsRef.current = val;
-    triggerSave(...[generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningWorkHoldingRef.current, turningAxialToolsRef.current, turningRadialToolsRef.current, val]);
+    triggerSave(generalRef.current, toolsRef.current, partZeroRef.current, operationsRef.current, val);
   }, [triggerSave]);
 
   const handleDebugPDF = async (e) => {
@@ -293,11 +246,8 @@ export default function SetupSheet() {
               <h1 className="text-lg font-bold tracking-tight text-foreground leading-none">
                 {general.part_number || "CNC Setup Sheet"}
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
-                {sheetType === "turning" && (
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 uppercase tracking-wide">Turning</span>
-                )}
               </p>
             </div>
           </div>
@@ -337,43 +287,17 @@ export default function SetupSheet() {
           <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
         </motion.div>
 
-        {sheetType === "turning" ? (
-          <>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-              <TurningWorkHolding data={turningWorkHolding} onChange={handleTurningWorkHoldingChange} />
-            </motion.div>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+          <ToolList tools={tools} onChange={handleToolsChange} />
+        </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
-              <TurningToolList
-                axialTools={turningAxialTools}
-                radialTools={turningRadialTools}
-                onChange={handleTurningToolsChange}
-              />
-            </motion.div>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+          <PartZero data={partZero} onChange={handlePartZeroChange} />
+        </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-              <PartZero data={partZero} onChange={handlePartZeroChange} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.13 }}>
-              <TurningOperationsList operations={turningOperations} onChange={handleTurningOperationsChange} />
-            </motion.div>
-          </>
-        ) : (
-          <>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-              <ToolList tools={tools} onChange={handleToolsChange} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-              <PartZero data={partZero} onChange={handlePartZeroChange} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-              <OperationsList operations={operations} onChange={handleOperationsChange} />
-            </motion.div>
-          </>
-        )}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+          <OperationsList operations={operations} onChange={handleOperationsChange} />
+        </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
           <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} />
