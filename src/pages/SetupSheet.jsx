@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -16,6 +16,7 @@ import OperationNotes from "@/components/setup-sheet/OperationNotes";
 import TurningChuckSection from "@/components/setup-sheet/TurningChuckSection";
 import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
+import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
@@ -37,6 +38,7 @@ export default function SetupSheet() {
   const [saveStatus, setSaveStatus] = useState(null); // "saved" | null
   const [debugText, setDebugText] = useState(null);
   const [loading, setLoading] = useState(!!id);
+  const [showHistory, setShowHistory] = useState(false);
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
@@ -241,6 +243,47 @@ export default function SetupSheet() {
     }
   };
 
+  const saveRevision = async (note = "") => {
+    if (!id) return;
+    const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+    const snapshot = {
+      ...generalRef.current,
+      tools: toolsRef.current,
+      turning_tools: turningToolsRef.current,
+      part_zero: partZeroRef.current,
+      operations: operationsRef.current,
+      photos: photosRef.current,
+      turning_chuck: turningChuckRef.current,
+    };
+    await base44.entities.SheetRevision.create({
+      sheet_id: id,
+      part_number: generalRef.current.part_number,
+      saved_by: session?.name || "Unknown",
+      note,
+      snapshot,
+    });
+    setSaveStatus("saved");
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
+
+  const handleRestore = async (revision) => {
+    // First save current state as a revision
+    await saveRevision("Auto-saved before restore");
+    const snap = revision.snapshot;
+    if (!snap) return;
+    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = snap;
+    setGeneral({ ...emptyGeneral, ...gen });
+    setTools(t?.length ? t : [{ ...emptyTool }]);
+    setTurningTools(tt && (tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
+    setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
+    setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
+    setPhotos(ph || {});
+    setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
+    // Persist the restored snapshot
+    await base44.entities.SetupSheet.update(id, snap);
+    setShowHistory(false);
+  };
+
   const handleReset = () => {
     setGeneral({ ...emptyGeneral });
     setTools([{ ...emptyTool }]);
@@ -294,11 +337,20 @@ export default function SetupSheet() {
               <Wrench className="w-3.5 h-3.5" />
               Print Tool List
             </Button>
+            <Button variant="outline" size="sm" onClick={() => saveRevision()} className="h-8 text-xs gap-1.5">
+              <Save className="w-3.5 h-3.5" />
+              Save Revision
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="h-8 text-xs gap-1.5">
+              <History className="w-3.5 h-3.5" />
+              History
+            </Button>
           </div>
         </div>
       </header>
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
+      <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 print-container space-y-5">

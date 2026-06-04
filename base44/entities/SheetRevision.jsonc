@@ -1,0 +1,29 @@
+{
+  "name": "SheetRevision",
+  "type": "object",
+  "properties": {
+    "sheet_id": {
+      "type": "string",
+      "description": "ID of the parent SetupSheet"
+    },
+    "part_number": {
+      "type": "string",
+      "description": "Snapshot of part number at time of revision"
+    },
+    "saved_by": {
+      "type": "string",
+      "description": "Employee name who saved this revision"
+    },
+    "note": {
+      "type": "string",
+      "description": "Optional note describing what changed"
+    },
+    "snapshot": {
+      "type": "object",
+      "description": "Full data snapshot of the setup sheet at this revision"
+    }
+  },
+  "required": [
+    "sheet_id"
+  ]
+}
