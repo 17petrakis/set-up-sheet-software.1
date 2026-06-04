@@ -99,33 +99,97 @@ export default function ToolListPrint() {
         </div>
 
         {/* Tool Table */}
-        {sheet.tools && sheet.tools.length > 0 ? (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b-2 border-border">
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Tool #</th>
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Description</th>
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Diameter</th>
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Flutes</th>
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Cut Length</th>
-                <th className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">Holder</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sheet.tools.map((tool, idx) => (
-                <tr key={idx} className="border-b border-border">
-                  <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
-                  <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
-                  <td className="py-3 px-3 text-foreground">{tool.diameter || "-"}</td>
-                  <td className="py-3 px-3 text-foreground">{tool.flutes || "-"}</td>
-                  <td className="py-3 px-3 text-foreground">{tool.cut_length || "-"}</td>
-                  <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {sheet.machine_type === "turning" ? (
+          <>
+            {/* Axial Tools */}
+            {sheet.turning_tools?.axial?.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-foreground mb-3 pb-2 border-b border-border">Axial Tools</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-border">
+                      {["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"].map((h) => (
+                        <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheet.turning_tools.axial.map((tool, idx) => (
+                      <tr key={idx} className="border-b border-border">
+                        <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.type || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.diameter_radius || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.angle || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.stickout || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Radial Tools */}
+            {sheet.turning_tools?.radial?.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-foreground mb-3 pb-2 border-b border-border">Radial Tools</h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-border">
+                      {["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"].map((h) => (
+                        <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sheet.turning_tools.radial.map((tool, idx) => (
+                      <tr key={idx} className="border-b border-border">
+                        <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.type || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.diameter_radius || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.angle_insert || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.stickout || "-"}</td>
+                        <td className="py-3 px-3 text-foreground">{tool.extension || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {!sheet.turning_tools?.axial?.length && !sheet.turning_tools?.radial?.length && (
+              <p className="text-muted-foreground text-center py-12">No tools defined</p>
+            )}
+          </>
         ) : (
-          <p className="text-muted-foreground text-center py-12">No tools defined</p>
+          sheet.tools && sheet.tools.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-border">
+                  {["Tool #", "Description", "Diameter", "Flutes", "Cut Length", "Holder"].map((h) => (
+                    <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sheet.tools.map((tool, idx) => (
+                  <tr key={idx} className="border-b border-border">
+                    <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.diameter || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.flutes || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.cut_length || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-muted-foreground text-center py-12">No tools defined</p>
+          )
         )}
 
         {/* Footer info */}
