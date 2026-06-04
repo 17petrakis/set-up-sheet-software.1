@@ -67,8 +67,15 @@
       "type": "string"
     },
     "tools": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Tool list"
+    },
+    "turning_tools": {
       "type": "object",
-      "description": "Tool list \u2014 array for milling, {axial, radial} object for turning"
+      "description": "Turning turret tools: {axial: [], radial: []}"
     },
     "part_zero": {
       "type": "object"
