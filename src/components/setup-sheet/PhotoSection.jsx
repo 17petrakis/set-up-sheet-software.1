@@ -5,10 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import PhotoLightbox from "./PhotoLightbox";
 
 const DEFAULT_SLOTS = [
-  { key: "work_holding", label: "Work Holding" },
   { key: "drawing", label: "Drawing" },
-  { key: "iso", label: "ISO View" },
+  { key: "work_holding", label: "Work Holding" },
   { key: "material_stock", label: "Material Stock" },
+  { key: "iso", label: "ISO View" },
   { key: "final_part", label: "Final Part 1" },
   { key: "final_part_2", label: "Final Part 2" },
 ];
