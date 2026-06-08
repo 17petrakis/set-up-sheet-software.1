@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, Trash2 } from "lucide-react";
 
+const CHUCK_TYPES = ["3-jaw", "5C (Collet)", "FlexC 65 (Collet)", "Collet (Other)", "Other"];
 
 const Field = ({ label, children }) => (
   <div>
@@ -45,12 +46,16 @@ function SpindleRow({ spindle, index, onChange, onRemove, showRemove, label }) {
         </Field>
 
         <Field label="Chuck Type">
-          <Input
-            value={spindle.chuck_type || ""}
-            onChange={(e) => update("chuck_type")(e.target.value)}
-            placeholder="e.g. 3-jaw, 5C Collet"
-            className="h-9 text-sm bg-background border-border/60"
-          />
+          <Select value={spindle.chuck_type || "3-jaw"} onValueChange={update("chuck_type")}>
+            <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CHUCK_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field label="Chuck Pressure PSI">
@@ -121,12 +126,15 @@ export default function TurningChuckSection({ data, onChange }) {
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3 mb-4">
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Material Type</Label>
-            <Input
-              value={data.material_type || ""}
-              onChange={(e) => onChange({ ...data, material_type: e.target.value })}
-              placeholder="e.g. Bar Fed, Single Piece"
-              className="h-9 text-sm bg-background border-border/60 w-44"
-            />
+            <Select value={data.material_type || ""} onValueChange={(val) => onChange({ ...data, material_type: val })}>
+              <SelectTrigger className="h-9 text-sm bg-background border-border/60 w-40">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar_fed">Bar Fed</SelectItem>
+                <SelectItem value="single_piece">Single Piece</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {[
             { field: "has_work_stop", label: "Work Stop" },
