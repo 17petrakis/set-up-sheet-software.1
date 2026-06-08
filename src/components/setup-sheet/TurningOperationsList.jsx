@@ -13,11 +13,11 @@ const columns = [
   { key: "comment", label: "Comment", w: "w-auto" },
   { key: "tool_number", label: "Tool #", w: "w-16" },
   { key: "cs_number", label: "CS #", w: "w-16" },
-  { key: "min_z", label: "Min Z", w: "w-18" },
-  { key: "max_z", label: "Max Z", w: "w-18" },
+  { key: "speed", label: "Speed", w: "w-20" },
+  { key: "feed", label: "Feed", w: "w-20" },
 ];
 
-const emptyTurningOp = { n_block: "", op_number: "", operation_name: "", comment: "", tool_number: "", cs_number: "", min_z: "", max_z: "" };
+const emptyTurningOp = { n_block: "", op_number: "", operation_name: "", comment: "", tool_number: "", cs_number: "", speed: "", feed: "" };
 
 export default function TurningOperationsList({ operations, onChange }) {
   const addRow = () => onChange([...operations, { ...emptyTurningOp }]);

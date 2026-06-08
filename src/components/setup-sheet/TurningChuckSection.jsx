@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
@@ -120,6 +121,25 @@ export default function TurningChuckSection({ data, onChange }) {
         <Button size="sm" variant="outline" onClick={addSpindle} className="h-7 text-xs gap-1.5 mb-4">
           <Plus className="w-3 h-3" /> Add Spindle
         </Button>
+
+        {/* Checkboxes */}
+        <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4">
+          {[
+            { field: "is_bar", label: "Bar" },
+            { field: "is_single_piece", label: "Single Piece" },
+            { field: "has_work_stop", label: "Work Stop" },
+            { field: "has_spindle_plug", label: "Spindle Plug" },
+          ].map(({ field, label }) => (
+            <div key={field} className="flex items-center gap-2">
+              <Checkbox
+                id={field}
+                checked={!!data[field]}
+                onCheckedChange={(checked) => onChange({ ...data, [field]: !!checked })}
+              />
+              <Label htmlFor={field} className="text-sm cursor-pointer">{label}</Label>
+            </div>
+          ))}
+        </div>
 
         <div className="mt-1">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
