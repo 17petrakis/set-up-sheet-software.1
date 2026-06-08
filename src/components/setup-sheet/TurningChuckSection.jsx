@@ -122,15 +122,25 @@ export default function TurningChuckSection({ data, onChange }) {
           <Plus className="w-3 h-3" /> Add Spindle
         </Button>
 
-        {/* Checkboxes */}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4">
+        {/* Material type + checkboxes */}
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-3 mb-4">
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Material Type</Label>
+            <Select value={data.material_type || ""} onValueChange={(val) => onChange({ ...data, material_type: val })}>
+              <SelectTrigger className="h-9 text-sm bg-background border-border/60 w-40">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar">Bar</SelectItem>
+                <SelectItem value="single_piece">Single Piece</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {[
-            { field: "is_bar", label: "Bar" },
-            { field: "is_single_piece", label: "Single Piece" },
             { field: "has_work_stop", label: "Work Stop" },
             { field: "has_spindle_plug", label: "Spindle Plug" },
           ].map(({ field, label }) => (
-            <div key={field} className="flex items-center gap-2">
+            <div key={field} className="flex items-center gap-2 pb-1">
               <Checkbox
                 id={field}
                 checked={!!data[field]}
