@@ -17,9 +17,9 @@ const AXIAL_COLS = [
   { key: "tool_number", label: "T#", w: "w-14" },
   { key: "description", label: "Description", w: "w-auto" },
   { key: "type", label: "Type", w: "w-32", isSelect: true, options: AXIAL_TYPES },
-  { key: "diameter_radius", label: "Dia / Radius", w: "w-24" },
+  { key: "diameter_radius", label: "DIA", w: "w-20" },
   { key: "angle", label: "Angle", w: "w-20" },
-  { key: "holder", label: "Holder", w: "w-24" },
+  { key: "holder", label: "Holder", w: "w-40" },
   { key: "stickout", label: "Stickout", w: "w-20" },
 ];
 
@@ -27,9 +27,9 @@ const RADIAL_COLS = [
   { key: "tool_number", label: "T#", w: "w-14" },
   { key: "description", label: "Description", w: "w-auto" },
   { key: "type", label: "Type", w: "w-32", isSelect: true, options: RADIAL_TYPES },
-  { key: "diameter_radius", label: "Dia / Radius", w: "w-24" },
+  { key: "diameter_radius", label: "RAD", w: "w-20" },
   { key: "angle_insert", label: "Angle / Insert", w: "w-28" },
-  { key: "holder", label: "Holder", w: "w-24" },
+  { key: "holder", label: "Holder", w: "w-40" },
   { key: "stickout", label: "Stickout", w: "w-20" },
   { key: "extension", label: "Extension", w: "w-20" },
 ];
@@ -124,22 +124,22 @@ export default function TurningToolList({ tools, onChange }) {
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List (Turret)" />
         <ToolSubTable
-          title="Axial Tools"
-          columns={AXIAL_COLS}
-          rows={axial}
-          emptyRow={emptyAxial}
-          onAdd={addAxial}
-          onRemove={removeAxial}
-          onUpdate={updateAxialCell}
-        />
-        <ToolSubTable
-          title="Radial Tools"
+          title="Turning Tools"
           columns={RADIAL_COLS}
           rows={radial}
           emptyRow={emptyRadial}
           onAdd={addRadial}
           onRemove={removeRadial}
           onUpdate={updateRadialCell}
+        />
+        <ToolSubTable
+          title="Milling Tools"
+          columns={AXIAL_COLS}
+          rows={axial}
+          emptyRow={emptyAxial}
+          onAdd={addAxial}
+          onRemove={removeAxial}
+          onUpdate={updateAxialCell}
         />
       </CardContent>
     </Card>

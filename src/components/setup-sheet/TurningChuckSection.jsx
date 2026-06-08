@@ -59,15 +59,6 @@ export default function TurningChuckSection({ data, onChange }) {
             />
           </Field>
 
-          <Field label="Coolant Pressure PSI">
-            <Input
-              type="number"
-              value={data.coolant_pressure_psi ?? 120}
-              onChange={(e) => update("coolant_pressure_psi")(e.target.value)}
-              className="h-9 text-sm bg-background border-border/60"
-            />
-          </Field>
-
           <Field label="Concentricity Requirement">
             <Input
               value={data.concentricity_requirement || ""}
