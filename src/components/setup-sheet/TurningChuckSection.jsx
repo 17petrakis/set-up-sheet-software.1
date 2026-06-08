@@ -8,7 +8,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, Trash2 } from "lucide-react";
 
-const CHUCK_TYPES = ["3-jaw", "5C (Collet)", "FlexC 65 (Collet)", "Collet", "Other"];
+const CHUCK_TYPES = ["3-jaw", "5C (Collet)", "FlexC 65 (Collet)", "Collet (Other)", "Other"];
 
 const Field = ({ label, children }) => (
   <div>
