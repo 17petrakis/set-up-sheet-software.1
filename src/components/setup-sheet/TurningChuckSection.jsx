@@ -46,16 +46,12 @@ function SpindleRow({ spindle, index, onChange, onRemove, showRemove, label }) {
         </Field>
 
         <Field label="Chuck Type">
-          <Select value={spindle.chuck_type || "3-jaw"} onValueChange={update("chuck_type")}>
-            <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CHUCK_TYPES.map((t) => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            value={spindle.chuck_type || ""}
+            onChange={(e) => update("chuck_type")(e.target.value)}
+            placeholder='e.g. 3-jaw'
+            className="h-9 text-sm bg-background border-border/60"
+          />
         </Field>
 
         <Field label="Chuck Pressure PSI">
