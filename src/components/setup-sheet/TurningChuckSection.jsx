@@ -131,7 +131,7 @@ export default function TurningChuckSection({ data, onChange }) {
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bar">Bar</SelectItem>
+                <SelectItem value="bar_fed">Bar Fed</SelectItem>
                 <SelectItem value="single_piece">Single Piece</SelectItem>
               </SelectContent>
             </Select>
@@ -149,6 +149,15 @@ export default function TurningChuckSection({ data, onChange }) {
               <Label htmlFor={field} className="text-sm cursor-pointer">{label}</Label>
             </div>
           ))}
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Stick-Out</Label>
+            <Input
+              value={data.stick_out || ""}
+              onChange={(e) => onChange({ ...data, stick_out: e.target.value })}
+              placeholder='e.g. 1.250"'
+              className="h-9 text-sm bg-background border-border/60 w-32"
+            />
+          </div>
         </div>
 
         <div className="mt-1">
