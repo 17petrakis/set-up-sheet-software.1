@@ -12,12 +12,11 @@ const columns = [
   { key: "operation_name", label: "Operation Name", w: "w-auto" },
   { key: "comment", label: "Comment", w: "w-auto" },
   { key: "tool_number", label: "Tool #", w: "w-16" },
-  { key: "cs_number", label: "CS #", w: "w-16" },
   { key: "speed", label: "Speed", w: "w-20" },
   { key: "feed", label: "Feed", w: "w-20" },
 ];
 
-const emptyTurningOp = { n_block: "", op_number: "", operation_name: "", comment: "", tool_number: "", cs_number: "", speed: "", feed: "" };
+const emptyTurningOp = { n_block: "", op_number: "", operation_name: "", comment: "", tool_number: "", speed: "", feed: "" };
 
 export default function TurningOperationsList({ operations, onChange }) {
   const addRow = () => onChange([...operations, { ...emptyTurningOp }]);
