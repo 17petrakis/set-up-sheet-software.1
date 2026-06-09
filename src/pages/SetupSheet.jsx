@@ -308,7 +308,13 @@ export default function SetupSheet() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => navigate("/")}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
+              if (general.folder_id) {
+                navigate(`/?folder=${general.folder_id}`);
+              } else {
+                navigate("/");
+              }
+            }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">

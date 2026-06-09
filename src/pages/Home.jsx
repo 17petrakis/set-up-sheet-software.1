@@ -48,6 +48,16 @@ export default function Home() {
     setSheets(data);
     setCustomers(customerData);
     setLoading(false);
+    // Auto-open folder if ?folder= param present
+    const params = new URLSearchParams(window.location.search);
+    const folderId = params.get("folder");
+    if (folderId) {
+      const match = data.find(s => s.folder_id === folderId);
+      if (match) {
+        setOpenFolder({ partNumber: match.part_number || "Unnamed", customer: match.customer || "" });
+        window.history.replaceState({}, "", "/");
+      }
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -231,7 +241,22 @@ export default function Home() {
         <main className="flex-1 overflow-y-auto p-8">
 
           {activeNav === "customers" ? (
-            selectedCustomer ? (
+            selectedCustomer && openFolder ? (
+              /* Customer → Folder drill-down */
+              <PartFolderView
+                partNumber={openFolder.partNumber}
+                customer={openFolder.customer}
+                sheets={openFolderSheetsResolved}
+                onBack={() => setOpenFolder(null)}
+                onSheetsChange={(updated) => {
+                  const folderIds = new Set(openFolderSheetsResolved.map(s => s.id));
+                  setSheets(prev => {
+                    const withoutFolder = prev.filter(s => !folderIds.has(s.id));
+                    return [...withoutFolder, ...updated];
+                  });
+                }}
+              />
+            ) : selectedCustomer ? (
               /* Customer drill-down — shows part folders */
               <div>
                 <button

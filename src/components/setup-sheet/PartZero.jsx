@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
 import { Crosshair, Plus, Trash2 } from "lucide-react";
 
@@ -102,40 +103,15 @@ export default function PartZero({ data, onChange, machineType }) {
           </>
         ) : (
           <>
-            {/* Milling: X, Y, Z axes + single coordinate system */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              {["x", "y", "z"].map((axis) => (
-                <div key={axis} className="rounded-lg border border-border/60 bg-muted/30 p-3">
-                  <div className={`text-sm font-semibold mb-2 ${axis === "x" ? "text-red-500" : axis === "y" ? "text-green-500" : "text-blue-500"}`}>
-                    {axis.toUpperCase()} axis
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <FieldInput label="MAX" value={data[`${axis}_max`]} onChange={update(`${axis}_max`)} placeholder="0.0000" />
-                    <FieldInput label="MIN" value={data[`${axis}_min`]} onChange={update(`${axis}_min`)} placeholder="0.0000" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Coordinate System</Label>
-                <Input
-                  value={data.coordinate_system ?? ""}
-                  onChange={update("coordinate_system")}
-                  placeholder="e.g. G54"
-                  className="h-9 text-sm bg-background border-border/60"
-                />
-              </div>
-              <div>
-                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Overall Depth Range</Label>
-                <Input
-                  value={data.overall_depth_range ?? ""}
-                  onChange={update("overall_depth_range")}
-                  placeholder="e.g. -0.500 to -1.175"
-                  className="h-9 text-sm bg-background border-border/60"
-                />
-              </div>
+            {/* Milling: Program Coordinate Zero Note */}
+            <div>
+              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Program Coordinate Zero Note</Label>
+              <AutoResizeTextarea
+                value={data.program_coord_zero_note ?? ""}
+                onChange={(e) => onChange({ ...data, program_coord_zero_note: e.target.value })}
+                placeholder="Describe program coordinate zero location..."
+                className="text-sm bg-background border-border/60 min-h-[80px]"
+              />
             </div>
           </>
         )}
