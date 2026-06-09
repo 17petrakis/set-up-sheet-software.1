@@ -104,7 +104,7 @@ export default function PartZero({ data, onChange, machineType }) {
         ) : (
           <>
             {/* Milling: Program Coordinate Zero Note */}
-            <div>
+            <div className="mb-4">
               <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Program Coordinate Zero Note</Label>
               <AutoResizeTextarea
                 value={data.program_coord_zero_note ?? ""}
@@ -112,6 +112,27 @@ export default function PartZero({ data, onChange, machineType }) {
                 placeholder="Describe program coordinate zero location..."
                 className="text-sm bg-background border-border/60 min-h-[80px]"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Coordinate System</Label>
+                <Input
+                  value={data.coordinate_system ?? ""}
+                  onChange={update("coordinate_system")}
+                  placeholder="e.g. G54"
+                  className="h-9 text-sm bg-background border-border/60"
+                />
+              </div>
+              <div>
+                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Overall Depth Range</Label>
+                <Input
+                  value={data.overall_depth_range ?? ""}
+                  onChange={update("overall_depth_range")}
+                  placeholder="e.g. -0.500 to -1.175"
+                  className="h-9 text-sm bg-background border-border/60"
+                />
+              </div>
             </div>
           </>
         )}
