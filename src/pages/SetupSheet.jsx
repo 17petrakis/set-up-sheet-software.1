@@ -18,6 +18,7 @@ import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
 import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
+import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
@@ -32,6 +33,7 @@ export default function SetupSheet() {
   const [partZero, setPartZero] = useState({ ...emptyPartZero });
   const [operations, setOperations] = useState([{ ...emptyOperation }]);
   const [photos, setPhotos] = useState({});
+  const [fixturingNotes, setFixturingNotes] = useState({});
   const [turningChuck, setTurningChuck] = useState({ ...emptyTurningChuck });
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -59,15 +61,16 @@ export default function SetupSheet() {
       setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
       setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
       setPhotos(ph || {});
+      setFixturingNotes(sheet.fixturing_notes || {});
       setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
       setLoading(false);
     })();
   }, [id]);
 
   // Auto-save debounce
-  const triggerSave = useCallback((gen, t, tt, pz, ops, ph, tc) => {
+  const triggerSave = useCallback((gen, t, tt, pz, ops, ph, fn, tc) => {
     if (!id) return;
-    latestData.current = { gen, t, tt, pz, ops, ph, tc };
+    latestData.current = { gen, t, tt, pz, ops, ph, fn, tc };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -79,6 +82,7 @@ export default function SetupSheet() {
         part_zero: d.pz,
         operations: d.ops,
         photos: d.ph,
+        fixturing_notes: d.fn,
         turning_chuck: d.tc,
       });
       setSaving(false);
@@ -92,7 +96,7 @@ export default function SetupSheet() {
     return () => {
       if (!id || !saveTimer.current) return;
       clearTimeout(saveTimer.current);
-      const { gen, t, tt, pz, ops, ph, tc } = latestData.current;
+      const { gen, t, tt, pz, ops, ph, fn, tc } = latestData.current;
       if (gen) {
         base44.entities.SetupSheet.update(id, {
           ...gen,
@@ -101,6 +105,7 @@ export default function SetupSheet() {
           part_zero: pz,
           operations: ops,
           photos: ph,
+          fixturing_notes: fn,
           turning_chuck: tc,
         });
       }
@@ -114,6 +119,7 @@ export default function SetupSheet() {
   const partZeroRef = useRef(partZero);
   const operationsRef = useRef(operations);
   const photosRef = useRef(photos);
+  const fixturingNotesRef = useRef(fixturingNotes);
   const turningChuckRef = useRef(turningChuck);
 
   useEffect(() => { generalRef.current = general; }, [general]);
@@ -122,6 +128,7 @@ export default function SetupSheet() {
   useEffect(() => { partZeroRef.current = partZero; }, [partZero]);
   useEffect(() => { operationsRef.current = operations; }, [operations]);
   useEffect(() => { photosRef.current = photos; }, [photos]);
+  useEffect(() => { fixturingNotesRef.current = fixturingNotes; }, [fixturingNotes]);
   useEffect(() => { turningChuckRef.current = turningChuck; }, [turningChuck]);
 
   const handleGeneralChange = useCallback((field, value) => {
@@ -135,38 +142,43 @@ export default function SetupSheet() {
   // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
     if (!loading) {
-      triggerSave(general, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningChuckRef.current);
+      triggerSave(general, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
     }
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
-    triggerSave(generalRef.current, val, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, val, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handleTurningToolsChange = useCallback((val) => {
     setTurningTools(val); turningToolsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handlePartZeroChange = useCallback((val) => {
     setPartZero(val); partZeroRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, val, operationsRef.current, photosRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, val, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handleOperationsChange = useCallback((val) => {
     setOperations(val); operationsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, val, photosRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, val, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
   }, [triggerSave]);
 
   const handlePhotosChange = useCallback((val) => {
     setPhotos(val); photosRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, val, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, val, fixturingNotesRef.current, turningChuckRef.current);
+  }, [triggerSave]);
+
+  const handleFixturingNotesChange = useCallback((val) => {
+    setFixturingNotes(val); fixturingNotesRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningChuckRef.current);
   }, [triggerSave]);
 
   const handleTurningChuckChange = useCallback((val) => {
     setTurningChuck(val); turningChuckRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, val);
   }, [triggerSave]);
 
   const handleDebugPDF = async (e) => {
@@ -426,6 +438,10 @@ export default function SetupSheet() {
           </>
         ) : (
           <>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.04 }}>
+              <FixturingNotes data={fixturingNotes} onChange={handleFixturingNotesChange} />
+            </motion.div>
+
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
               <ToolList tools={tools} onChange={handleToolsChange} />
             </motion.div>

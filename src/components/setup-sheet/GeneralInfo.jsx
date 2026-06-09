@@ -154,18 +154,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           />
         </div>
 
-        {machineType !== "turning" && (
-          <div className="mt-3">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Work Holding Notes
-            </Label>
-            <AutoResizeTextarea
-              value={data.work_holding_notes}
-              onChange={(e) => update("work_holding_notes")(e.target.value)}
-              className="min-h-[64px] text-sm bg-background border-border/60"
-            />
-          </div>
-        )}
+
       </CardContent>
     </Card>
   );
