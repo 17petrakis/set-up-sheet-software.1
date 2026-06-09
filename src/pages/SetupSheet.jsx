@@ -18,7 +18,6 @@ import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
 import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
-import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
@@ -427,10 +426,6 @@ export default function SetupSheet() {
           </>
         ) : (
           <>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.03 }}>
-              <FixturingNotes data={general} onChange={handleGeneralReplace} />
-            </motion.div>
-
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
               <ToolList tools={tools} onChange={handleToolsChange} />
             </motion.div>
