@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -17,6 +17,7 @@ import TurningChuckSection from "@/components/setup-sheet/TurningChuckSection";
 import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import TurningOperationsList from "@/components/setup-sheet/TurningOperationsList";
 import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
+import AddOperationDialog from "@/components/home/AddOperationDialog";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
@@ -39,6 +40,7 @@ export default function SetupSheet() {
   const [debugText, setDebugText] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [showHistory, setShowHistory] = useState(false);
+  const [showAddOp, setShowAddOp] = useState(false);
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
@@ -315,6 +317,9 @@ export default function SetupSheet() {
             <div>
               <h1 className="text-lg font-bold tracking-tight text-foreground leading-none">
                 {general.part_number || "CNC Setup Sheet"}
+                {general.operation_number > 1 && (
+                  <span className="ml-2 text-sm font-medium text-muted-foreground">— Op {general.operation_number}</span>
+                )}
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
@@ -345,12 +350,45 @@ export default function SetupSheet() {
               <History className="w-3.5 h-3.5" />
               History
             </Button>
+            {general.folder_id && (
+              <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="h-8 text-xs gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                Add Operation
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
+      {showAddOp && (
+        <AddOperationDialog
+          onClose={() => setShowAddOp(false)}
+          nextOpNumber={(general.operation_number || 1) + 1}
+          onAdd={async (machineType) => {
+            const isTurning = machineType === "turning";
+            // Find the max operation_number among siblings
+            const siblings = await base44.entities.SetupSheet.filter({ folder_id: general.folder_id });
+            const maxOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0);
+            const newSheet = await base44.entities.SetupSheet.create({
+              ...emptyGeneral,
+              machine_type: machineType,
+              part_number: general.part_number,
+              customer: general.customer,
+              folder_id: general.folder_id,
+              operation_number: maxOp + 1,
+              tools: isTurning ? [] : [{ ...emptyTool }],
+              turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+              part_zero: { ...emptyPartZero },
+              operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
+              turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
+            });
+            setShowAddOp(false);
+            navigate(`/sheet/${newSheet.id}`);
+          }}
+        />
+      )}
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 print-container space-y-5">

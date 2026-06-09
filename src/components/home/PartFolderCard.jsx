@@ -1,0 +1,83 @@
+import React from "react";
+import { FileText, ChevronRight, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
+const statusColors = {
+  Active: "bg-green-100 text-green-700",
+  Repeating: "bg-blue-100 text-blue-700",
+  "One Time": "bg-amber-100 text-amber-700",
+  Completed: "bg-gray-100 text-gray-700",
+  "On Hold": "bg-red-100 text-red-700"
+};
+
+export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete }) {
+  const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
+  const opCount = sheets.length;
+
+  return (
+    <div
+      className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
+      onClick={() => onOpen(partNumber, customer)}
+    >
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(partNumber, customer, sheets); }}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
+        title="Delete part folder"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+
+      <div className="flex items-start gap-3 mb-3">
+        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <FileText className="w-4 h-4 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-sm text-foreground truncate max-w-[120px]">{partNumber || "Unnamed"}</span>
+            {primarySheet?.revision && (
+              <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+                Rev {primarySheet.revision}
+              </span>
+            )}
+          </div>
+          {customer && (
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{customer}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        {primarySheet?.status && (
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[primarySheet.status] || statusColors.Active}`}>
+            {primarySheet.status}
+          </span>
+        )}
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide bg-slate-100 text-slate-600">
+          {opCount} {opCount === 1 ? "Operation" : "Operations"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
+        {primarySheet?.job_number && (
+          <div>
+            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Job</p>
+            <p className="text-foreground font-medium truncate">{primarySheet.job_number}</p>
+          </div>
+        )}
+        {primarySheet?.machine && (
+          <div>
+            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
+            <p className="text-foreground font-medium truncate">{primarySheet.machine}</p>
+          </div>
+        )}
+        {primarySheet?.updated_date && (
+          <div>
+            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Updated</p>
+            <p className="text-foreground font-medium">{format(new Date(primarySheet.updated_date), "MMM d, yyyy")}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

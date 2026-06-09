@@ -105,6 +105,15 @@
       ],
       "default": "Active",
       "description": "Current job status"
+    },
+    "folder_id": {
+      "type": "string",
+      "description": "Groups setup sheets into a part folder. All operations for a part share the same folder_id."
+    },
+    "operation_number": {
+      "type": "number",
+      "description": "Operation sequence number within the folder (1, 2, 3, ...)",
+      "default": 1
     }
   },
   "required": [

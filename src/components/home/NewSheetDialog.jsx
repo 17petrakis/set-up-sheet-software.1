@@ -8,8 +8,8 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 
 export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
-  const [machineType, setMachineType] = useState("milling"); // "milling" | "turning"
-  const [customerMode, setCustomerMode] = useState("select"); // "select" | "new"
+  const [machineType, setMachineType] = useState("milling");
+  const [customerMode, setCustomerMode] = useState("select");
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [newCustomer, setNewCustomer] = useState("");
   const [saving, setSaving] = useState(false);
@@ -20,7 +20,6 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
     if (!partNumber.trim()) return;
     setSaving(true);
 
-    // If creating a new customer name, also save it to Customer entity
     if (customerMode === "new" && newCustomer.trim()) {
       const alreadyExists = existingCustomers.some(
         c => c.toLowerCase() === newCustomer.trim().toLowerCase()
@@ -30,12 +29,17 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
       }
     }
 
+    // Generate a unique folder_id for this part
+    const folderId = `folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const isTurning = machineType === "turning";
+
     const sheet = await base44.entities.SetupSheet.create({
       ...emptyGeneral,
       machine_type: machineType,
       part_number: partNumber.trim(),
       customer: customerValue,
+      folder_id: folderId,
+      operation_number: 1,
       tools: isTurning ? [] : [{ ...emptyTool }],
       turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
       part_zero: { ...emptyPartZero },
@@ -56,7 +60,6 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
           </Button>
         </div>
         <div className="px-5 py-4 space-y-4">
-          {/* Machine Type */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine Type

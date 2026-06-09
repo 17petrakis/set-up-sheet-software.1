@@ -6,109 +6,37 @@ import { Input } from "@/components/ui/input";
 import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
+import PartFolderCard from "@/components/home/PartFolderCard";
+import PartFolderView from "@/components/home/PartFolderView";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const statusColors = {
-  Active: "bg-green-100 text-green-700",
-  Repeating: "bg-blue-100 text-blue-700",
-  "One Time": "bg-amber-100 text-amber-700",
-  Completed: "bg-gray-100 text-gray-700",
-  "On Hold": "bg-red-100 text-red-700"
-};
-
-function SheetCard({ sheet, onOpen, onDelete }) {
-  return (
-    <div
-      className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
-      onClick={() => onOpen(sheet.id)}
-    >
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete(sheet); }}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-        title="Delete sheet"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <FileText className="w-4 h-4 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-sm text-foreground truncate max-w-[120px]">{sheet.part_number || "Unnamed"}</span>
-            {sheet.revision && (
-              <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
-                Rev {sheet.revision}
-              </span>
-            )}
-          </div>
-          {sheet.customer && (
-            <p className="text-xs text-muted-foreground truncate mt-0.5">{sheet.customer}</p>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[sheet.status] || statusColors.Active}`}>
-          {sheet.status || "Active"}
-        </span>
-      </div>
-      <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
-        {sheet.job_number && (
-          <div>
-            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Job</p>
-            <p className="text-foreground font-medium truncate">{sheet.job_number}</p>
-          </div>
-        )}
-        {sheet.machine && (
-          <div>
-            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
-            <p className="text-foreground font-medium truncate">{sheet.machine}</p>
-          </div>
-        )}
-        {sheet.updated_date && (
-          <div>
-            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Updated</p>
-            <p className="text-foreground font-medium">{format(new Date(sheet.updated_date), "MMM d, yyyy")}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   const navigate = useNavigate();
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 200;
   const [sheets, setSheets] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(0);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [openFolder, setOpenFolder] = useState(null); // { partNumber, customer }
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState(null); // { partNumber, customer, sheets }
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Auth guard — after all hooks
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
 
   useEffect(() => {
-    if (!session) {
-      navigate("/employee-login");
-    }
+    if (!session) navigate("/employee-login");
   }, []);
 
   const load = async () => {
@@ -118,54 +46,76 @@ export default function Home() {
       base44.entities.Customer.list("name", 200),
     ]);
     setSheets(data);
-    setHasMore(data.length === PAGE_SIZE);
-    setPage(1);
     setCustomers(customerData);
     setLoading(false);
   };
 
-  const loadMore = async () => {
-    setLoadingMore(true);
-    const data = await base44.entities.SetupSheet.list("-updated_date", PAGE_SIZE, page * PAGE_SIZE);
-    setSheets(prev => [...prev, ...data]);
-    setHasMore(data.length === PAGE_SIZE);
-    setPage(prev => prev + 1);
-    setLoadingMore(false);
-  };
-
   useEffect(() => { load(); }, []);
 
-  const filtered = sheets.filter(s => {
-    const searchMatch = !search.trim() ||
-        s.part_number?.toLowerCase().includes(search.toLowerCase()) ||
-        s.customer?.toLowerCase().includes(search.toLowerCase()) ||
-        s.job_number?.toLowerCase().includes(search.toLowerCase()) ||
-        s.machine?.toLowerCase().includes(search.toLowerCase());
-    const statusMatch = statusFilter === "all" || s.status === statusFilter;
-    return searchMatch && statusMatch;
-  });
+  // Group sheets into part folders by folder_id (or fall back to part_number+customer for legacy sheets)
+  const buildFolders = () => {
+    const folderMap = {}; // key -> { partNumber, customer, sheets[] }
 
-  // Group by customer — include standalone Customer records as empty folders
+    for (const sheet of sheets) {
+      const key = sheet.folder_id
+        ? sheet.folder_id
+        : `legacy__${sheet.part_number}__${sheet.customer || ""}`;
+
+      if (!folderMap[key]) {
+        folderMap[key] = {
+          key,
+          partNumber: sheet.part_number || "Unnamed",
+          customer: sheet.customer || "",
+          sheets: [],
+        };
+      }
+      folderMap[key].sheets.push(sheet);
+    }
+    return Object.values(folderMap);
+  };
+
+  const allFolders = buildFolders();
+
+  // Build customer grouping for customer view
   const grouped = {};
   for (const c of customers) {
     const name = c.name?.trim();
     if (name && !grouped[name]) grouped[name] = [];
   }
-  for (const sheet of sheets) {
-    const customer = sheet.customer?.trim() || "No Customer";
-    if (!grouped[customer]) grouped[customer] = [];
-    grouped[customer].push(sheet);
+  for (const folder of allFolders) {
+    const cust = folder.customer?.trim() || "No Customer";
+    if (!grouped[cust]) grouped[cust] = [];
+    grouped[cust].push(folder);
   }
   const sortedCustomers = Object.keys(grouped).sort((a, b) =>
     a === "No Customer" ? 1 : b === "No Customer" ? -1 : a.localeCompare(b)
   );
-
-  // All known customer names (for dropdowns)
   const allCustomerNames = sortedCustomers.filter(c => c !== "No Customer");
+
+  // Filtered folders for dashboard
+  const filteredFolders = allFolders.filter(folder => {
+    const searchMatch = !search.trim() ||
+      folder.partNumber?.toLowerCase().includes(search.toLowerCase()) ||
+      folder.customer?.toLowerCase().includes(search.toLowerCase()) ||
+      folder.sheets.some(s =>
+        s.job_number?.toLowerCase().includes(search.toLowerCase()) ||
+        s.machine?.toLowerCase().includes(search.toLowerCase())
+      );
+    const primarySheet = folder.sheets.find(s => s.operation_number === 1) || folder.sheets[0];
+    const statusMatch = statusFilter === "all" || primarySheet?.status === statusFilter;
+    return searchMatch && statusMatch;
+  });
+
+  // Sort by customer then part number
+  const sortedFolders = [...filteredFolders].sort((a, b) => {
+    const cA = a.customer || "zzz";
+    const cB = b.customer || "zzz";
+    if (cA !== cB) return cA.localeCompare(cB);
+    return a.partNumber.localeCompare(b.partNumber);
+  });
 
   const handleDeleteCustomer = async () => {
     if (!deleteCustomerTarget) return;
-    // Delete the Customer entity record if it exists
     const match = customers.find(c => c.name === deleteCustomerTarget);
     if (match) await base44.entities.Customer.delete(match.id);
     setCustomers(prev => prev.filter(c => c.name !== deleteCustomerTarget));
@@ -173,22 +123,16 @@ export default function Home() {
     if (selectedCustomer === deleteCustomerTarget) setSelectedCustomer(null);
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    const customerName = deleteTarget.customer?.trim();
-    await base44.entities.SetupSheet.delete(deleteTarget.id);
-    const remaining = sheets.filter(s => s.id !== deleteTarget.id);
-    // Preserve the customer folder if this was the last sheet for that customer
-    if (customerName) {
-      const stillHasSheets = remaining.some(s => s.customer?.trim() === customerName);
-      const alreadyInCustomers = customers.some(c => c.name === customerName);
-      if (!stillHasSheets && !alreadyInCustomers) {
-        const newCustomer = await base44.entities.Customer.create({ name: customerName });
-        setCustomers(prev => [...prev, newCustomer]);
-      }
+  const handleDeleteFolder = async () => {
+    if (!deleteFolderTarget) return;
+    // Delete all sheets in the folder
+    await Promise.all(deleteFolderTarget.sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+    const deletedIds = new Set(deleteFolderTarget.sheets.map(s => s.id));
+    setSheets(prev => prev.filter(s => !deletedIds.has(s.id)));
+    setDeleteFolderTarget(null);
+    if (openFolder?.partNumber === deleteFolderTarget.partNumber && openFolder?.customer === deleteFolderTarget.customer) {
+      setOpenFolder(null);
     }
-    setSheets(remaining);
-    setDeleteTarget(null);
   };
 
   const handleCreated = (sheet) => {
@@ -198,9 +142,26 @@ export default function Home() {
   const switchNav = (nav) => {
     setActiveNav(nav);
     setSelectedCustomer(null);
+    setOpenFolder(null);
     setCustomerSearch("");
     setSearch("");
   };
+
+  // Get sheets for the open folder
+  const openFolderSheets = openFolder
+    ? sheets.filter(s => {
+        const folder = allFolders.find(f => f.partNumber === openFolder.partNumber && f.customer === openFolder.customer);
+        return folder?.sheets.some(fs => fs.id === s.id);
+      })
+    : [];
+
+  const openFolderKey = openFolder
+    ? allFolders.find(f => f.partNumber === openFolder.partNumber && f.customer === openFolder.customer)?.key
+    : null;
+
+  const openFolderSheetsResolved = openFolderKey
+    ? (allFolders.find(f => f.key === openFolderKey)?.sheets || [])
+    : [];
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -235,8 +196,8 @@ export default function Home() {
           <button
             onClick={() => setShowNewDialog(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                        >
-                          <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
+          >
+            <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
           </button>
           {isAdmin && (
             <button
@@ -271,7 +232,7 @@ export default function Home() {
 
           {activeNav === "customers" ? (
             selectedCustomer ? (
-              /* Customer drill-down */
+              /* Customer drill-down — shows part folders */
               <div>
                 <button
                   onClick={() => setSelectedCustomer(null)}
@@ -284,8 +245,15 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">No sheets for this customer yet.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {(grouped[selectedCustomer] || []).map(sheet => (
-                      <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
+                    {(grouped[selectedCustomer] || []).map(folder => (
+                      <PartFolderCard
+                        key={folder.key}
+                        partNumber={folder.partNumber}
+                        customer={folder.customer}
+                        sheets={folder.sheets}
+                        onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                        onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
+                      />
                     ))}
                   </div>
                 )}
@@ -319,40 +287,58 @@ export default function Home() {
                   <div className="space-y-3">
                     {sortedCustomers
                       .filter(c => c.toLowerCase().includes(customerSearch.toLowerCase()))
-                      .map(customer => (
-                        <div key={customer} className="relative group/folder flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
-                          <button
-                            onClick={() => setSelectedCustomer(customer)}
-                            className="flex items-center gap-4 flex-1 min-w-0 text-left"
-                          >
-                            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                              <FolderOpen className="w-5 h-5 text-amber-500" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm text-foreground">{customer}</p>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-sm text-muted-foreground">
-                                {grouped[customer].length} {grouped[customer].length === 1 ? "sheet" : "sheets"}
-                              </span>
-                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                          </button>
-                          <button
-                            onClick={() => setDeleteCustomerTarget(customer)}
-                            className="opacity-0 group-hover/folder:opacity-100 p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive text-destructive hover:text-white transition-all shrink-0"
-                            title="Delete customer folder"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                      .map(customer => {
+                        const folderCount = (grouped[customer] || []).length;
+                        return (
+                          <div key={customer} className="relative group/folder flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
+                            <button
+                              onClick={() => setSelectedCustomer(customer)}
+                              className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                                <FolderOpen className="w-5 h-5 text-amber-500" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-foreground">{customer}</p>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-sm text-muted-foreground">
+                                  {folderCount} {folderCount === 1 ? "part" : "parts"}
+                                </span>
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                            </button>
+                            <button
+                              onClick={() => setDeleteCustomerTarget(customer)}
+                              className="opacity-0 group-hover/folder:opacity-100 p-1.5 rounded-lg bg-destructive/10 hover:bg-destructive text-destructive hover:text-white transition-all shrink-0"
+                              title="Delete customer folder"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })}
                   </div>
                 )}
               </div>
             )
+          ) : openFolder ? (
+            /* Part Folder drill-down */
+            <PartFolderView
+              partNumber={openFolder.partNumber}
+              customer={openFolder.customer}
+              sheets={openFolderSheetsResolved}
+              onBack={() => setOpenFolder(null)}
+              onSheetsChange={(updated) => {
+                const folderIds = new Set(openFolderSheetsResolved.map(s => s.id));
+                setSheets(prev => {
+                  const withoutFolder = prev.filter(s => !folderIds.has(s.id));
+                  return [...withoutFolder, ...updated];
+                });
+              }}
+            />
           ) : (
-            /* Dashboard view */
+            /* Dashboard — shows part folders */
             <div>
               <div className="flex items-start justify-between mb-6">
                 <div>
@@ -388,7 +374,7 @@ export default function Home() {
               </div>
               {loading ? (
                 <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">Loading…</div>
-              ) : sheets.length === 0 ? (
+              ) : allFolders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
                   <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                     <FileText className="w-7 h-7 text-muted-foreground" />
@@ -401,28 +387,21 @@ export default function Home() {
                     <FilePlus className="w-3.5 h-3.5" /> New Sheet
                   </Button>
                 </div>
-              ) : filtered.length === 0 ? (
+              ) : sortedFolders.length === 0 ? (
                 <p className="text-center py-12 text-muted-foreground text-sm">No results found.</p>
               ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {filtered.map(sheet => (
-                      <SheetCard key={sheet.id} sheet={sheet} onOpen={id => navigate(`/sheet/${id}`)} onDelete={setDeleteTarget} />
-                    ))}
-                  </div>
-                  {hasMore && !search && statusFilter === "all" && (
-                    <div className="flex justify-center mt-8">
-                      <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="gap-2">
-                        {loadingMore ? (
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
-                        Load More
-                      </Button>
-                    </div>
-                  )}
-                </>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {sortedFolders.map(folder => (
+                    <PartFolderCard
+                      key={folder.key}
+                      partNumber={folder.partNumber}
+                      customer={folder.customer}
+                      sheets={folder.sheets}
+                      onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                      onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -460,18 +439,18 @@ export default function Home() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog open={!!deleteFolderTarget} onOpenChange={(open) => !open && setDeleteFolderTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Setup Sheet?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Part Folder?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{deleteTarget?.part_number || "this sheet"}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong>{deleteFolderTarget?.partNumber}</strong> and all its operations ({deleteFolderTarget?.sheets.length})? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-white">
-              Delete
+            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
