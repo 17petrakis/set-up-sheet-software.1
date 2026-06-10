@@ -77,13 +77,14 @@ function ChuckTypeDropdown({ value, onChange }) {
       <button
         type="button"
         onClick={() => { setOpen(o => !o); setHovered(null); }}
+        onBlur={() => setTimeout(() => { setOpen(false); setHovered(null); }, 150)}
         className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
       >
         <span className={value ? "text-foreground" : "text-muted-foreground"}>{displayValue}</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
       </button>
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
+        <div onMouseDown={(e) => e.preventDefault()} className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
           {CHUCK_OPTIONS.map((opt) => (
             <div
               key={opt.label}
@@ -137,18 +138,6 @@ const ACCESSORY_OPTIONS = [
 function AccessoriesDropdown({ value, extraValue, onChange, onExtraChange }) {
   const [open, setOpen] = useState(false);
   const [linerExpanded, setLinerExpanded] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-        setLinerExpanded(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
   const needsExtra = value && (value.startsWith('Liner') || value === 'Work Stop');
 
@@ -159,19 +148,26 @@ function AccessoriesDropdown({ value, extraValue, onChange, onExtraChange }) {
     setLinerExpanded(false);
   };
 
+  const menuMouseDown = (e) => e.preventDefault(); // prevent blur-close
+
   return (
     <div className="space-y-1.5">
-      <div ref={ref} className="relative">
+      <div className="relative">
         <button
           type="button"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => { setOpen(o => !o); setLinerExpanded(false); }}
+          onBlur={() => { setTimeout(() => { setOpen(false); setLinerExpanded(false); }, 150); }}
           className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Select…"}</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
         </button>
         {open && (
-          <div className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1">
+          <div
+            onMouseDown={menuMouseDown}
+            className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1"
+          >
             {ACCESSORY_OPTIONS.map((opt) => (
               <div key={opt.label}>
                 {opt.children ? (
