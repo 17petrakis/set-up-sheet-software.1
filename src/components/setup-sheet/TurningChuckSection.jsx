@@ -145,85 +145,68 @@ const ACCESSORY_OPTIONS = [
   { label: 'Bar Feeder', value: 'Bar Feeder' },
 ];
 
-function AccessoriesDropdown({ value: propValue, extraValue, onChange, onExtraChange }) {
-  const [localValue, setLocalValue] = useState(propValue || "");
+function AccessoriesDropdown({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const [linerExpanded, setLinerExpanded] = useState(false);
 
-  useEffect(() => { setLocalValue(propValue || ""); }, [propValue]);
-
-  const needsExtra = localValue && (localValue.startsWith('Liner') || localValue === 'Work Stop');
-
   const handleSelect = (val) => {
-    setLocalValue(val);
     setOpen(false);
     setLinerExpanded(false);
     onChange(val);
-    onExtraChange("");
   };
 
   return (
-    <div className="space-y-1.5">
-      <div
-        className="relative"
-        tabIndex={-1}
-        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) { setOpen(false); setLinerExpanded(false); } }}
+    <div
+      className="relative"
+      tabIndex={-1}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) { setOpen(false); setLinerExpanded(false); } }}
+    >
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setLinerExpanded(false); }}
+        className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
       >
-        <button
-          type="button"
-          onClick={() => { setOpen(o => !o); setLinerExpanded(false); }}
-          className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          <span className={localValue ? "text-foreground" : "text-muted-foreground"}>{localValue || "Select…"}</span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
-        </button>
-        {open && (
-          <div className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1">
-            {ACCESSORY_OPTIONS.map((opt) => (
-              <div key={opt.label}>
-                {opt.children ? (
-                  <>
-                    <div
-                      onClick={() => setLinerExpanded(e => !e)}
-                      className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-accent text-foreground"
-                    >
-                      <span>{opt.label}</span>
-                      <ChevronRight className={`w-3.5 h-3.5 transition-transform ${linerExpanded ? "rotate-90" : ""}`} />
-                    </div>
-                    {linerExpanded && (
-                      <div className="bg-muted/40 border-y border-border/40 py-1 mb-1">
-                        {opt.children.map(child => (
-                          <div
-                            key={child.value}
-                            onClick={() => handleSelect(child.value)}
-                            className="px-6 py-1.5 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1"
-                          >
-                            {child.label}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Select…"}</span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1">
+          {ACCESSORY_OPTIONS.map((opt) => (
+            <div key={opt.label}>
+              {opt.children ? (
+                <>
                   <div
-                    onClick={() => handleSelect(opt.value)}
-                    className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground text-foreground"
+                    onClick={() => setLinerExpanded(e => !e)}
+                    className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-accent text-foreground"
                   >
-                    {opt.label}
+                    <span>{opt.label}</span>
+                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${linerExpanded ? "rotate-90" : ""}`} />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {needsExtra && (
-        <Input
-          value={extraValue || ""}
-          onChange={(e) => onExtraChange(e.target.value)}
-          placeholder={localValue === 'Work Stop' ? 'Size & Length' : 'Size'}
-          className="h-9 text-sm bg-background border-border/60"
-        />
+                  {linerExpanded && (
+                    <div className="bg-muted/40 border-y border-border/40 py-1 mb-1">
+                      {opt.children.map(child => (
+                        <div
+                          key={child.value}
+                          onClick={() => handleSelect(child.value)}
+                          className="px-6 py-1.5 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1"
+                        >
+                          {child.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div
+                  onClick={() => handleSelect(opt.value)}
+                  className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground text-foreground"
+                >
+                  {opt.label}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -348,6 +331,18 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
   const s = data[spindleKey] || {};
   const set = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
 
+  const [localAccessories, setLocalAccessories] = useState(s.accessories || "");
+
+  useEffect(() => { setLocalAccessories(s.accessories || ""); }, [s.accessories]);
+
+  const handleAccessoriesChange = (val) => {
+    setLocalAccessories(val);
+    set("accessories", val);
+    set("accessories_extra", "");
+  };
+
+  const needsExtra = localAccessories.startsWith('Liner') || localAccessories === 'Work Stop';
+
   return (
     <div className="mt-3 border border-border/50 rounded-lg">
       <div className="bg-muted/30 px-4 py-2.5 text-sm font-semibold text-foreground border-b border-border/40 rounded-t-lg">
@@ -382,10 +377,8 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           </FieldWrap>
           <FieldWrap label="Accessories">
             <AccessoriesDropdown
-              value={s.accessories || ""}
-              extraValue={s.accessories_extra || ""}
-              onChange={(v) => set("accessories", v)}
-              onExtraChange={(v) => set("accessories_extra", v)}
+              value={localAccessories}
+              onChange={handleAccessoriesChange}
             />
           </FieldWrap>
           <FieldWrap label="Chuck Pressure">
@@ -397,6 +390,22 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             />
           </FieldWrap>
         </div>
+
+        {/* Size input for Liner / Work Stop */}
+        {needsExtra && (
+          <Input
+            value={s.accessories_extra || ""}
+            onChange={(e) => set("accessories_extra", e.target.value)}
+            placeholder={localAccessories === 'Work Stop' ? 'Size & Length' : 'Size'}
+            className="h-9 text-sm bg-background border-border/60"
+          />
+        )}
+
+        {/* Bar Feeder fields */}
+        {localAccessories === 'Bar Feeder' && (
+          <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
+        )}
+
         {/* Row 3 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
           <FieldWrap label="Concentricity">
@@ -422,11 +431,6 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             className="min-h-[64px] text-sm bg-background border-border/60"
           />
         </FieldWrap>
-
-        {/* Bar Feeder extra fields */}
-        {s.accessories === 'Bar Feeder' && (
-          <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
-        )}
       </div>
     </div>
   );
