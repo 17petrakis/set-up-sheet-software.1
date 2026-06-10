@@ -8,6 +8,8 @@ import { Wrench, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Cascading Chuck Type Dropdown ──────────────────────────────────────────────
+const KNOWN_CHUCK_VALUES = ['8" 3-Jaw', '6" 3-Jaw', 'Collet – NL', 'Collet – Nak'];
+
 const CHUCK_OPTIONS = [
   { label: '8" 3-Jaw', value: '8" 3-Jaw' },
   { label: '6" 3-Jaw', value: '6" 3-Jaw' },
@@ -20,36 +22,35 @@ const CHUCK_OPTIONS = [
   { label: 'Other', value: '__other__' },
 ];
 
-function ChuckTypeDropdown({ value, onChange }) {
+function ChuckTypeDropdown({ value: propValue, onChange }) {
+  const isOther = propValue && !KNOWN_CHUCK_VALUES.includes(propValue);
+  const [localValue, setLocalValue] = useState(propValue || "");
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(null);
-  const [otherVal, setOtherVal] = useState(
-    value && !['8" 3-Jaw', '6" 3-Jaw', 'Collet – NL', 'Collet – Nak'].includes(value) ? value : ""
-  );
-  const [showOtherInput, setShowOtherInput] = useState(
-    value && !['8" 3-Jaw', '6" 3-Jaw', 'Collet – NL', 'Collet – Nak'].includes(value) && value !== ""
-  );
-  const ref = useRef(null);
+  const [colletExpanded, setColletExpanded] = useState(false);
+  const [showOtherInput, setShowOtherInput] = useState(isOther);
+  const [otherText, setOtherText] = useState(isOther ? propValue : "");
 
   useEffect(() => {
-    const handleClick = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setHovered(null); } };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const displayValue = showOtherInput ? (otherVal || "Other") : (value || "Select…");
+    setLocalValue(propValue || "");
+    const isOtherNow = propValue && !KNOWN_CHUCK_VALUES.includes(propValue);
+    setShowOtherInput(!!isOtherNow);
+    if (isOtherNow) setOtherText(propValue);
+  }, [propValue]);
 
   const handleSelect = (val) => {
     if (val === '__other__') {
       setShowOtherInput(true);
+      setOtherText("");
+      setLocalValue("");
       setOpen(false);
-      setHovered(null);
-      onChange(otherVal || "");
+      setColletExpanded(false);
+      onChange("");
     } else {
+      setLocalValue(val);
       setShowOtherInput(false);
-      onChange(val);
       setOpen(false);
-      setHovered(null);
+      setColletExpanded(false);
+      onChange(val);
     }
   };
 
@@ -57,14 +58,14 @@ function ChuckTypeDropdown({ value, onChange }) {
     return (
       <div className="flex gap-1">
         <Input
-          value={otherVal}
-          onChange={(e) => { setOtherVal(e.target.value); onChange(e.target.value); }}
+          value={otherText}
+          onChange={(e) => { setOtherText(e.target.value); setLocalValue(e.target.value); onChange(e.target.value); }}
           placeholder="Enter chuck type"
           className="h-9 text-sm bg-background border-border/60"
         />
         <button
           type="button"
-          onClick={() => { setShowOtherInput(false); onChange(""); }}
+          onClick={() => { setShowOtherInput(false); setLocalValue(""); onChange(""); }}
           className="shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground border border-border/60 rounded-md bg-background"
           title="Back to list"
         >↩</button>
@@ -73,43 +74,52 @@ function ChuckTypeDropdown({ value, onChange }) {
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div
+      className="relative"
+      tabIndex={-1}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) { setOpen(false); setColletExpanded(false); } }}
+    >
       <button
         type="button"
-        onClick={() => { setOpen(o => !o); setHovered(null); }}
-        onBlur={() => setTimeout(() => { setOpen(false); setHovered(null); }, 150)}
+        onClick={() => { setOpen(o => !o); setColletExpanded(false); }}
         className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
       >
-        <span className={value ? "text-foreground" : "text-muted-foreground"}>{displayValue}</span>
+        <span className={localValue ? "text-foreground" : "text-muted-foreground"}>{localValue || "Select…"}</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
       </button>
       {open && (
-        <div onMouseDown={(e) => e.preventDefault()} className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
+        <div className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
           {CHUCK_OPTIONS.map((opt) => (
-            <div
-              key={opt.label}
-              className="relative"
-              onMouseEnter={() => setHovered(opt.label)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <div
-                onClick={() => !opt.children && handleSelect(opt.value)}
-                className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 ${hovered === opt.label ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`}
-              >
-                <span>{opt.label}</span>
-                {opt.children && <ChevronRight className="w-3.5 h-3.5" />}
-              </div>
-              {opt.children && hovered === opt.label && (
-                <div className="absolute left-full top-0 ml-1 w-40 bg-popover border border-border rounded-md shadow-lg py-1 z-50">
-                  {opt.children.map(child => (
-                    <div
-                      key={child.value}
-                      onClick={() => handleSelect(child.value)}
-                      className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground"
-                    >
-                      {child.label}
+            <div key={opt.label}>
+              {opt.children ? (
+                <>
+                  <div
+                    onClick={() => setColletExpanded(e => !e)}
+                    className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-accent text-foreground"
+                  >
+                    <span>{opt.label}</span>
+                    <ChevronRight className={`w-3.5 h-3.5 transition-transform ${colletExpanded ? "rotate-90" : ""}`} />
+                  </div>
+                  {colletExpanded && (
+                    <div className="bg-muted/40 border-y border-border/40 py-1 mb-1">
+                      {opt.children.map(child => (
+                        <div
+                          key={child.value}
+                          onClick={() => handleSelect(child.value)}
+                          className="px-6 py-1.5 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1"
+                        >
+                          {child.label}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                </>
+              ) : (
+                <div
+                  onClick={() => handleSelect(opt.value)}
+                  className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground text-foreground"
+                >
+                  {opt.label}
                 </div>
               )}
             </div>
@@ -135,39 +145,40 @@ const ACCESSORY_OPTIONS = [
   { label: 'Bar Feeder', value: 'Bar Feeder' },
 ];
 
-function AccessoriesDropdown({ value, extraValue, onChange, onExtraChange }) {
+function AccessoriesDropdown({ value: propValue, extraValue, onChange, onExtraChange }) {
+  const [localValue, setLocalValue] = useState(propValue || "");
   const [open, setOpen] = useState(false);
   const [linerExpanded, setLinerExpanded] = useState(false);
 
-  const needsExtra = value && (value.startsWith('Liner') || value === 'Work Stop');
+  useEffect(() => { setLocalValue(propValue || ""); }, [propValue]);
+
+  const needsExtra = localValue && (localValue.startsWith('Liner') || localValue === 'Work Stop');
 
   const handleSelect = (val) => {
-    onChange(val);
-    onExtraChange("");
+    setLocalValue(val);
     setOpen(false);
     setLinerExpanded(false);
+    onChange(val);
+    onExtraChange("");
   };
-
-  const menuMouseDown = (e) => e.preventDefault(); // prevent blur-close
 
   return (
     <div className="space-y-1.5">
-      <div className="relative">
+      <div
+        className="relative"
+        tabIndex={-1}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) { setOpen(false); setLinerExpanded(false); } }}
+      >
         <button
           type="button"
-          onMouseDown={(e) => e.preventDefault()}
           onClick={() => { setOpen(o => !o); setLinerExpanded(false); }}
-          onBlur={() => { setTimeout(() => { setOpen(false); setLinerExpanded(false); }, 150); }}
           className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
         >
-          <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Select…"}</span>
+          <span className={localValue ? "text-foreground" : "text-muted-foreground"}>{localValue || "Select…"}</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
         </button>
         {open && (
-          <div
-            onMouseDown={menuMouseDown}
-            className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1"
-          >
+          <div className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1">
             {ACCESSORY_OPTIONS.map((opt) => (
               <div key={opt.label}>
                 {opt.children ? (
@@ -210,7 +221,7 @@ function AccessoriesDropdown({ value, extraValue, onChange, onExtraChange }) {
         <Input
           value={extraValue || ""}
           onChange={(e) => onExtraChange(e.target.value)}
-          placeholder={value === 'Work Stop' ? 'Size & Length' : 'Size'}
+          placeholder={localValue === 'Work Stop' ? 'Size & Length' : 'Size'}
           className="h-9 text-sm bg-background border-border/60"
         />
       )}
