@@ -8,15 +8,15 @@ import { Wrench, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Cascading Chuck Type Dropdown ──────────────────────────────────────────────
-const KNOWN_CHUCK_VALUES = ['8" 3-Jaw', '6" 3-Jaw', 'Collet – NL', 'Collet – Nak'];
+const KNOWN_CHUCK_VALUES = ['8" 3-Jaw', '6" 3-Jaw', 'Collet – NJ-5', 'Collet – Flex-C65'];
 
 const CHUCK_OPTIONS = [
   { label: '8" 3-Jaw', value: '8" 3-Jaw' },
   { label: '6" 3-Jaw', value: '6" 3-Jaw' },
   {
     label: 'Collet', children: [
-      { label: 'NL', value: 'Collet – NL' },
-      { label: 'Nak', value: 'Collet – Nak' },
+      { label: 'NJ-5', value: 'Collet – NJ-5' },
+      { label: 'Flex-C65', value: 'Collet – Flex-C65' },
     ]
   },
   { label: 'Other', value: '__other__' },
