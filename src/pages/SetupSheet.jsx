@@ -134,7 +134,53 @@ export default function SetupSheet() {
 
   const handleGeneralChange = useCallback((field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
-  }, []);
+
+    // Auto-populate work holding when machine is selected
+    if (field === "machine") {
+      const machine = value || "";
+      let chuckUpdate = null;
+
+      if (machine === "Doosan Puma 2100 YII") {
+        chuckUpdate = {
+          wh_s1_active: true, wh_s2_active: false,
+          wh_s1: { chuck_type: '8" 3-Jaw' },
+        };
+      } else if (machine === "Doosan Puma SMX 2100 ST" || machine === "Doosan Puma MX 2100 ST") {
+        chuckUpdate = {
+          wh_s1_active: true, wh_s2_active: true,
+          wh_s1: { chuck_type: '8" 3-Jaw' },
+          wh_s2: { chuck_type: '8" 3-Jaw' },
+        };
+      } else if (machine === "HAAS SL-10") {
+        chuckUpdate = {
+          wh_s1_active: true, wh_s2_active: false,
+          wh_s1: { chuck_type: '6" 3-Jaw' },
+        };
+      } else if (machine.startsWith("Nakamura")) {
+        chuckUpdate = {
+          wh_s1_active: true, wh_s2_active: false,
+          wh_s1: { chuck_type: 'Collet – Flex-C65' },
+        };
+      } else if (machine.startsWith("Mori")) {
+        chuckUpdate = {
+          wh_s1_active: true, wh_s2_active: true,
+          wh_s1: { chuck_type: 'Collet – NJ-5' },
+          wh_s2: { chuck_type: '6" 3-Jaw' },
+        };
+      }
+
+      if (chuckUpdate) {
+        const newChuck = { ...turningChuckRef.current, ...chuckUpdate };
+        setTurningChuck(newChuck);
+        turningChuckRef.current = newChuck;
+        triggerSave(
+          { ...generalRef.current, [field]: value },
+          toolsRef.current, turningToolsRef.current, partZeroRef.current,
+          operationsRef.current, photosRef.current, fixturingNotesRef.current, newChuck
+        );
+      }
+    }
+  }, [triggerSave]);
 
   const handleGeneralReplace = useCallback((val) => {
     setGeneral(val);
