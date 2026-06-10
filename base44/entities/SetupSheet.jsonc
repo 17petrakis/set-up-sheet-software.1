@@ -30,7 +30,8 @@
       "type": "string"
     },
     "programmer": {
-      "type": "string"
+      "type": "string",
+      "description": "Machinist / programmer name"
     },
     "date": {
       "type": "string"
@@ -39,6 +40,55 @@
       "type": "string"
     },
     "material": {
+      "type": "string"
+    },
+    "stock": {
+      "type": "string",
+      "description": "Stock size / description (turning)"
+    },
+    "consumed_per_part": {
+      "type": "string",
+      "description": "Material consumed per part (turning)"
+    },
+    "program": {
+      "type": "string",
+      "description": "Program number / name"
+    },
+    "program_software": {
+      "type": "string",
+      "description": "CAM software used (Mastercam, Gibbscam, etc.)"
+    },
+    "program_location": {
+      "type": "string",
+      "description": "Where the program is stored"
+    },
+    "cycle_time": {
+      "type": "string",
+      "description": "Machine cycle time (turning)"
+    },
+    "handling_time": {
+      "type": "string",
+      "description": "Handling time including material inspection (turning)"
+    },
+    "has_deburring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether deburring/finishing section is active"
+    },
+    "deburring_time": {
+      "type": "string"
+    },
+    "finishing_time": {
+      "type": "string"
+    },
+    "total_additional_time": {
+      "type": "string",
+      "description": "Sum of deburring + finishing times"
+    },
+    "deburring_notes": {
+      "type": "string"
+    },
+    "finishing_notes": {
       "type": "string"
     },
     "operation_description": {
@@ -51,9 +101,6 @@
     "work_holding_notes": {
       "type": "string",
       "description": "Work holding notes (milling)"
-    },
-    "program": {
-      "type": "string"
     },
     "units": {
       "type": "string",
@@ -108,11 +155,11 @@
     },
     "folder_id": {
       "type": "string",
-      "description": "Groups setup sheets into a part folder. All operations for a part share the same folder_id."
+      "description": "Groups setup sheets into a part folder."
     },
     "operation_number": {
       "type": "number",
-      "description": "Operation sequence number within the folder (1, 2, 3, ...)",
+      "description": "Operation sequence number within the folder",
       "default": 1
     }
   },

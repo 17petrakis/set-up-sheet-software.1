@@ -6,6 +6,7 @@ import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus } 
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
+import TurningGeneralInfo from "@/components/setup-sheet/TurningGeneralInfo";
 import ToolList from "@/components/setup-sheet/ToolList";
 import PartZero from "@/components/setup-sheet/PartZero";
 import OperationsList from "@/components/setup-sheet/OperationsList";
@@ -415,7 +416,11 @@ export default function SetupSheet() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} machineType={general.machine_type} />
+          {general.machine_type === "turning" ? (
+            <TurningGeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
+          ) : (
+            <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} machineType={general.machine_type} />
+          )}
         </motion.div>
 
         {general.machine_type === "turning" ? (
