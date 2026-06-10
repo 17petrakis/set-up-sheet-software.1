@@ -54,12 +54,10 @@ export const emptyOperation = {
 };
 
 export const emptyTurningChuck = {
-  jaw_description: "",
-  chuck_type: "3-jaw",
-  chuck_pressure_psi: 60,
-  coolant_pressure_psi: 120,
-  concentricity_requirement: "",
-  fixturing_notes: "",
+  wh_s1_active: false,
+  wh_s2_active: false,
+  wh_s1: {},
+  wh_s2: {},
 };
 
 export const emptyTurningTools = { axial: [], radial: [] };
