@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Settings2, ChevronDown, ChevronUp } from "lucide-react";
+import { Settings2 } from "lucide-react";
 
 const MACHINES = [
   { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST", "Puma MX 2100 ST"] },
@@ -185,7 +185,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
           <Field
             label="Quantity"
-            note="(Incl. Material Inspection)"
+            note="(W/Material Insp.)"
             value={data.quantity}
             onChange={update("quantity")}
           />
@@ -203,23 +203,24 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} />
           <Field
             label="Handling Time"
-            note="(Incl. Material Inspection)"
+            note="(W/Material Insp.)"
             value={data.handling_time}
             onChange={update("handling_time")}
           />
           <Field label="Total Combined Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
         </div>
 
-        {/* Deburring / Finishing toggle */}
+        {/* Deburring / Finishing checkbox */}
         <div className="mt-4 border border-border/50 rounded-lg overflow-hidden">
-          <button
-            type="button"
-            onClick={handleToggleDeburring}
-            className="w-full flex items-center justify-between px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors text-sm font-medium text-foreground"
-          >
-            <span>Deburring / Finishing</span>
-            {showDeburring ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-          </button>
+          <label className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showDeburring}
+              onChange={handleToggleDeburring}
+              className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+            />
+            <span className="text-sm font-medium text-foreground">Deburring / Finishing</span>
+          </label>
 
           {showDeburring && (
             <div className="px-4 py-4 space-y-3">
@@ -267,38 +268,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           )}
         </div>
 
-        {/* Status */}
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Status
-            </Label>
-            <Select value={data.status || "Active"} onValueChange={update("status")}>
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Repeating">Repeating</SelectItem>
-                <SelectItem value="One Time">One Time</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="On Hold">On Hold</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
-        {/* Pre-machining Notes */}
-        <div className="mt-3">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            Pre-machining Notes
-          </Label>
-          <AutoResizeTextarea
-            value={data.operation_description || ""}
-            onChange={(e) => update("operation_description")(e.target.value)}
-            className="min-h-[64px] text-sm bg-background border-border/60"
-          />
-        </div>
       </CardContent>
     </Card>
   );
