@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Settings2 } from "lucide-react";
+import { Settings2, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 
 const MACHINES = [
   { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST", "Puma MX 2100 ST"] },
@@ -33,6 +33,71 @@ const Field = ({ label, note, value, onChange, type = "text", className = "" }) 
     />
   </div>
 );
+
+// Cascading machine dropdown
+function MachineDropdown({ value, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const [hoveredGroup, setHoveredGroup] = useState(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setHoveredGroup(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setHoveredGroup(null); }}
+        className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
+      >
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>
+          {value || "Select machine…"}
+        </span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90" />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
+          {MACHINES.map(({ group, models }) => (
+            <div
+              key={group}
+              className="relative"
+              onMouseEnter={() => setHoveredGroup(group)}
+              onMouseLeave={() => setHoveredGroup(null)}
+            >
+              <div className={`flex items-center justify-between px-3 py-2 text-sm cursor-default select-none rounded-sm mx-1 ${hoveredGroup === group ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent hover:text-accent-foreground"}`}>
+                <span>{group}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+
+              {hoveredGroup === group && (
+                <div className="absolute left-full top-0 ml-1 w-52 bg-popover border border-border rounded-md shadow-lg py-1">
+                  {models.map(m => (
+                    <div
+                      key={m}
+                      onClick={() => { onSelect(`${group} ${m}`); setOpen(false); setHoveredGroup(null); }}
+                      className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground"
+                    >
+                      {m}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TurningGeneralInfo({ data, onChange, onReplace }) {
   const update = (field) => (value) => onChange(field, value);
@@ -135,28 +200,12 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 2: Machine, Machinist, Program */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          {/* Machine grouped dropdown */}
+          {/* Machine cascading dropdown */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
-            <Select value={data.machine || ""} onValueChange={update("machine")}>
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                <SelectValue placeholder="Select machine…" />
-              </SelectTrigger>
-              <SelectContent>
-                {MACHINES.map(({ group, models }) => (
-                  <SelectGroup key={group}>
-                    <SelectLabel className="text-xs font-semibold text-muted-foreground px-2 py-1">{group}</SelectLabel>
-                    {models.map(m => (
-                      <SelectItem key={m} value={`${group} – ${m}`} className="pl-5">
-                        {m}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            <MachineDropdown value={data.machine} onSelect={update("machine")} />
           </div>
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
@@ -185,7 +234,6 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
           <Field
             label="Quantity"
-            note="(W/Material Insp.)"
             value={data.quantity}
             onChange={update("quantity")}
           />
@@ -203,7 +251,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} />
           <Field
             label="Handling Time"
-            note="(W/Material Insp.)"
+            note="(Includes Inspection)"
             value={data.handling_time}
             onChange={update("handling_time")}
           />
