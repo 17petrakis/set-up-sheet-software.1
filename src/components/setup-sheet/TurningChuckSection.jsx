@@ -124,69 +124,85 @@ const ACCESSORY_OPTIONS = [
   { label: 'None', value: 'None' },
   {
     label: 'Liner', children: [
-      { label: 'Black', value: 'Liner – Black', hasInput: true, placeholder: 'Size' },
-      { label: 'Red', value: 'Liner – Red', hasInput: true, placeholder: 'Size' },
+      { label: 'Black', value: 'Liner – Black' },
+      { label: 'Red', value: 'Liner – Red' },
     ]
   },
   { label: 'Coolant Plug', value: 'Coolant Plug' },
-  { label: 'Work Stop', value: 'Work Stop', hasInput: true, placeholder: 'Size & Length' },
+  { label: 'Work Stop', value: 'Work Stop' },
   { label: 'Ejector', value: 'Ejector' },
   { label: 'Bar Feeder', value: 'Bar Feeder' },
 ];
 
 function AccessoriesDropdown({ value, extraValue, onChange, onExtraChange }) {
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(null);
+  const [linerExpanded, setLinerExpanded] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
-    const handleClick = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setHovered(null); } };
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setLinerExpanded(false);
+      }
+    };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const needsExtra = value && (value.startsWith('Liner') || value === 'Work Stop');
 
-  const handleSelect = (val) => { onChange(val); onExtraChange(""); setOpen(false); setHovered(null); };
+  const handleSelect = (val) => {
+    onChange(val);
+    onExtraChange("");
+    setOpen(false);
+    setLinerExpanded(false);
+  };
 
   return (
     <div className="space-y-1.5">
       <div ref={ref} className="relative">
         <button
           type="button"
-          onClick={() => { setOpen(o => !o); setHovered(null); }}
+          onClick={() => { setOpen(o => !o); setLinerExpanded(false); }}
           className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Select…"}</span>
           <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
         </button>
         {open && (
-          <div className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
+          <div className="absolute z-[200] top-full left-0 mt-1 w-48 bg-popover border border-border rounded-md shadow-xl py-1">
             {ACCESSORY_OPTIONS.map((opt) => (
-              <div
-                key={opt.label}
-                className="relative"
-                onMouseEnter={() => setHovered(opt.label)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <div
-                  onClick={() => !opt.children && handleSelect(opt.value)}
-                  className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 ${hovered === opt.label ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent"}`}
-                >
-                  <span>{opt.label}</span>
-                  {opt.children && <ChevronRight className="w-3.5 h-3.5" />}
-                </div>
-                {opt.children && hovered === opt.label && (
-                  <div className="absolute left-full top-0 ml-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1 z-50">
-                    {opt.children.map(child => (
-                      <div
-                        key={child.value}
-                        onClick={() => handleSelect(child.value)}
-                        className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground"
-                      >
-                        {child.label}
+              <div key={opt.label}>
+                {opt.children ? (
+                  <>
+                    <div
+                      onClick={() => setLinerExpanded(e => !e)}
+                      className="flex items-center justify-between px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-accent text-foreground"
+                    >
+                      <span>{opt.label}</span>
+                      <ChevronRight className={`w-3.5 h-3.5 transition-transform ${linerExpanded ? "rotate-90" : ""}`} />
+                    </div>
+                    {linerExpanded && (
+                      <div className="bg-muted/40 border-y border-border/40 py-1 mb-1">
+                        {opt.children.map(child => (
+                          <div
+                            key={child.value}
+                            onClick={() => handleSelect(child.value)}
+                            className="px-6 py-1.5 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1"
+                          >
+                            {child.label}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                  </>
+                ) : (
+                  <div
+                    onClick={() => handleSelect(opt.value)}
+                    className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground text-foreground"
+                  >
+                    {opt.label}
                   </div>
                 )}
               </div>
@@ -249,8 +265,8 @@ function JawTypeDropdown({ value, onChange }) {
 function BarFeederFields({ data, onChange }) {
   const f = (field) => (e) => onChange({ ...data, [field]: e.target.value });
   return (
-    <div className="mt-3 border border-border/50 rounded-lg overflow-hidden">
-      <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="mt-3 border border-border/50 rounded-lg">
+      <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground rounded-t-lg">
         Bar Feeder Setup
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 px-4 py-3">
@@ -326,8 +342,8 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
   const set = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
 
   return (
-    <div className="mt-3 border border-border/50 rounded-lg overflow-hidden">
-      <div className="bg-muted/30 px-4 py-2.5 text-sm font-semibold text-foreground border-b border-border/40">
+    <div className="mt-3 border border-border/50 rounded-lg">
+      <div className="bg-muted/30 px-4 py-2.5 text-sm font-semibold text-foreground border-b border-border/40 rounded-t-lg">
         {label}
       </div>
       <div className="px-4 py-4 space-y-3">
