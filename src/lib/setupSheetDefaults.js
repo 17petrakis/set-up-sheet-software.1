@@ -60,7 +60,7 @@ export const emptyTurningChuck = {
   wh_s2: {},
 };
 
-export const emptyTurningTools = { axial: [], radial: [] };
+export const emptyTurningTools = { turrets: [] };
 
 export const emptyTurningOperation = {
   n_block: "",
