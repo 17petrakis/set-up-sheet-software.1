@@ -40,7 +40,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const displayType = [kindLabel, typeLabel].filter(Boolean).join(" ");
 
   return (
-    <div className="border border-border/40 rounded-lg mb-2 overflow-hidden">
+    <div className="border border-border/40 rounded-lg mb-2">
       {/* Header row */}
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/20 hover:bg-muted/30 transition-colors">
         <button type="button" onClick={() => setExpanded(e => !e)} className="text-muted-foreground hover:text-foreground">

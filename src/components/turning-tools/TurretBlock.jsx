@@ -30,7 +30,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
   };
 
   return (
-    <div className="border border-border/50 rounded-xl mb-4 overflow-hidden shadow-sm">
+    <div className="border border-border/50 rounded-xl mb-4 shadow-sm">
       {/* Turret header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 border-b border-border/40">
         <button type="button" onClick={() => setCollapsed(c => !c)} className="text-muted-foreground hover:text-foreground">

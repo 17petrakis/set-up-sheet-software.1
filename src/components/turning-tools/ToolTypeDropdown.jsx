@@ -135,7 +135,7 @@ export default function ToolTypeDropdown({ toolKind, value, onChange }) {
         <ChevronRight className="w-3.5 h-3.5 text-muted-foreground rotate-90 shrink-0 ml-1" />
       </button>
       {open && (
-        <div className="absolute z-[100] top-full left-0 mt-1 w-52 bg-popover border border-border rounded-md shadow-xl py-1 max-h-80 overflow-y-auto">
+        <div className="absolute z-[500] top-full left-0 mt-1 w-52 bg-popover border border-border rounded-md shadow-xl py-1 max-h-80 overflow-y-auto">
           <CascadeMenu options={options} onSelect={handleSelect} />
         </div>
       )}

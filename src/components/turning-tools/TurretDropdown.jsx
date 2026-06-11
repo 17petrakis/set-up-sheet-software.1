@@ -41,7 +41,7 @@ export default function TurretDropdown({ value, onChange }) {
         <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90 shrink-0" />
       </button>
       {open && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-52 bg-popover border border-border rounded-md shadow-lg py-1">
+        <div className="absolute z-[500] top-full left-0 mt-1 w-52 bg-popover border border-border rounded-md shadow-lg py-1">
           {TURRET_OPTIONS.map((opt) => (
             <div key={opt.label}>
               <div
