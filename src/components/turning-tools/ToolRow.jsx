@@ -48,7 +48,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         </button>
         {/* T# */}
         <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground font-mono">T</span>
+          <span className="text-xs text-muted-foreground font-mono">T#</span>
           <Input
             value={tool.tool_number || ""}
             onChange={(e) => set("tool_number")(e.target.value)}
