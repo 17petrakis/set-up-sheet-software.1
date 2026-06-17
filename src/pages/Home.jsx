@@ -3,9 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen, Menu } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
+import MobileNav from "@/components/home/MobileNav";
 import PartFolderCard from "@/components/home/PartFolderCard";
 import PartFolderView from "@/components/home/PartFolderView";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default function Home() {
   const [deleteFolderTarget, setDeleteFolderTarget] = useState(null); // { partNumber, customer, sheets }
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -175,8 +177,18 @@ export default function Home() {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-56 bg-background text-foreground flex flex-col shrink-0">
+      {/* Mobile Nav Drawer */}
+      <MobileNav
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        activeNav={activeNav}
+        onSwitchNav={switchNav}
+        onNewSheet={() => setShowNewDialog(true)}
+        isAdmin={isAdmin}
+      />
+
+      {/* Sidebar — desktop only */}
+      <aside className="hidden md:flex w-56 bg-background text-foreground flex-col shrink-0">
         <div className="px-4 py-5 border-b border-white/10 bg-background">
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
@@ -238,7 +250,21 @@ export default function Home() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-8">
+        {/* Mobile header */}
+        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
+          <button onClick={() => setMobileNavOpen(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <Menu className="w-5 h-5 text-foreground" />
+          </button>
+          <img
+            src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
+            alt="Logo"
+            className="h-7 w-auto object-contain"
+          />
+          <button onClick={() => setShowNewDialog(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <FilePlus className="w-5 h-5 text-foreground" />
+          </button>
+        </header>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
 
           {activeNav === "customers" ? (
             selectedCustomer && openFolder ? (
@@ -286,16 +312,16 @@ export default function Home() {
             ) : (
               /* Customers list */
               <div>
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4 md:mb-6">
                   <div>
-                    <h1 className="text-2xl font-bold text-foreground">Customers</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Organize setup sheets by customer folders</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground">Customers</h1>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden sm:block">Organize setup sheets by customer folders</p>
                   </div>
                   <Button onClick={() => setShowAddCustomerDialog(true)} className="gap-2">
                     <Plus className="w-4 h-4" /> Add Customer
                   </Button>
                 </div>
-                <div className="relative mb-5">
+                <div className="relative mb-4 md:mb-5">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={customerSearch}
@@ -365,16 +391,16 @@ export default function Home() {
           ) : (
             /* Dashboard — shows part folders */
             <div>
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex items-start justify-between mb-4 md:mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Setup Sheets</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Manage and organize your machine shop setup documentation</p>
+                  <h1 className="text-xl md:text-2xl font-bold text-foreground">Setup Sheets</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden sm:block">Manage and organize your machine shop setup documentation</p>
                 </div>
-                <Button onClick={() => setShowNewDialog(true)} className="gap-2">
+                <Button onClick={() => setShowNewDialog(true)} className="gap-2 hidden md:flex">
                   <FilePlus className="w-4 h-4" /> New Setup Sheet
                 </Button>
               </div>
-              <div className="flex gap-3 mb-6">
+              <div className="flex gap-2 md:gap-3 mb-4 md:mb-6">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -415,7 +441,7 @@ export default function Home() {
               ) : sortedFolders.length === 0 ? (
                 <p className="text-center py-12 text-muted-foreground text-sm">No results found.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                   {sortedFolders.map(folder => (
                     <PartFolderCard
                       key={folder.key}
