@@ -108,7 +108,8 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
   useEffect(() => {
     base44.entities.Customer.list("name", 200).then(list => {
-      setCustomerNames(list.map(c => c.name).filter(Boolean));
+      const names = list.map(c => c.name).filter(Boolean);
+      setCustomerNames([...new Set(names)]);
     });
   }, []);
 
