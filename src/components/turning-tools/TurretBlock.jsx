@@ -10,7 +10,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
   const setField = (k, v) => onChange({ ...turret, [k]: v });
 
   const addTool = (kind) => {
-    const tools = [...(turret.tools || []), { tool_kind: kind, tool_number: "", tool_type: "" }];
+    const tools = [...(turret.tools || []), { _id: Date.now() + Math.random(), tool_kind: kind, tool_number: "", tool_type: "" }];
     setField("tools", tools);
   };
 
@@ -48,7 +48,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
           )}
           {(turret.tools || []).map((tool, i) => (
             <ToolRow
-              key={i}
+              key={tool._id || i}
               tool={tool}
               onUpdate={(updated) => updateTool(i, updated)}
               onRemove={() => removeTool(i)}

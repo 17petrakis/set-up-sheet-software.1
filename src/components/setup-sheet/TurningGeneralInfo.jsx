@@ -134,13 +134,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
     const next = !showDeburring;
     setShowDeburring(next);
     onChange("has_deburring", next);
-    if (!next) {
-      onChange("deburring_time", "");
-      onChange("finishing_time", "");
-      onChange("total_additional_time", "");
-      onChange("deburring_notes", "");
-      onChange("finishing_notes", "");
-    }
+    // Data is preserved when hiding — only the UI collapses
   };
 
   const handleCustomerSelect = (val) => {
