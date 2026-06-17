@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -44,6 +44,7 @@ export default function SetupSheet() {
   const [loading, setLoading] = useState(!!id);
   const [showHistory, setShowHistory] = useState(false);
   const [showAddOp, setShowAddOp] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
@@ -385,7 +386,7 @@ export default function SetupSheet() {
               <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground leading-none">
+              <h1 className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none">
                 {general.part_number || "CNC Setup Sheet"}
                 {general.operation_number > 1 && (
                   <span className="ml-2 text-sm font-medium text-muted-foreground">— Op {general.operation_number}</span>
@@ -400,35 +401,84 @@ export default function SetupSheet() {
           <div className="flex items-center gap-2">
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.pdf" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
-              <Upload className="w-3.5 h-3.5" />
-              {importing ? "Importing..." : "Import File"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-8 text-xs gap-1.5">
-              <Eye className="w-3.5 h-3.5" />
-              Print View
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-8 text-xs gap-1.5">
-              <Wrench className="w-3.5 h-3.5" />
-              Print Tool List
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => saveRevision()} className="h-8 text-xs gap-1.5">
-              <Save className="w-3.5 h-3.5" />
-              Save Revision
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="h-8 text-xs gap-1.5">
-              <History className="w-3.5 h-3.5" />
-              History
-            </Button>
-            {general.folder_id && (
-              <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="h-8 text-xs gap-1.5">
-                <Plus className="w-3.5 h-3.5" />
-                Add Operation
+
+            {/* Desktop action buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
+                <Upload className="w-3.5 h-3.5" />
+                {importing ? "Importing..." : "Import File"}
               </Button>
-            )}
+              <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-8 text-xs gap-1.5">
+                <Eye className="w-3.5 h-3.5" />
+                Print View
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-8 text-xs gap-1.5">
+                <Wrench className="w-3.5 h-3.5" />
+                Print Tool List
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => saveRevision()} className="h-8 text-xs gap-1.5">
+                <Save className="w-3.5 h-3.5" />
+                Save Revision
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="h-8 text-xs gap-1.5">
+                <History className="w-3.5 h-3.5" />
+                History
+              </Button>
+              {general.folder_id && (
+                <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="h-8 text-xs gap-1.5">
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Operation
+                </Button>
+              )}
+            </div>
+
+            {/* Mobile hamburger */}
+            <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden" onClick={() => setMobileMenuOpen(v => !v)}>
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </Button>
           </div>
         </div>
       </header>
+
+      {/* Mobile action menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden sticky top-[57px] z-40 bg-background border-b border-border shadow-md no-print">
+          <div className="px-4 py-2 flex flex-col gap-1">
+            <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+              <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
+              {importing ? "Importing..." : "Import File"}
+            </button>
+            <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+              <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />
+              Print View
+            </button>
+            <button onClick={() => { navigate(`/sheet/${id}/print-tools`); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+              <Wrench className="w-4 h-4 shrink-0 text-muted-foreground" />
+              Print Tool List
+            </button>
+            <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+              <Save className="w-4 h-4 shrink-0 text-muted-foreground" />
+              Save Revision
+            </button>
+            <button onClick={() => { setShowHistory(true); setMobileMenuOpen(false); }}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+              <History className="w-4 h-4 shrink-0 text-muted-foreground" />
+              History
+            </button>
+            {general.folder_id && (
+              <button onClick={() => { setShowAddOp(true); setMobileMenuOpen(false); }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                <Plus className="w-4 h-4 shrink-0 text-muted-foreground" />
+                Add Operation
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
@@ -461,7 +511,7 @@ export default function SetupSheet() {
       )}
 
       {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 print-container space-y-5">
+      <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
           <ImportBanner message={importError} onClose={() => setImportError(null)} />
         )}
