@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Wrench, ChevronRight, ChevronDown } from "lucide-react";
+import { Wrench, ChevronRight, X, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Cascading Chuck Type Dropdown ──────────────────────────────────────────────
@@ -251,61 +251,6 @@ function JawTypeDropdown({ value, onChange }) {
   );
 }
 
-// ── Collapsible input fields ───────────────────────────────────────────────────
-function CollapsibleField({ label, value, onChange, placeholder = "" }) {
-  const [expanded, setExpanded] = useState(!!value);
-  return (
-    <div className="border border-border/40 rounded-lg overflow-hidden mb-2">
-      <button
-        type="button"
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors"
-      >
-        <span>{label}</span>
-        <div className="flex items-center gap-2">
-          {!expanded && value && <span className="text-foreground text-xs">{value}</span>}
-          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-        </div>
-      </button>
-      {expanded && (
-        <div className="px-3 pb-3">
-          <Input
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
-            className="h-9 text-sm bg-background border-border/60"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CollapsibleTextarea({ label, value, onChange }) {
-  const [expanded, setExpanded] = useState(!!value);
-  return (
-    <div className="border border-border/40 rounded-lg overflow-hidden mb-2">
-      <button
-        type="button"
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors"
-      >
-        <span>{label}</span>
-        {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-      </button>
-      {expanded && (
-        <div className="px-3 pb-3">
-          <AutoResizeTextarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="min-h-[64px] text-sm bg-background border-border/60"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Bar Feeder Fields ──────────────────────────────────────────────────────────
 function BarFeederFields({ data, onChange }) {
   const f = (field) => (e) => onChange({ ...data, [field]: e.target.value });
@@ -381,10 +326,19 @@ function ChuckPressureField({ value, unit, onValueChange, onUnitChange }) {
   );
 }
 
+// ── Optional add-on fields for spindle ────────────────────────────────────────
+const OPTIONAL_SPINDLE_FIELDS = [
+  { key: "initial_stickout", label: "Initial Stickout (Stock)", type: "input", placeholder: 'e.g. 2.500"' },
+  { key: "concentricity", label: "Concentricity", type: "input", placeholder: "" },
+  { key: "surface_finish", label: "Surface Finish", type: "input", placeholder: "" },
+  { key: "notes", label: "Notes", type: "textarea" },
+];
+
 // ── Spindle Form (shown when checkbox is checked) ──────────────────────────────
 function SpindleForm({ spindleKey, label, data, onChange }) {
   const s = data[spindleKey] || {};
   const set = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
+  const setAndClear = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
 
   const [localAccessories, setLocalAccessories] = useState(s.accessories || "");
 
@@ -397,6 +351,20 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
   };
 
   const needsExtra = localAccessories.startsWith('Liner') || localAccessories === 'Work Stop';
+
+  // Track which optional fields are visible (added). A field is visible if it has a value saved OR was added this session.
+  const [addedFields, setAddedFields] = useState(() =>
+    OPTIONAL_SPINDLE_FIELDS.filter(f => !!s[f.key]).map(f => f.key)
+  );
+
+  const isFieldVisible = (key) => addedFields.includes(key) || !!s[key];
+  const addField = (key) => setAddedFields(prev => [...prev, key]);
+  const removeField = (key) => {
+    setAddedFields(prev => prev.filter(k => k !== key));
+    set(key, "");
+  };
+
+  const hiddenFields = OPTIONAL_SPINDLE_FIELDS.filter(f => !isFieldVisible(f.key));
 
   return (
     <div className="mt-3 border border-border/50 rounded-lg">
@@ -461,28 +429,54 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
         )}
 
-        {/* Row 3 — Initial Stickout + collapsible fields */}
-        <CollapsibleField
-          label="Initial Stickout (Stock)"
-          value={s.initial_stickout || ""}
-          placeholder='e.g. 2.500"'
-          onChange={(v) => set("initial_stickout", v)}
-        />
-        <CollapsibleField
-          label="Concentricity"
-          value={s.concentricity || ""}
-          onChange={(v) => set("concentricity", v)}
-        />
-        <CollapsibleField
-          label="Surface Finish"
-          value={s.surface_finish || ""}
-          onChange={(v) => set("surface_finish", v)}
-        />
-        <CollapsibleTextarea
-          label="Notes"
-          value={s.notes || ""}
-          onChange={(v) => set("notes", v)}
-        />
+        {/* Optional added fields */}
+        {OPTIONAL_SPINDLE_FIELDS.filter(f => isFieldVisible(f.key)).map(f => (
+          <div key={f.key} className="flex items-start gap-2">
+            <div className="flex-1">
+              <FieldWrap label={f.label}>
+                {f.type === "textarea" ? (
+                  <AutoResizeTextarea
+                    value={s[f.key] || ""}
+                    onChange={(e) => set(f.key, e.target.value)}
+                    className="min-h-[64px] text-sm bg-background border-border/60"
+                  />
+                ) : (
+                  <Input
+                    value={s[f.key] || ""}
+                    onChange={(e) => set(f.key, e.target.value)}
+                    placeholder={f.placeholder || ""}
+                    className="h-9 text-sm bg-background border-border/60"
+                  />
+                )}
+              </FieldWrap>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeField(f.key)}
+              className="mt-5 p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+              title={`Remove ${f.label}`}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+
+        {/* Add field buttons */}
+        {hiddenFields.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {hiddenFields.map(f => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => addField(f.key)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary border border-dashed border-border/60 hover:border-primary/50 rounded-md px-2.5 py-1.5 transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
