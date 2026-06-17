@@ -60,7 +60,7 @@ export default function SetupSheet() {
         const isTurning = gen.machine_type === "turning";
         setGeneral({ ...emptyGeneral, ...gen });
         setTools(t?.length ? t : [{ ...emptyTool }]);
-        setTurningTools(tt && (tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
+        setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
         setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
         setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
         setPhotos(ph || {});
@@ -99,12 +99,23 @@ export default function SetupSheet() {
   }, [id]);
 
   // Flush save immediately on unmount so navigation doesn't lose data
+  // Only flush if there's actually a pending debounced save (saveTimer is set)
   useEffect(() => {
     return () => {
       if (!id || !saveTimer.current) return;
       clearTimeout(saveTimer.current);
-      const { gen, t, tt, pz, ops, ph, fn, tc } = latestData.current;
-      if (gen) {
+      saveTimer.current = null;
+      // Use refs which are always up-to-date — latestData.current can be stale/empty
+      const gen = generalRef.current;
+      const t = toolsRef.current;
+      const tt = turningToolsRef.current;
+      const pz = partZeroRef.current;
+      const ops = operationsRef.current;
+      const ph = photosRef.current;
+      const fn = fixturingNotesRef.current;
+      const tc = turningChuckRef.current;
+      // Only flush if general has real data (i.e. we've finished loading)
+      if (gen && gen.part_number !== undefined) {
         base44.entities.SetupSheet.update(id, {
           ...gen,
           tools: t,
@@ -341,7 +352,7 @@ export default function SetupSheet() {
     const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = snap;
     setGeneral({ ...emptyGeneral, ...gen });
     setTools(t?.length ? t : [{ ...emptyTool }]);
-    setTurningTools(tt && (tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
+    setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
     setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
     setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
     setPhotos(ph || {});
