@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Shared Hole Making sub-tree ────────────────────────────────────────────────
 const HOLE_MAKING_CHILDREN = [
   {
     label: "Drill", children: [
-      { label: "Carb", value: "Drill – Carb" },
+      { label: "Carbide", value: "Drill – Carbide" },
       { label: "HSS", value: "Drill – HSS" },
       { label: "Insert", value: "Drill – Insert" },
       { label: "Ex Tip", value: "Drill – Ex Tip" },
     ]
   },
-  { label: "Ream", value: "Hole Making – Ream" },
   { label: "Tap", value: "Hole Making – Tap" },
   { label: "Spot/CSK", value: "Hole Making – Spot/CSK" },
 ];
@@ -22,23 +22,13 @@ const OTHER_CHILDREN = [
   { label: "Custom", value: "Other – Custom" },
 ];
 
-function buildTurnFaceSection(prefix) {
-  return [
-    { label: "Turning", value: `${prefix} Turning` },
-    { label: "Groove/Part", value: `${prefix} Groove/Part` },
-    { label: "Thread", value: `${prefix} Thread` },
-    {
-      label: "Hole Making", children: HOLE_MAKING_CHILDREN
-    },
-    { label: "Profile", value: `${prefix} Profile` },
-    { label: "Other", children: OTHER_CHILDREN },
-  ];
-}
-
 const TURN_OPTIONS = [
-  { label: "OD", children: buildTurnFaceSection("OD") },
-  { label: "ID", children: buildTurnFaceSection("ID") },
-  { label: "Face", children: buildTurnFaceSection("Face") },
+  { label: "Turning", value: "Turning" },
+  { label: "Groove/Part", value: "Groove/Part" },
+  { label: "Thread", value: "Thread" },
+  { label: "Hole Making", children: HOLE_MAKING_CHILDREN },
+  { label: "Profile", value: "Profile" },
+  { label: "Other", children: OTHER_CHILDREN },
 ];
 
 const MILL_OPTIONS = [
@@ -64,16 +54,35 @@ const MILL_OPTIONS = [
       { label: "Drill", value: "Mill Hole Making – Drill" },
       { label: "Spot/CSK", value: "Mill Hole Making – Spot/CSK" },
       { label: "Tap", value: "Mill Hole Making – Tap" },
-      {
-        label: "Ream", children: [
-          { label: "Shape", value: "Mill Hole Making – Ream Shape" },
-          { label: "Part", value: "Mill Hole Making – Ream Part" },
-        ]
-      },
       { label: "Bore", value: "Mill Hole Making – Bore" },
     ]
   },
 ];
+
+// ── OD/ID/Face selector ────────────────────────────────────────────────────────
+const HOLE_MAKING_VALUES = [
+  "Drill – Carbide", "Drill – HSS", "Drill – Insert", "Drill – Ex Tip",
+  "Hole Making – Tap", "Hole Making – Spot/CSK",
+];
+
+export function isHoleMaking(typeValue) {
+  return HOLE_MAKING_VALUES.includes(typeValue);
+}
+
+export function ODIDFaceSelect({ value, onChange }) {
+  return (
+    <Select value={value || ""} onValueChange={onChange}>
+      <SelectTrigger className="h-8 text-xs bg-background border-border/60 w-24 shrink-0">
+        <SelectValue placeholder="OD/ID/Face" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="OD">OD</SelectItem>
+        <SelectItem value="ID">ID</SelectItem>
+        <SelectItem value="Face">Face</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
 
 // ── Generic recursive cascade renderer ────────────────────────────────────────
 function CascadeMenu({ options, onSelect, depth = 0 }) {

@@ -62,131 +62,81 @@ function FSelect({ label, value, onChange, options, placeholder = "Select…", c
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
 const DEG_TURN_OPTIONS = ["100", "80", "55", "35"];
-const DIRECTION_OPTIONS = ["Main (Left)", "Sub (Right)"];
+const SPINDLE_OPTIONS = ["Main (S1)", "Sub (S2)"];
 const ROTATION_OPTIONS = ["CCW (M3) UP", "CW (M4) DOWN"];
 const HOLDER_TURN_OPTIONS = ["DCLNR 16 4C (RH)", "DCLNL 16 4C (LH)", "DCKNR 16 4C KC3 (FACE)"];
 const WIDTH_OPTIONS = [".158 (4mm)", ".156 (5/32)", ".125 (⅛)", ".088", ".094 (3/32)", ".118 (3mm)", ".079 (2mm)", ".0625 (1/16)", ".059 (1.5mm)", ".047 (3/64)", ".031 (1/32)"];
 const ENDMILL_DIRECTION_OPTIONS = ["X", "Z-", "Z+"];
 const TAP_TYPE_OPTIONS = ["Form", "SF", "SP", "Hard"];
 
-// ── Determine which field set to render based on type string ───────────────────
-function getFieldSet(typeValue) {
-  if (!typeValue) return null;
-  const t = typeValue;
-
-  // Mill types
-  if (t.startsWith("Mill Endmill")) return "mill_endmill";
-  if (t === "Mill – Thread Mills") return "mill_threadmill";
-  if (t === "Mill Hole Making – Tap") return "mill_tap";
-  if (t.includes("Mill Hole Making") || t === "Mill Hole Making – Drill") return "hole_making";
-  if (t === "Mill – Chamfer Mills" || t === "Mill – Lollipop" || t === "Mill – T-Slot" || t === "Mill – Engraving") return "mill_in_progress";
-
-  // Turn tap
-  if (t === "Hole Making – Tap") return "turn_tap";
-  // Turn hole making
-  if (t.includes("Hole Making") || t.includes("Drill") || t === "Hole Making – Ream" || t === "Hole Making – Spot/CSK") return "hole_making";
-  // Turning
-  if (t.endsWith("Turning")) return "turning";
-  // Groove/Part
-  if (t.endsWith("Groove/Part")) return "groove";
-  // Thread
-  if (t.endsWith("Thread")) return "thread";
-  // Profile
-  if (t.endsWith("Profile")) return "profile";
-  // Other types
-  if (t.includes("Knurl") || t.includes("Form") || t.includes("Custom")) return "custom";
-
-  return null;
-}
-
-// ── Custom/free-form fields ────────────────────────────────────────────────────
-function CustomFields({ data, onChange }) {
-  const fields = data.custom_fields || [];
-  const addField = () => onChange({ ...data, custom_fields: [...fields, { key: "", value: "" }] });
-  const removeField = (i) => onChange({ ...data, custom_fields: fields.filter((_, idx) => idx !== i) });
-  const updateField = (i, k, v) => {
-    const updated = [...fields];
-    updated[i] = { ...updated[i], [k]: v };
-    onChange({ ...data, custom_fields: updated });
-  };
-
+// ── Removable/Addable field system ─────────────────────────────────────────────
+// permanentKeys are always shown; all others are removable/addable
+function RemovableField({ fieldKey, label, children, onRemove }) {
   return (
-    <div className="space-y-2">
-      {fields.map((f, i) => (
-        <div key={i} className="flex gap-2 items-center">
-          <Input value={f.key} onChange={(e) => updateField(i, "key", e.target.value)}
-            placeholder="Field name" className="h-8 text-xs bg-background border-border/60 w-32" />
-          <Input value={f.value} onChange={(e) => updateField(i, "value", e.target.value)}
-            placeholder="Value" className="h-8 text-xs bg-background border-border/60 flex-1" />
-          <button type="button" onClick={() => removeField(i)}
-            className="text-destructive hover:text-destructive/80 p-1"><X className="w-3.5 h-3.5" /></button>
-        </div>
-      ))}
-      <Button type="button" size="sm" variant="outline" onClick={addField} className="h-7 text-xs gap-1">
-        <Plus className="w-3 h-3" /> Add Field
-      </Button>
+    <div className="relative group">
+      {children}
+      <button
+        type="button"
+        onClick={() => onRemove(fieldKey)}
+        className="absolute -top-1 -right-1 hidden group-hover:flex items-center justify-center w-4 h-4 bg-destructive text-destructive-foreground rounded-full text-[9px] z-10"
+        title="Remove field"
+      >
+        <X className="w-2.5 h-2.5" />
+      </button>
     </div>
   );
 }
 
-// ── Hole Making / Drill shared fields ─────────────────────────────────────────
-function HoleMakingFields({ data, onChange }) {
-  const set = (k) => (v) => onChange({ ...data, [k]: v });
-  const extra = data.extra_fields || [];
-  const addExtra = () => onChange({ ...data, extra_fields: [...extra, { key: "", value: "" }] });
-  const removeExtra = (i) => onChange({ ...data, extra_fields: extra.filter((_, idx) => idx !== i) });
-  const updateExtra = (i, k, v) => { const u = [...extra]; u[i] = { ...u[i], [k]: v }; onChange({ ...data, extra_fields: u }); };
-
+function AddFieldMenu({ availableFields, onAdd }) {
+  const [open, setOpen] = useState(false);
+  if (availableFields.length === 0) return null;
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
-        <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
-        <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
-        <FInput label="Tool" value={data.tool} onChange={set("tool")} className="w-24" />
-        <FInput label="Material" value={data.material} onChange={set("material")} className="w-24" />
-        <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-28" />
-        <FInput label="Sleeve" value={data.sleeve} onChange={set("sleeve")} className="w-24" />
-      </div>
-      {extra.length > 0 && (
-        <div className="space-y-1.5">
-          {extra.map((f, i) => (
-            <div key={i} className="flex gap-2 items-center">
-              <Input value={f.key} onChange={(e) => updateExtra(i, "key", e.target.value)}
-                placeholder="Field name" className="h-8 text-xs bg-background border-border/60 w-32" />
-              <Input value={f.value} onChange={(e) => updateExtra(i, "value", e.target.value)}
-                placeholder="Value" className="h-8 text-xs bg-background border-border/60 flex-1" />
-              <button type="button" onClick={() => removeExtra(i)} className="text-destructive p-1"><X className="w-3.5 h-3.5" /></button>
+    <div className="relative" tabIndex={-1} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
+      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(o => !o)} className="h-7 text-xs gap-1">
+        <Plus className="w-3 h-3" /> Add Field
+      </Button>
+      {open && (
+        <div className="absolute z-[500] bottom-full left-0 mb-1 w-44 bg-popover border border-border rounded-md shadow-xl py-1 max-h-60 overflow-y-auto">
+          {availableFields.map(f => (
+            <div key={f.key} onClick={() => { onAdd(f.key); setOpen(false); }}
+              className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1">
+              {f.label}
             </div>
           ))}
         </div>
       )}
-      <Button type="button" size="sm" variant="outline" onClick={addExtra} className="h-7 text-xs gap-1">
-        <Plus className="w-3 h-3" /> More
-      </Button>
     </div>
   );
 }
 
-// ── Tap fields ─────────────────────────────────────────────────────────────────
-function TapFields({ data, onChange }) {
-  const set = (k) => (v) => onChange({ ...data, [k]: v });
+// useRemovedFields — manages which optional fields have been removed
+function useRemovedFields(data, onChange) {
+  const removed = data._removed_fields || [];
+  const removeField = (key) => onChange({ ...data, _removed_fields: [...removed, key] });
+  const addField = (key) => onChange({ ...data, _removed_fields: removed.filter(k => k !== key) });
+  const isVisible = (key) => !removed.includes(key);
+  return { removeField, addField, isVisible, removed };
+}
+
+// ── Turn Spindle + Rotation (shared by all turn tool types) ───────────────────
+function TurnSpindleFields({ data, set, isVisible, removeField }) {
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-2">
-      <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
-      <FSelect label="Deg." value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
-      <FSelect label="Tap Type" value={data.tap_type} onChange={set("tap_type")} options={TAP_TYPE_OPTIONS} className="w-24" />
-      <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
-      <FInput label="Material" value={data.material} onChange={set("material")} className="w-24" />
-      <FInput label="Chamfer x R" value={data.chamfer_r} onChange={set("chamfer_r")} className="w-24" />
-    </div>
+    <>
+      {isVisible("spindle") && (
+        <RemovableField fieldKey="spindle" onRemove={removeField}>
+          <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+        </RemovableField>
+      )}
+      {isVisible("rotation") && (
+        <RemovableField fieldKey="rotation" onRemove={removeField}>
+          <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+        </RemovableField>
+      )}
+    </>
   );
 }
 
 // ── Threadmill type dropdown ───────────────────────────────────────────────────
-const THREADMILL_TYPE_TOP = ["Solid", "Indelible"];
-const SOLID_CHILDREN = ["Single", "Multi. Flute length:"];
-
 function ThreadmillTypeDropdown({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const [solidExp, setSolidExp] = useState(false);
@@ -230,10 +180,60 @@ function ThreadmillTypeDropdown({ value, onChange }) {
   );
 }
 
+// ── Determine field set ────────────────────────────────────────────────────────
+function getFieldSet(typeValue) {
+  if (!typeValue) return null;
+  const t = typeValue;
+  if (t.startsWith("Mill Endmill")) return "mill_endmill";
+  if (t === "Mill – Thread Mills") return "mill_threadmill";
+  if (t === "Mill Hole Making – Tap") return "mill_tap";
+  if (t.includes("Mill Hole Making") || t === "Mill Hole Making – Drill") return "hole_making_mill";
+  if (t === "Mill – Chamfer Mills" || t === "Mill – Lollipop" || t === "Mill – T-Slot" || t === "Mill – Engraving") return "mill_in_progress";
+  if (t === "Hole Making – Tap") return "turn_tap";
+  if (t.includes("Hole Making") || t.includes("Drill") || t === "Hole Making – Spot/CSK") return "hole_making_turn";
+  if (t === "Turning") return "turning";
+  if (t === "Groove/Part") return "groove";
+  if (t === "Thread") return "thread";
+  if (t === "Profile") return "profile";
+  if (t.includes("Knurl") || t.includes("Form") || t.includes("Custom")) return "custom";
+  return null;
+}
+
+// ── Custom/free-form fields ────────────────────────────────────────────────────
+function CustomFields({ data, onChange }) {
+  const fields = data.custom_fields || [];
+  const addField = () => onChange({ ...data, custom_fields: [...fields, { key: "", value: "" }] });
+  const removeField = (i) => onChange({ ...data, custom_fields: fields.filter((_, idx) => idx !== i) });
+  const updateField = (i, k, v) => {
+    const updated = [...fields];
+    updated[i] = { ...updated[i], [k]: v };
+    onChange({ ...data, custom_fields: updated });
+  };
+
+  return (
+    <div className="space-y-2">
+      {fields.map((f, i) => (
+        <div key={i} className="flex gap-2 items-center">
+          <Input value={f.key} onChange={(e) => updateField(i, "key", e.target.value)}
+            placeholder="Field name" className="h-8 text-xs bg-background border-border/60 w-32" />
+          <Input value={f.value} onChange={(e) => updateField(i, "value", e.target.value)}
+            placeholder="Value" className="h-8 text-xs bg-background border-border/60 flex-1" />
+          <button type="button" onClick={() => removeField(i)}
+            className="text-destructive hover:text-destructive/80 p-1"><X className="w-3.5 h-3.5" /></button>
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="outline" onClick={addField} className="h-7 text-xs gap-1">
+        <Plus className="w-3 h-3" /> Add Field
+      </Button>
+    </div>
+  );
+}
+
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   const set = (k) => (v) => onChange({ ...data, [k]: v });
   const fieldSet = getFieldSet(typeValue);
+  const { removeField, addField, isVisible, removed } = useRemovedFields(data, onChange);
 
   if (!typeValue || !fieldSet) return null;
 
@@ -241,99 +241,475 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
     return <span className="text-xs text-muted-foreground italic">(in progress)</span>;
   }
 
+  // ── Turning ──────────────────────────────────────────────────────────────────
   if (fieldSet === "turning") {
+    const allOptional = [
+      { key: "rad", label: "Rad" },
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "holder", label: "Holder" },
+      { key: "tool_block", label: "Tool Block" },
+      { key: "stickout", label: "Stickout" },
+      { key: "sleeve_shim", label: "Sleeve/Shim" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
     return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
-        <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
-        <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
-        <FSelect label="Direction" value={data.direction} onChange={set("direction")} options={DIRECTION_OPTIONS} className="w-28" />
-        <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-32" />
-        <FSelect label="Holder" value={data.holder} onChange={set("holder")} options={HOLDER_TURN_OPTIONS} allowOther className="w-48" />
-        <FInput label="Tool Block" value={data.tool_block} onChange={set("tool_block")} className="w-24" />
-        <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
-        <FInput label="Sleeve/Shim" value={data.sleeve_shim} onChange={set("sleeve_shim")} className="w-24" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          {/* Permanent */}
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {/* Optional */}
+          {isVisible("rad") && (
+            <RemovableField fieldKey="rad" onRemove={removeField}>
+              <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("spindle") && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FSelect label="Holder" value={data.holder} onChange={set("holder")} options={HOLDER_TURN_OPTIONS} allowOther className="w-48" />
+            </RemovableField>
+          )}
+          {isVisible("tool_block") && (
+            <RemovableField fieldKey="tool_block" onRemove={removeField}>
+              <FInput label="Tool Block" value={data.tool_block} onChange={set("tool_block")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("stickout") && (
+            <RemovableField fieldKey="stickout" onRemove={removeField}>
+              <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("sleeve_shim") && (
+            <RemovableField fieldKey="sleeve_shim" onRemove={removeField}>
+              <FInput label="Sleeve/Shim" value={data.sleeve_shim} onChange={set("sleeve_shim")} className="w-24" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
       </div>
     );
   }
 
+  // ── Groove/Part ───────────────────────────────────────────────────────────────
   if (fieldSet === "groove") {
+    const allOptional = [
+      { key: "rad", label: "Rad" },
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "insert", label: "Insert" },
+      { key: "holder", label: "Holder" },
+      { key: "stickout", label: "Stickout" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
     return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
-        <FSelect label="Width" value={data.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
-        <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
-        <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
-        <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FSelect label="Width" value={data.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("rad") && (
+            <RemovableField fieldKey="rad" onRemove={removeField}>
+              <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("spindle") && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("insert") && (
+            <RemovableField fieldKey="insert" onRemove={removeField}>
+              <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("stickout") && (
+            <RemovableField fieldKey="stickout" onRemove={removeField}>
+              <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
       </div>
     );
   }
 
+  // ── Thread ────────────────────────────────────────────────────────────────────
   if (fieldSet === "thread") {
+    const allOptional = [
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "insert", label: "Insert" },
+      { key: "holder", label: "Holder" },
+      { key: "rad", label: "Rad" },
+      { key: "angle", label: "Angle" },
+      { key: "pitch", label: "Pitch" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
     return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
-        <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
-        <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
-        <FInput label="Angle" value={data.angle} onChange={set("angle")} className="w-20" />
-        <FInput label="Pitch" value={data.pitch} onChange={set("pitch")} className="w-20" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("spindle") && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("insert") && (
+            <RemovableField fieldKey="insert" onRemove={removeField}>
+              <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("rad") && (
+            <RemovableField fieldKey="rad" onRemove={removeField}>
+              <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("angle") && (
+            <RemovableField fieldKey="angle" onRemove={removeField}>
+              <FInput label="Angle" value={data.angle} onChange={set("angle")} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("pitch") && (
+            <RemovableField fieldKey="pitch" onRemove={removeField}>
+              <FInput label="Pitch" value={data.pitch} onChange={set("pitch")} className="w-20" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
       </div>
     );
   }
 
+  // ── Profile ───────────────────────────────────────────────────────────────────
   if (fieldSet === "profile") {
+    const allOptional = [
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "insert", label: "Insert" },
+      { key: "holder", label: "Holder" },
+      { key: "rad", label: "Rad" },
+      { key: "relief_angle", label: "Relief Angle" },
+      { key: "reach", label: "Reach" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
     return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
-        <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
-        <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
-        <FInput label="Relief Angle" value={data.relief_angle} onChange={set("relief_angle")} className="w-24" />
-        <FInput label="Reach" value={data.reach} onChange={set("reach")} className="w-20" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("spindle") && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("insert") && (
+            <RemovableField fieldKey="insert" onRemove={removeField}>
+              <FInput label="Insert" value={data.insert} onChange={set("insert")} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("rad") && (
+            <RemovableField fieldKey="rad" onRemove={removeField}>
+              <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("relief_angle") && (
+            <RemovableField fieldKey="relief_angle" onRemove={removeField}>
+              <FInput label="Relief Angle" value={data.relief_angle} onChange={set("relief_angle")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("reach") && (
+            <RemovableField fieldKey="reach" onRemove={removeField}>
+              <FInput label="Reach" value={data.reach} onChange={set("reach")} className="w-20" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
       </div>
     );
   }
 
+  // ── Turn Hole Making ──────────────────────────────────────────────────────────
+  if (fieldSet === "hole_making_turn") {
+    const allOptional = [
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "tool", label: "Tool" },
+      { key: "material", label: "Material" },
+      { key: "holder", label: "Holder" },
+      { key: "sleeve", label: "Sleeve" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("spindle") && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("tool") && (
+            <RemovableField fieldKey="tool" onRemove={removeField}>
+              <FInput label="Tool" value={data.tool} onChange={set("tool")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("material") && (
+            <RemovableField fieldKey="material" onRemove={removeField}>
+              <FInput label="Material" value={data.material} onChange={set("material")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("sleeve") && (
+            <RemovableField fieldKey="sleeve" onRemove={removeField}>
+              <FInput label="Sleeve" value={data.sleeve} onChange={set("sleeve")} className="w-24" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
+      </div>
+    );
+  }
+
+  // ── Mill Hole Making ──────────────────────────────────────────────────────────
+  if (fieldSet === "hole_making_mill") {
+    const allOptional = [
+      { key: "tool", label: "Tool" },
+      { key: "material", label: "Material" },
+      { key: "holder", label: "Holder" },
+      { key: "sleeve", label: "Sleeve" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("tool") && (
+            <RemovableField fieldKey="tool" onRemove={removeField}>
+              <FInput label="Tool" value={data.tool} onChange={set("tool")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("material") && (
+            <RemovableField fieldKey="material" onRemove={removeField}>
+              <FInput label="Material" value={data.material} onChange={set("material")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder" value={data.holder} onChange={set("holder")} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("sleeve") && (
+            <RemovableField fieldKey="sleeve" onRemove={removeField}>
+              <FInput label="Sleeve" value={data.sleeve} onChange={set("sleeve")} className="w-24" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
+      </div>
+    );
+  }
+
+  // ── Turn Tap ──────────────────────────────────────────────────────────────────
+  if (fieldSet === "turn_tap" || fieldSet === "mill_tap") {
+    const allOptional = [
+      { key: "spindle", label: "Spindle" },
+      { key: "rotation", label: "Rotation" },
+      { key: "material", label: "Material" },
+      { key: "chamfer_r", label: "Chamfer x R" },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FSelect label="Deg." value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          <FSelect label="Tap Type" value={data.tap_type} onChange={set("tap_type")} options={TAP_TYPE_OPTIONS} className="w-24" />
+          {isVisible("spindle") && fieldSet === "turn_tap" && (
+            <RemovableField fieldKey="spindle" onRemove={removeField}>
+              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+            </RemovableField>
+          )}
+          {isVisible("rotation") && fieldSet === "turn_tap" && (
+            <RemovableField fieldKey="rotation" onRemove={removeField}>
+              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+            </RemovableField>
+          )}
+          {isVisible("material") && (
+            <RemovableField fieldKey="material" onRemove={removeField}>
+              <FInput label="Material" value={data.material} onChange={set("material")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("chamfer_r") && (
+            <RemovableField fieldKey="chamfer_r" onRemove={removeField}>
+              <FInput label="Chamfer x R" value={data.chamfer_r} onChange={set("chamfer_r")} className="w-24" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
+      </div>
+    );
+  }
+
+  // ── Mill Endmill ──────────────────────────────────────────────────────────────
+  if (fieldSet === "mill_endmill") {
+    const allOptional = [
+      { key: "direction", label: "Direction" },
+      { key: "num_flutes", label: "# Flutes" },
+      { key: "flute_length", label: "Flute Length" },
+      { key: "stickout", label: "Stickout" },
+      { key: "holder", label: "Holder/Ext." },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
+          {isVisible("direction") && (
+            <RemovableField fieldKey="direction" onRemove={removeField}>
+              <FSelect label="Direction" value={data.direction} onChange={set("direction")} options={ENDMILL_DIRECTION_OPTIONS} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("num_flutes") && (
+            <RemovableField fieldKey="num_flutes" onRemove={removeField}>
+              <FInput label="# Flutes" value={data.num_flutes} onChange={set("num_flutes")} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("flute_length") && (
+            <RemovableField fieldKey="flute_length" onRemove={removeField}>
+              <FInput label="Flute Length" value={data.flute_length} onChange={set("flute_length")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("stickout") && (
+            <RemovableField fieldKey="stickout" onRemove={removeField}>
+              <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder/Ext." value={data.holder} onChange={set("holder")} className="w-32" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
+      </div>
+    );
+  }
+
+  // ── Mill Threadmill ───────────────────────────────────────────────────────────
+  if (fieldSet === "mill_threadmill") {
+    const allOptional = [
+      { key: "direction", label: "Direction" },
+      { key: "neck_dia", label: "Neck Dia" },
+      { key: "max_depth", label: "Max Depth" },
+      { key: "stickout", label: "Stickout" },
+      { key: "num_flutes", label: "# Flutes" },
+      { key: "holder", label: "Holder/Ext." },
+    ];
+    const available = allOptional.filter(f => !isVisible(f.key));
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
+          <F label="Name">
+            <ThreadmillTypeDropdown value={data.threadmill_type} onChange={set("threadmill_type")} />
+          </F>
+          {isVisible("direction") && (
+            <RemovableField fieldKey="direction" onRemove={removeField}>
+              <FSelect label="Direction" value={data.direction} onChange={set("direction")} options={ENDMILL_DIRECTION_OPTIONS} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("neck_dia") && (
+            <RemovableField fieldKey="neck_dia" onRemove={removeField}>
+              <FInput label="Neck Dia" value={data.neck_dia} onChange={set("neck_dia")} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("max_depth") && (
+            <RemovableField fieldKey="max_depth" onRemove={removeField}>
+              <FInput label="Max Depth" value={data.max_depth} onChange={set("max_depth")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("stickout") && (
+            <RemovableField fieldKey="stickout" onRemove={removeField}>
+              <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
+            </RemovableField>
+          )}
+          {isVisible("num_flutes") && (
+            <RemovableField fieldKey="num_flutes" onRemove={removeField}>
+              <FInput label="# Flutes" value={data.num_flutes} onChange={set("num_flutes")} className="w-20" />
+            </RemovableField>
+          )}
+          {isVisible("holder") && (
+            <RemovableField fieldKey="holder" onRemove={removeField}>
+              <FInput label="Holder/Ext." value={data.holder} onChange={set("holder")} className="w-32" />
+            </RemovableField>
+          )}
+        </div>
+        <AddFieldMenu availableFields={available} onAdd={addField} />
+      </div>
+    );
+  }
+
+  // ── Custom ────────────────────────────────────────────────────────────────────
   if (fieldSet === "custom") {
     return <CustomFields data={data} onChange={onChange} />;
-  }
-
-  if (fieldSet === "hole_making") {
-    return <HoleMakingFields data={data} onChange={onChange} />;
-  }
-
-  if (fieldSet === "turn_tap" || fieldSet === "mill_tap") {
-    return <TapFields data={data} onChange={onChange} />;
-  }
-
-  if (fieldSet === "mill_endmill") {
-    return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FInput label="Dia" value={data.dia} onChange={set("dia")} className="w-20" />
-        <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
-        <FSelect label="Direction" value={data.direction} onChange={set("direction")} options={ENDMILL_DIRECTION_OPTIONS} className="w-20" />
-        <FInput label="# Flutes" value={data.num_flutes} onChange={set("num_flutes")} className="w-20" />
-        <FInput label="Flute Length" value={data.flute_length} onChange={set("flute_length")} className="w-24" />
-        <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
-        <FInput label="Holder/Ext." value={data.holder} onChange={set("holder")} className="w-32" />
-      </div>
-    );
-  }
-
-  if (fieldSet === "mill_threadmill") {
-    return (
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        <FSelect label="Direction" value={data.direction} onChange={set("direction")} options={ENDMILL_DIRECTION_OPTIONS} className="w-20" />
-        <FInput label="Dia" value={data.dia} onChange={set("dia")} className="w-20" />
-        <FInput label="Neck Dia" value={data.neck_dia} onChange={set("neck_dia")} className="w-20" />
-        <F label="Type">
-          <ThreadmillTypeDropdown value={data.threadmill_type} onChange={set("threadmill_type")} />
-        </F>
-        <FInput label="Max Depth" value={data.max_depth} onChange={set("max_depth")} className="w-24" />
-        <FInput label="Stickout" value={data.stickout} onChange={set("stickout")} className="w-24" />
-        <FInput label="# Flutes" value={data.num_flutes} onChange={set("num_flutes")} className="w-20" />
-        <FInput label="Holder/Ext." value={data.holder} onChange={set("holder")} className="w-32" />
-      </div>
-    );
   }
 
   return null;

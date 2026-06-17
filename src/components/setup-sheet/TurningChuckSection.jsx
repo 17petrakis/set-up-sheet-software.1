@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Wrench, ChevronRight } from "lucide-react";
+import { Wrench, ChevronRight, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Cascading Chuck Type Dropdown ──────────────────────────────────────────────
@@ -251,6 +251,61 @@ function JawTypeDropdown({ value, onChange }) {
   );
 }
 
+// ── Collapsible input fields ───────────────────────────────────────────────────
+function CollapsibleField({ label, value, onChange, placeholder = "" }) {
+  const [expanded, setExpanded] = useState(!!value);
+  return (
+    <div className="border border-border/40 rounded-lg overflow-hidden mb-2">
+      <button
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors"
+      >
+        <span>{label}</span>
+        <div className="flex items-center gap-2">
+          {!expanded && value && <span className="text-foreground text-xs">{value}</span>}
+          {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-3 pb-3">
+          <Input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className="h-9 text-sm bg-background border-border/60"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CollapsibleTextarea({ label, value, onChange }) {
+  const [expanded, setExpanded] = useState(!!value);
+  return (
+    <div className="border border-border/40 rounded-lg overflow-hidden mb-2">
+      <button
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/30 transition-colors"
+      >
+        <span>{label}</span>
+        {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+      </button>
+      {expanded && (
+        <div className="px-3 pb-3">
+          <AutoResizeTextarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="min-h-[64px] text-sm bg-background border-border/60"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Bar Feeder Fields ──────────────────────────────────────────────────────────
 function BarFeederFields({ data, onChange }) {
   const f = (field) => (e) => onChange({ ...data, [field]: e.target.value });
@@ -406,31 +461,28 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
         )}
 
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-          <FieldWrap label="Concentricity">
-            <Input
-              value={s.concentricity || ""}
-              onChange={(e) => set("concentricity", e.target.value)}
-              className="h-9 text-sm bg-background border-border/60"
-            />
-          </FieldWrap>
-          <FieldWrap label="Surface Finish">
-            <Input
-              value={s.surface_finish || ""}
-              onChange={(e) => set("surface_finish", e.target.value)}
-              className="h-9 text-sm bg-background border-border/60"
-            />
-          </FieldWrap>
-        </div>
-        {/* Notes */}
-        <FieldWrap label="Notes">
-          <AutoResizeTextarea
-            value={s.notes || ""}
-            onChange={(e) => set("notes", e.target.value)}
-            className="min-h-[64px] text-sm bg-background border-border/60"
-          />
-        </FieldWrap>
+        {/* Row 3 — Initial Stickout + collapsible fields */}
+        <CollapsibleField
+          label="Initial Stickout (Stock)"
+          value={s.initial_stickout || ""}
+          placeholder='e.g. 2.500"'
+          onChange={(v) => set("initial_stickout", v)}
+        />
+        <CollapsibleField
+          label="Concentricity"
+          value={s.concentricity || ""}
+          onChange={(v) => set("concentricity", v)}
+        />
+        <CollapsibleField
+          label="Surface Finish"
+          value={s.surface_finish || ""}
+          onChange={(v) => set("surface_finish", v)}
+        />
+        <CollapsibleTextarea
+          label="Notes"
+          value={s.notes || ""}
+          onChange={(v) => set("notes", v)}
+        />
       </div>
     </div>
   );

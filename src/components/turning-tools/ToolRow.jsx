@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronRight } from "lucide-react";
-import ToolTypeDropdown from "./ToolTypeDropdown";
+import ToolTypeDropdown, { ODIDFaceSelect, isHoleMaking } from "./ToolTypeDropdown";
 import ToolFields from "./ToolFields";
 
 // Add Tool dropdown: Turn or Mill
@@ -34,6 +34,15 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const [expanded, setExpanded] = useState(true);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
+  // When tool type changes, auto-set od_id_face for hole making
+  const handleTypeChange = (val) => {
+    const updates = { ...tool, tool_type: val };
+    if (isHoleMaking(val)) {
+      updates.od_id_face = "Face";
+    }
+    onUpdate(updates);
+  };
+
   // Build display label
   const kindLabel = tool.tool_kind ? `(${tool.tool_kind})` : "";
   const typeLabel = tool.tool_type || "";
@@ -64,11 +73,11 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         )}
         {/* Type dropdown */}
         <div className="flex-1 min-w-0">
-          <ToolTypeDropdown toolKind={tool.tool_kind} value={tool.tool_type || ""} onChange={set("tool_type")} />
+          <ToolTypeDropdown toolKind={tool.tool_kind} value={tool.tool_type || ""} onChange={handleTypeChange} />
         </div>
-        {/* Display label */}
-        {displayType && (
-          <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[160px]">{displayType}</span>
+        {/* OD/ID/Face selector — only for Turn tools */}
+        {tool.tool_kind === "Turn" && (
+          <ODIDFaceSelect value={tool.od_id_face || ""} onChange={set("od_id_face")} />
         )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
           className="h-7 w-7 ml-auto text-destructive hover:text-destructive shrink-0">
