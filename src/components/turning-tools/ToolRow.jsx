@@ -75,8 +75,8 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         <div className="flex-1 min-w-0">
           <ToolTypeDropdown toolKind={tool.tool_kind} value={tool.tool_type || ""} onChange={handleTypeChange} />
         </div>
-        {/* OD/ID/Face selector — only for Turn tools */}
-        {tool.tool_kind === "Turn" && (
+        {/* Operation (OD/ID/Face) selector — only for Turn tools, shown after type is selected */}
+        {tool.tool_kind === "Turn" && tool.tool_type && (
           <ODIDFaceSelect value={tool.od_id_face || ""} onChange={set("od_id_face")} />
         )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
@@ -85,8 +85,8 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         </Button>
       </div>
 
-      {/* Expanded fields */}
-      {expanded && tool.tool_type && (
+      {/* Expanded fields — for Turn tools, wait until Operation (OD/ID/Face) is selected */}
+      {expanded && tool.tool_type && (tool.tool_kind !== "Turn" || tool.od_id_face) && (
         <div className="px-4 py-3 bg-background border-t border-border/30">
           <ToolFields
             toolKind={tool.tool_kind}
