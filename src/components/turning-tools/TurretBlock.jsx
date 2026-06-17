@@ -54,7 +54,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
               onRemove={() => removeTool(i)}
             />
           ))}
-          <AddToolButton onAdd={addTool} />
+          {turret.turret_type && <AddToolButton onAdd={addTool} />}
         </div>
       )}
     </div>
