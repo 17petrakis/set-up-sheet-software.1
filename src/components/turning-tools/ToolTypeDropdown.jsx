@@ -69,15 +69,17 @@ export function isHoleMaking(typeValue) {
   return HOLE_MAKING_VALUES.includes(typeValue);
 }
 
-export function ODIDFaceSelect({ value, onChange }) {
+export function ToolBlockSelect({ value, onChange }) {
   return (
     <Select value={value || ""} onValueChange={onChange}>
-      <SelectTrigger className="h-8 text-xs bg-background border-border/60 w-28 shrink-0">
-        <SelectValue placeholder="Operation…" />
+      <SelectTrigger className="h-8 text-xs bg-background border-border/60 w-36 shrink-0">
+        <SelectValue placeholder="Tool Block…" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="OD">OD</SelectItem>
-        <SelectItem value="ID">ID</SelectItem>
+        <SelectItem value="Turn OD">Turn OD</SelectItem>
+        <SelectItem value="Bore OD">Bore OD</SelectItem>
+        <SelectItem value="Part off OD">Part off OD</SelectItem>
+        <SelectItem value="Axial">Axial</SelectItem>
         <SelectItem value="Face">Face</SelectItem>
       </SelectContent>
     </Select>

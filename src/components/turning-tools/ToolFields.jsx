@@ -62,8 +62,8 @@ function FSelect({ label, value, onChange, options, placeholder = "Select…", c
 // ── Dropdown data ──────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
 const DEG_TURN_OPTIONS = ["100", "80", "55", "35"];
-const SPINDLE_OPTIONS = ["Main (S1)", "Sub (S2)"];
-const ROTATION_OPTIONS = ["CCW (M3) UP", "CW (M4) DOWN"];
+const DIRECTION_OPTIONS = ["Main (S1)", "Sub (S2)"];
+const ORIENTATION_OPTIONS = ["UP", "DOWN"];
 const HOLDER_TURN_OPTIONS = ["DCLNR 16 4C (RH)", "DCLNL 16 4C (LH)", "DCKNR 16 4C KC3 (FACE)"];
 const WIDTH_OPTIONS = [".158 (4mm)", ".156 (5/32)", ".125 (⅛)", ".088", ".094 (3/32)", ".118 (3mm)", ".079 (2mm)", ".0625 (1/16)", ".059 (1.5mm)", ".047 (3/64)", ".031 (1/32)"];
 const ENDMILL_DIRECTION_OPTIONS = ["X", "Z-", "Z+"];
@@ -118,18 +118,18 @@ function useRemovedFields(data, onChange) {
   return { removeField, addField, isVisible, removed };
 }
 
-// ── Turn Spindle + Rotation (shared by all turn tool types) ───────────────────
+// ── Turn Direction + Orientation (shared by all turn tool types) ──────────────
 function TurnSpindleFields({ data, set, isVisible, removeField }) {
   return (
     <>
       {isVisible("spindle") && (
         <RemovableField fieldKey="spindle" onRemove={removeField}>
-          <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+          <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
         </RemovableField>
       )}
       {isVisible("rotation") && (
         <RemovableField fieldKey="rotation" onRemove={removeField}>
-          <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+          <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
         </RemovableField>
       )}
     </>
@@ -245,8 +245,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   if (fieldSet === "turning") {
     const allOptional = [
       { key: "rad", label: "Rad" },
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "holder", label: "Holder" },
       { key: "tool_block", label: "Tool Block" },
       { key: "stickout", label: "Stickout" },
@@ -256,11 +256,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap gap-x-3 gap-y-2">
-          {/* Permanent */}
-          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
           <FSelect label="Deg" value={data.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
           <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
-          {/* Optional */}
           {isVisible("rad") && (
             <RemovableField fieldKey="rad" onRemove={removeField}>
               <FSelect label="Rad" value={data.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
@@ -268,12 +265,12 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
           )}
           {isVisible("spindle") && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("holder") && (
@@ -306,8 +303,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   if (fieldSet === "groove") {
     const allOptional = [
       { key: "rad", label: "Rad" },
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "insert", label: "Insert" },
       { key: "holder", label: "Holder" },
       { key: "stickout", label: "Stickout" },
@@ -316,7 +313,6 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap gap-x-3 gap-y-2">
-          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
           <FSelect label="Width" value={data.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
           <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
           {isVisible("rad") && (
@@ -326,12 +322,12 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
           )}
           {isVisible("spindle") && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("insert") && (
@@ -358,8 +354,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   // ── Thread ────────────────────────────────────────────────────────────────────
   if (fieldSet === "thread") {
     const allOptional = [
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "insert", label: "Insert" },
       { key: "holder", label: "Holder" },
       { key: "rad", label: "Rad" },
@@ -370,16 +366,15 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap gap-x-3 gap-y-2">
-          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
           <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
           {isVisible("spindle") && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("insert") && (
@@ -416,8 +411,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   // ── Profile ───────────────────────────────────────────────────────────────────
   if (fieldSet === "profile") {
     const allOptional = [
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "insert", label: "Insert" },
       { key: "holder", label: "Holder" },
       { key: "rad", label: "Rad" },
@@ -428,16 +423,15 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap gap-x-3 gap-y-2">
-          <FInput label="Dia." value={data.dia} onChange={set("dia")} className="w-20" />
           <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
           {isVisible("spindle") && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("insert") && (
@@ -474,8 +468,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   // ── Turn Hole Making ──────────────────────────────────────────────────────────
   if (fieldSet === "hole_making_turn") {
     const allOptional = [
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "tool", label: "Tool" },
       { key: "material", label: "Material" },
       { key: "holder", label: "Holder" },
@@ -490,12 +484,12 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
           <FInput label="Name" value={data.name} onChange={set("name")} className="w-32" />
           {isVisible("spindle") && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("tool") && (
@@ -568,8 +562,8 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
   // ── Turn Tap ──────────────────────────────────────────────────────────────────
   if (fieldSet === "turn_tap" || fieldSet === "mill_tap") {
     const allOptional = [
-      { key: "spindle", label: "Spindle" },
-      { key: "rotation", label: "Rotation" },
+      { key: "spindle", label: "Direction" },
+      { key: "rotation", label: "Orientation" },
       { key: "material", label: "Material" },
       { key: "chamfer_r", label: "Chamfer x R" },
     ];
@@ -583,12 +577,12 @@ export default function ToolFields({ toolKind, typeValue, data, onChange }) {
           <FSelect label="Tap Type" value={data.tap_type} onChange={set("tap_type")} options={TAP_TYPE_OPTIONS} className="w-24" />
           {isVisible("spindle") && fieldSet === "turn_tap" && (
             <RemovableField fieldKey="spindle" onRemove={removeField}>
-              <FSelect label="Spindle" value={data.spindle} onChange={set("spindle")} options={SPINDLE_OPTIONS} className="w-28" />
+              <FSelect label="Direction" value={data.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("rotation") && fieldSet === "turn_tap" && (
             <RemovableField fieldKey="rotation" onRemove={removeField}>
-              <FSelect label="Rotation" value={data.rotation} onChange={set("rotation")} options={ROTATION_OPTIONS} className="w-36" />
+              <FSelect label="Orientation" value={data.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
             </RemovableField>
           )}
           {isVisible("material") && (

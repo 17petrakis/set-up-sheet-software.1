@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronRight } from "lucide-react";
-import ToolTypeDropdown, { ODIDFaceSelect, isHoleMaking } from "./ToolTypeDropdown";
+import ToolTypeDropdown, { ToolBlockSelect, isHoleMaking } from "./ToolTypeDropdown";
 import ToolFields from "./ToolFields";
 
 // Add Tool dropdown: Turn or Mill
@@ -75,9 +75,9 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         <div className="flex-1 min-w-0">
           <ToolTypeDropdown toolKind={tool.tool_kind} value={tool.tool_type || ""} onChange={handleTypeChange} />
         </div>
-        {/* Operation (OD/ID/Face) selector — only for Turn tools, shown after type is selected */}
-        {tool.tool_kind === "Turn" && tool.tool_type && (
-          <ODIDFaceSelect value={tool.od_id_face || ""} onChange={set("od_id_face")} />
+        {/* Tool Block selector — only for Turn non-holemaking tools */}
+        {tool.tool_kind === "Turn" && tool.tool_type && !isHoleMaking(tool.tool_type) && (
+          <ToolBlockSelect value={tool.od_id_face || ""} onChange={set("od_id_face")} />
         )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
           className="h-7 w-7 ml-auto text-destructive hover:text-destructive shrink-0">
