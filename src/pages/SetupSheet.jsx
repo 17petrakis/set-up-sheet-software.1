@@ -53,18 +53,23 @@ export default function SetupSheet() {
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const sheet = await base44.entities.SetupSheet.get(id);
-      const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = sheet;
-      const isTurning = gen.machine_type === "turning";
-      setGeneral({ ...emptyGeneral, ...gen });
-      setTools(t?.length ? t : [{ ...emptyTool }]);
-      setTurningTools(tt && (tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
-      setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
-      setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
-      setPhotos(ph || {});
-      setFixturingNotes(sheet.fixturing_notes || {});
-      setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
-      setLoading(false);
+      try {
+        const sheet = await base44.entities.SetupSheet.get(id);
+        const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = sheet;
+        const isTurning = gen.machine_type === "turning";
+        setGeneral({ ...emptyGeneral, ...gen });
+        setTools(t?.length ? t : [{ ...emptyTool }]);
+        setTurningTools(tt && (tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
+        setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
+        setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
+        setPhotos(ph || {});
+        setFixturingNotes(sheet.fixturing_notes || {});
+        setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
+        setLoading(false);
+      } catch (err) {
+        // Sheet not found or deleted — go back to home
+        navigate("/", { replace: true });
+      }
     })();
   }, [id]);
 
