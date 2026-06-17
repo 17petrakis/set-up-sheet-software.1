@@ -8,16 +8,20 @@
         "milling",
         "turning"
       ],
-      "default": "milling"
+      "default": "milling",
+      "description": "Type of machine: milling or turning"
     },
     "part_number": {
-      "type": "string"
+      "type": "string",
+      "description": "Part number"
     },
     "revision": {
-      "type": "string"
+      "type": "string",
+      "description": "Revision"
     },
     "customer": {
-      "type": "string"
+      "type": "string",
+      "description": "Customer name (used as folder grouping)"
     },
     "job_number": {
       "type": "string"
@@ -26,7 +30,8 @@
       "type": "string"
     },
     "programmer": {
-      "type": "string"
+      "type": "string",
+      "description": "Machinist / programmer name"
     },
     "date": {
       "type": "string"
@@ -38,81 +43,64 @@
       "type": "string"
     },
     "stock": {
-      "type": "string"
+      "type": "string",
+      "description": "Stock size / description (turning)"
     },
     "consumed_per_part": {
-      "type": "string"
+      "type": "string",
+      "description": "Material consumed per part (turning)"
     },
     "program": {
-      "type": "string"
+      "type": "string",
+      "description": "Program number / name"
     },
     "program_software": {
-      "type": "string"
+      "type": "string",
+      "description": "CAM software used (Mastercam, Gibbscam, etc.)"
     },
     "program_location": {
-      "type": "string"
+      "type": "string",
+      "description": "Where the program is stored"
     },
     "cycle_time": {
-      "type": "string"
+      "type": "string",
+      "description": "Machine cycle time (turning)"
     },
     "handling_time": {
-      "type": "string"
+      "type": "string",
+      "description": "Handling time including material inspection (turning)"
     },
     "has_deburring": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Whether deburring/finishing section is active"
     },
     "deburring_time": {
-      "type": "string",
-      "description": "Legacy \u2014 mapped to deburr_time"
+      "type": "string"
     },
     "finishing_time": {
-      "type": "string",
-      "description": "Legacy \u2014 mapped to finishing_time"
+      "type": "string"
     },
     "total_additional_time": {
-      "type": "string"
+      "type": "string",
+      "description": "Sum of deburring + finishing times"
     },
     "deburring_notes": {
-      "type": "string",
-      "description": "Legacy"
+      "type": "string"
     },
     "finishing_notes": {
-      "type": "string",
-      "description": "Legacy"
-    },
-    "wash_active": {
-      "type": "boolean",
-      "default": false
-    },
-    "wash_time": {
       "type": "string"
-    },
-    "wash_notes": {
-      "type": "string"
-    },
-    "deburr_active": {
-      "type": "boolean",
-      "default": false
-    },
-    "deburr_time": {
-      "type": "string"
-    },
-    "deburr_notes": {
-      "type": "string"
-    },
-    "finishing_active": {
-      "type": "boolean",
-      "default": false
     },
     "operation_description": {
       "type": "string"
     },
     "operation_notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Operation notes"
     },
     "work_holding_notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Work holding notes (milling)"
     },
     "units": {
       "type": "string",
@@ -129,10 +117,12 @@
       "type": "array",
       "items": {
         "type": "object"
-      }
+      },
+      "description": "Tool list"
     },
     "turning_tools": {
-      "type": "object"
+      "type": "object",
+      "description": "Turning turret tools: {axial: [], radial: []}"
     },
     "part_zero": {
       "type": "object"
@@ -144,10 +134,12 @@
       }
     },
     "turning_chuck": {
-      "type": "object"
+      "type": "object",
+      "description": "Chuck & work holding data for turning sheets"
     },
     "photos": {
-      "type": "object"
+      "type": "object",
+      "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"
     },
     "status": {
       "type": "string",
@@ -158,13 +150,16 @@
         "Completed",
         "On Hold"
       ],
-      "default": "Active"
+      "default": "Active",
+      "description": "Current job status"
     },
     "folder_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Groups setup sheets into a part folder."
     },
     "operation_number": {
       "type": "number",
+      "description": "Operation sequence number within the folder",
       "default": 1
     }
   },

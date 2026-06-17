@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Settings2, ChevronRight, Plus, X } from "lucide-react";
+import { Settings2, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 
 const MACHINES = [
@@ -104,38 +104,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
   const [customerNames, setCustomerNames] = useState([]);
   const [customerMode, setCustomerMode] = useState("select");
-  const [showHandling, setShowHandling] = useState(!!data.has_deburring);
-
-  // The three possible add-on handling tasks
-  const HANDLING_TASKS = [
-    { key: "wash",      label: "Wash" },
-    { key: "deburr",    label: "Deburr" },
-    { key: "finishing", label: "Finishing" },
-  ];
-
-  // A task is "active" if it has data or was explicitly marked active.
-  // Also handle legacy fields: deburring_time -> deburr, finishing_time -> finishing
-  const isTaskActive = (key) => {
-    if (key === "deburr") return !!(data.deburr_time || data.deburr_notes || data.deburr_active || data.deburring_time || data.deburring_notes);
-    if (key === "finishing") return !!(data.finishing_time || data.finishing_notes || data.finishing_active);
-    return !!(data[`${key}_time`] || data[`${key}_notes`] || data[`${key}_active`]);
-  };
-
-  const [activeTasks, setActiveTasks] = useState(() =>
-    HANDLING_TASKS.filter(t => isTaskActive(t.key)).map(t => t.key)
-  );
-
-  const addTask = (key) => {
-    setActiveTasks(prev => [...prev, key]);
-    onChange(`${key}_active`, true);
-  };
-
-  const removeTask = (key) => {
-    setActiveTasks(prev => prev.filter(k => k !== key));
-    onChange(`${key}_active`, false);
-    onChange(`${key}_time`, "");
-    onChange(`${key}_notes`, "");
-  };
+  const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
 
   useEffect(() => {
     base44.entities.Customer.list("name", 200).then(list => {
@@ -151,18 +120,19 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
     }
   }, [customerNames]);
 
-  // Auto-calculate total additional time from all three task times (with legacy fallback for deburr)
+  // Auto-calculate total additional time
   useEffect(() => {
-    const wash = parseFloat(data.wash_time) || 0;
-    const deburr = parseFloat(data.deburr_time) || parseFloat(data.deburring_time) || 0;
-    const finishing = parseFloat(data.finishing_time) || 0;
-    const total = wash + deburr + finishing;
-    onChange("total_additional_time", total > 0 ? String(total) : "");
-  }, [data.wash_time, data.deburr_time, data.deburring_time, data.finishing_time]);
+    const d = parseFloat(data.deburring_time) || 0;
+    const f = parseFloat(data.finishing_time) || 0;
+    const total = d + f;
+    if (total > 0 || data.total_additional_time !== undefined) {
+      onChange("total_additional_time", total > 0 ? String(total) : "");
+    }
+  }, [data.deburring_time, data.finishing_time]);
 
-  const handleToggleHandling = () => {
-    const next = !showHandling;
-    setShowHandling(next);
+  const handleToggleDeburring = () => {
+    const next = !showDeburring;
+    setShowDeburring(next);
     onChange("has_deburring", next);
     // Data is preserved when hiding — only the UI collapses
   };
@@ -283,87 +253,60 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Total Combined Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
         </div>
 
-        {/* Additional Handling section */}
+        {/* Deburring / Finishing checkbox */}
         <div className="mt-4 border border-border/50 rounded-lg overflow-hidden">
           <label className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer select-none">
             <input
               type="checkbox"
-              checked={showHandling}
-              onChange={handleToggleHandling}
+              checked={showDeburring}
+              onChange={handleToggleDeburring}
               className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
             />
-            <span className="text-sm font-medium text-foreground">Additional Handling (Deburr/Finish/Wash)</span>
+            <span className="text-sm font-medium text-foreground">Deburring / Finishing</span>
           </label>
 
-          {showHandling && (
-            <div className="px-4 py-4 space-y-4">
-              {/* Total Additional Time — always shown */}
-              <div className="max-w-[180px]">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                  Total Additional Time
-                </Label>
-                <Input
-                  value={data.total_additional_time || ""}
-                  readOnly
-                  className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-                  placeholder="Auto-calculated"
-                />
+          {showDeburring && (
+            <div className="px-4 py-4 space-y-3">
+              {/* Times */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Total Additional Time
+                  </Label>
+                  <Input
+                    value={data.total_additional_time || ""}
+                    readOnly
+                    className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+                    placeholder="Auto-calculated"
+                  />
+                </div>
+                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} />
+                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} />
               </div>
 
-              {/* Active task cards */}
-              {activeTasks.map(key => {
-                const task = HANDLING_TASKS.find(t => t.key === key);
-                return (
-                  <div key={key} className="border border-border/40 rounded-lg">
-                    <div className="flex items-center justify-between px-4 py-2 bg-muted/30 rounded-t-lg border-b border-border/30">
-                      <span className="text-sm font-semibold text-foreground">{task.label}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTask(key)}
-                        className="p-1 text-muted-foreground hover:text-destructive transition-colors"
-                        title={`Remove ${task.label}`}
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    <div className="px-4 py-3 space-y-3">
-                      <Field
-                        label={`${task.label} Time`}
-                        value={key === "deburr" ? (data.deburr_time || data.deburring_time || "") : data[`${key}_time`]}
-                        onChange={update(`${key}_time`)}
-                        className="max-w-[180px]"
-                      />
-                      <div>
-                        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                          {task.label} Notes
-                        </Label>
-                        <AutoResizeTextarea
-                          value={key === "deburr" ? (data.deburr_notes || data.deburring_notes || "") : (data[`${key}_notes`] || "")}
-                          onChange={(e) => update(`${key}_notes`)(e.target.value)}
-                          className="min-h-[56px] text-sm bg-background border-border/60"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Add task buttons for tasks not yet active */}
-              {HANDLING_TASKS.filter(t => !activeTasks.includes(t.key)).length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {HANDLING_TASKS.filter(t => !activeTasks.includes(t.key)).map(t => (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => addTask(t.key)}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary border border-dashed border-border/60 hover:border-primary/50 rounded-md px-2.5 py-1.5 transition-colors"
-                    >
-                      <Plus className="w-3 h-3" />
-                      {t.label}
-                    </button>
-                  ))}
+              {/* Notes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Deburring Notes
+                  </Label>
+                  <AutoResizeTextarea
+                    value={data.deburring_notes || ""}
+                    onChange={(e) => update("deburring_notes")(e.target.value)}
+                    className="min-h-[64px] text-sm bg-background border-border/60"
+                  />
                 </div>
-              )}
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Finishing Notes
+                  </Label>
+                  <AutoResizeTextarea
+                    value={data.finishing_notes || ""}
+                    onChange={(e) => update("finishing_notes")(e.target.value)}
+                    className="min-h-[64px] text-sm bg-background border-border/60"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
