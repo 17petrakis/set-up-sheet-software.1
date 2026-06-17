@@ -124,11 +124,12 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
   useEffect(() => {
     const d = parseFloat(data.deburring_time) || 0;
     const f = parseFloat(data.finishing_time) || 0;
-    const total = d + f;
+    const w = parseFloat(data.wash_time) || 0;
+    const total = d + f + w;
     if (total > 0 || data.total_additional_time !== undefined) {
       onChange("total_additional_time", total > 0 ? String(total) : "");
     }
-  }, [data.deburring_time, data.finishing_time]);
+  }, [data.deburring_time, data.finishing_time, data.wash_time]);
 
   const handleToggleDeburring = () => {
     const next = !showDeburring;
@@ -262,13 +263,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               onChange={handleToggleDeburring}
               className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
             />
-            <span className="text-sm font-medium text-foreground">Deburring / Finishing</span>
+            <span className="text-sm font-medium text-foreground">Additional Handling (Deburr/Finish/Wash)</span>
           </label>
 
           {showDeburring && (
             <div className="px-4 py-4 space-y-3">
               {/* Times */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
                     Total Additional Time
@@ -282,10 +283,11 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 </div>
                 <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} />
                 <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} />
+                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} />
               </div>
 
               {/* Notes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
                     Deburring Notes
@@ -303,6 +305,16 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                   <AutoResizeTextarea
                     value={data.finishing_notes || ""}
                     onChange={(e) => update("finishing_notes")(e.target.value)}
+                    className="min-h-[64px] text-sm bg-background border-border/60"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Wash Notes
+                  </Label>
+                  <AutoResizeTextarea
+                    value={data.wash_notes || ""}
+                    onChange={(e) => update("wash_notes")(e.target.value)}
                     className="min-h-[64px] text-sm bg-background border-border/60"
                   />
                 </div>
