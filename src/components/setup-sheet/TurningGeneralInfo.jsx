@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Settings2, ChevronRight } from "lucide-react";
+import { Settings2, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 
 const MACHINES = [
@@ -119,6 +119,14 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
       setCustomerMode(match ? "select" : "new");
     }
   }, [customerNames]);
+
+  // Auto-calculate total combined cycle time
+  useEffect(() => {
+    const c = parseFloat(data.cycle_time) || 0;
+    const h = parseFloat(data.handling_time) || 0;
+    const total = c + h;
+    onChange("total_cycle_time", total > 0 ? String(total) : "");
+  }, [data.cycle_time, data.handling_time]);
 
   // Auto-calculate total additional time
   useEffect(() => {
@@ -243,15 +251,66 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
         </div>
 
         {/* Row 5: Cycle Time, Handling Time, Total Combined */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
           <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} />
           <Field
             label="Handling Time"
-            note="(Includes Inspection)"
+            note="(Includes Stops)"
             value={data.handling_time}
             onChange={update("handling_time")}
           />
-          <Field label="Total Combined Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Total Combined Cycle Time
+            </Label>
+            <Input
+              value={data.total_cycle_time || ""}
+              readOnly
+              className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+              placeholder="Auto-calculated"
+            />
+          </div>
+        </div>
+
+        {/* Stops */}
+        <div className="mb-3">
+          {(data.stops || []).map((stop, i) => (
+            <div key={i} className="flex items-start gap-2 mt-2">
+              <div className="flex-1">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">
+                  Stop #{i + 1}
+                </Label>
+                <Input
+                  value={stop || ""}
+                  onChange={(e) => {
+                    const next = [...(data.stops || [])];
+                    next[i] = e.target.value;
+                    onChange("stops", next);
+                  }}
+                  placeholder={`Stop #${i + 1} notes…`}
+                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = (data.stops || []).filter((_, idx) => idx !== i);
+                  onChange("stops", next);
+                }}
+                className="mt-6 p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => onChange("stops", [...(data.stops || []), ""])}
+            className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Stop
+          </button>
         </div>
 
         {/* Deburring / Finishing checkbox */}
