@@ -4,16 +4,20 @@ import { Input } from "@/components/ui/input";
 import { Wrench, Plus, X, ExternalLink } from "lucide-react";
 
 const FIXTURING_OPTIONS = [
-  { label: "V Block", variants: ["X-Large", "Large", "Small"] },
+  { group: "Fixturing" },
   { label: "Black Tower", variants: [] },
   { label: "Base Block", variants: ["Large", "Small"] },
-  { label: "Vice", variants: ["Mini", "Regular", "Finger", "Max's"] },
+  { label: "V-Block", variants: ["X-Large", "Large", "Small"] },
+  { label: "Angle Block", variants: ["Regular", "V-Angle"] },
+  { label: "Vice", variants: ["Regular", "Finger", "Mini", "Max's"] },
+  { group: "Gauges" },
   { label: "Parallel Bars", variants: ["⅞"] },
-  { label: "Gauge Block", variants: [".950", ".900", ".700", ".1"] },
+  { label: "Gauge Block .700", variants: [] },
+  { label: "Gauge Block .900", variants: [] },
+  { label: "Gauge Block .950", variants: [] },
   { label: "Gauge Pin", variants: [".1"] },
-  { label: "Dove Tail Fixture", variants: [] },
+  { group: "Other" },
   { label: "Weight", variants: ["Round Bar"] },
-  { label: "Angle Block", variants: ["Regular", "V-block"] },
   { label: "Flat Piece", variants: [] },
   { label: "Double Sided Tape", variants: [] },
 ];
@@ -31,7 +35,7 @@ export default function FixturingSection({ items = [], onChange }) {
   const [customVariant, setCustomVariant] = useState("");
   const [customType, setCustomType] = useState("");
 
-  const selectedOption = FIXTURING_OPTIONS.find(o => o.label === selectedType);
+  const selectedOption = FIXTURING_OPTIONS.find(o => o.label && o.label === selectedType);
 
   const canAdd = () => {
     if (!selectedType) return false;
@@ -113,7 +117,11 @@ export default function FixturingSection({ items = [], onChange }) {
               className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="">— Select —</option>
-              {FIXTURING_OPTIONS.map(o => <option key={o.label} value={o.label}>{o.label}</option>)}
+              {FIXTURING_OPTIONS.map((o, i) =>
+                o.group
+                  ? <optgroup key={`group-${i}`} label={o.group} />
+                  : <option key={o.label} value={o.label}>{o.label}</option>
+              )}
               <option value="__other__">Other (enter name)</option>
             </select>
           </div>
