@@ -28,16 +28,17 @@ export default function CMMNotesSection({ importantNotes = [], programNotes = ""
         <div className="border-b border-border mb-4" />
 
         {importantNotes.length > 0 && (
-          <div className="space-y-3 mb-4">
+          <div className="flex flex-col gap-1.5 mb-3">
             {importantNotes.map((note, idx) => (
-              <div key={note._id || idx} className="relative group border border-amber-200 bg-amber-50 rounded-lg p-4">
-                <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">IMPORTANT</p>
-                <p className="text-base font-bold text-foreground text-center">{note.text}</p>
+              <div key={note._id || idx} className="relative group flex items-start gap-2 border-l-4 border-amber-400 bg-amber-50/60 pl-3 pr-8 py-2 rounded-r-md">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <span className="text-xs font-bold text-amber-700 uppercase tracking-wide shrink-0 mt-0.5">IMPORTANT</span>
+                <span className="text-sm text-foreground">{note.text}</span>
                 <button
                   onClick={() => removeNote(idx)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-amber-200 text-muted-foreground hover:text-destructive transition-all"
+                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-amber-200 text-muted-foreground hover:text-destructive transition-all"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
