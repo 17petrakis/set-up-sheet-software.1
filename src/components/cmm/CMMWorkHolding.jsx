@@ -78,12 +78,17 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
                 Final position on CMM table before running program
               </p>
             ) : (
-              <Textarea
+          <textarea
                 value={item.note || ""}
-                onChange={e => onUpdate({ ...item, note: e.target.value })}
+                onChange={e => {
+                  onUpdate({ ...item, note: e.target.value });
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                ref={el => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
                 placeholder="Describe this step..."
-                className="text-sm resize-none border-0 shadow-none p-0 focus-visible:ring-0 bg-transparent min-h-0 h-auto"
-                rows={4}
+                className="text-sm resize-none border-0 shadow-none p-0 focus-visible:ring-0 bg-transparent w-full overflow-hidden outline-none"
+                rows={1}
               />
             )}
           </div>
