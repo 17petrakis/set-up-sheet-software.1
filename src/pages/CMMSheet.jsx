@@ -110,7 +110,7 @@ export default function CMMSheet() {
               <FieldGroup label="Machine">
                 <Input value={sheet.machine || ""} onChange={e => update("machine", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
-              <FieldGroup label="Material">
+              <FieldGroup label="REV">
                 <Input value={sheet.material || ""} onChange={e => update("material", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
               <FieldGroup label="Cycle Time">
