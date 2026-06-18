@@ -66,10 +66,12 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
         {url ? (
           <>
             {isPdf ? (
-              <a href={url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground hover:bg-muted/20 transition-colors" style={{ minHeight: "420px" }}>
-                <svg className="w-16 h-16 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                <span className="text-sm font-medium">PDF — Click to open</span>
-              </a>
+              <iframe
+                src={url}
+                title={label}
+                className="absolute inset-0 w-full h-full border-0"
+                style={{ minHeight: "420px" }}
+              />
             ) : (
               <img
                 src={url}
