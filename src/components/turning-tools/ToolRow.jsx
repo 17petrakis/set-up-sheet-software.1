@@ -332,7 +332,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Rad */}
         {showRad && (
-          <div className="shrink-0 flex items-center gap-1 ml-2">
+          <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
             <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
           </div>
@@ -340,7 +340,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Width */}
         {showWidth && (
-          <div className="shrink-0 flex items-center gap-1 ml-2">
+          <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
             <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
           </div>
@@ -348,7 +348,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Dia */}
         {showDia && (
-          <div className="shrink-0 flex items-center gap-1 ml-2">
+          <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
             <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
           </div>
