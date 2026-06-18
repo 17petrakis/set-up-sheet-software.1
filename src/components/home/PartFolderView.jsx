@@ -30,27 +30,68 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const folderId = sorted[0]?.folder_id;
   const nextOpNumber = sorted.length > 0 ? Math.max(...sorted.map(s => s.operation_number || 1)) + 1 : 2;
 
+  // Fields shared between milling and turning general info
+  const SHARED_GENERAL_FIELDS = [
+    "job_number", "programmer", "revision", "date", "quantity",
+    "material", "units", "status", "program", "program_software",
+    "program_location", "machine", "photos",
+  ];
+  // Fields to never copy
+  const SYSTEM_FIELDS = ["id", "created_date", "updated_date", "created_by_id"];
+
   const handleAddOperation = async (machineType) => {
     const isTurning = machineType === "turning";
-    // Find the last operation to copy data from
     const lastSheet = sorted[sorted.length - 1];
-    // Fields we don't want to carry over
-    const { id, created_date, updated_date, created_by_id, operation_number, folder_id: _fid, ...prevData } = lastSheet || {};
-    const baseData = lastSheet ? prevData : emptyGeneral;
+    const sameType = lastSheet && lastSheet.machine_type === machineType;
+
+    let createData;
+
+    if (lastSheet && sameType) {
+      // Same type: copy everything except system fields and operation-specific text
+      const copy = { ...lastSheet };
+      SYSTEM_FIELDS.forEach(k => delete copy[k]);
+      delete copy.operation_number;
+      delete copy.folder_id;
+      copy.operation_description = "";
+      copy.operation_notes = "";
+      copy.work_holding_notes = "";
+      createData = copy;
+    } else if (lastSheet && !sameType) {
+      // Different type: only copy shared general info fields
+      createData = {
+        ...emptyGeneral,
+        machine_type: machineType,
+      };
+      SHARED_GENERAL_FIELDS.forEach(k => {
+        if (lastSheet[k] !== undefined && lastSheet[k] !== null && lastSheet[k] !== "") {
+          createData[k] = lastSheet[k];
+        }
+      });
+      // Set up defaults for the new type
+      createData.tools = isTurning ? [] : [{ ...emptyTool }];
+      createData.turning_tools = isTurning ? { ...emptyTurningTools } : undefined;
+      createData.part_zero = { ...emptyPartZero };
+      createData.operations = isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }];
+      createData.turning_chuck = isTurning ? { ...emptyTurningChuck } : undefined;
+    } else {
+      // No previous sheet at all
+      createData = {
+        ...emptyGeneral,
+        machine_type: machineType,
+        tools: isTurning ? [] : [{ ...emptyTool }],
+        turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+        part_zero: { ...emptyPartZero },
+        operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
+        turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
+      };
+    }
 
     const newSheet = await base44.entities.SetupSheet.create({
-      ...baseData,
-      machine_type: machineType,
+      ...createData,
       part_number: partNumber,
       customer: customer,
       folder_id: folderId,
       operation_number: nextOpNumber,
-      // Reset operation-specific fields
-      operation_description: "",
-      operation_notes: "",
-      tools: isTurning ? [] : [{ ...emptyTool }],
-      turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
-      operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
     });
     onSheetsChange([...sheets, newSheet]);
     setShowAddOp(false);
