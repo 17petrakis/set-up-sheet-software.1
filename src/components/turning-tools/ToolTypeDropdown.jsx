@@ -79,8 +79,7 @@ export function ToolBlockSelect({ value, onChange }) {
         <SelectItem value="Turn OD">Turn OD</SelectItem>
         <SelectItem value="Bore OD">Bore OD</SelectItem>
         <SelectItem value="Part off OD">Part off OD</SelectItem>
-        <SelectItem value="Axial">Axial</SelectItem>
-        <SelectItem value="Face">Face</SelectItem>
+        <SelectItem value="Axial Face">Axial Face</SelectItem>
       </SelectContent>
     </Select>
   );
