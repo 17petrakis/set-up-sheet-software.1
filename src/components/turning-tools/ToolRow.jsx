@@ -326,7 +326,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         )}
 
         {/* Type dropdown */}
-        <div className="w-36 shrink-0">
+        <div className="w-36 max-w-[144px] shrink-0">
           <ToolTypeDropdown toolKind={tool.tool_kind} value={typeValue} onChange={handleTypeChange} />
         </div>
 
