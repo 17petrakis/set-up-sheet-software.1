@@ -1,6 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Plus, Trash2, Image } from "lucide-react";
+import { Camera, Upload, X, Plus, Trash2, Image, ZoomIn } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -68,38 +68,34 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
 
   return (
     <>
-      <div className="relative border border-border/40 rounded-xl p-4 bg-muted/10">
-        {/* Trash button in top-right corner (not for first row) */}
-        {!isFirst && (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="absolute top-2 right-2 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            title="Remove"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        )}
-
-        <div className={`grid grid-cols-1 ${noteOnly ? "" : "md:grid-cols-[1fr_2fr]"} gap-4 items-start`}>
-          {/* Note column */}
-          <div className="flex flex-col gap-1.5 pr-6">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Note</p>
+      {/* Row */}
+      <div className="border border-border rounded-xl overflow-hidden bg-card">
+        <div className={`flex ${noteOnly ? "" : "divide-x divide-border"}`}>
+          {/* Note column — 30% */}
+          <div className={`${noteOnly ? "w-full" : "w-[30%] shrink-0"} p-4 flex flex-col justify-center`}>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
+              {isFirst ? "Step 1" : `Step ${index + 1}`}
+            </p>
             {isFirst ? (
-              <p className="text-sm font-semibold text-foreground">Final position on CMM table before running program</p>
+              <p className="text-sm font-semibold text-foreground leading-snug">
+                Final position on CMM table before running program
+              </p>
             ) : (
               <Textarea
                 value={item.note || ""}
                 onChange={e => onUpdate({ ...item, note: e.target.value })}
-                placeholder="Add a note..."
-                className="min-h-[80px] text-sm resize-none"
+                placeholder="Describe this step..."
+                className="text-sm resize-none border-0 shadow-none p-0 focus-visible:ring-0 bg-transparent min-h-0 h-auto"
+                rows={4}
               />
             )}
           </div>
 
-          {/* Photo column */}
+          {/* Photo column — 70% */}
           {!noteOnly && (
             <div
-              className={`relative rounded-xl overflow-hidden border-2 ${dragOver ? "border-primary bg-primary/5" : "border-dashed border-border"} bg-muted/10 transition-colors`}
+              className={`flex-1 relative bg-muted/20 ${dragOver ? "bg-primary/5" : ""} transition-colors`}
+              style={{ height: "300px" }}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
@@ -112,31 +108,22 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
                   <img
                     src={item.photo_url}
                     alt=""
-                    className="w-full object-contain cursor-zoom-in rounded-xl"
-                    style={{ maxHeight: "340px" }}
+                    className="w-full h-full object-cover cursor-zoom-in"
                     onClick={() => setLightbox(true)}
                   />
-                  <div className="absolute top-2 right-2 flex gap-1.5">
-                    <label htmlFor={replaceId} className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 cursor-pointer transition-colors">
-                      <Upload className="w-3.5 h-3.5" />
-                    </label>
-                    <input id={replaceId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
-                    <button onClick={() => onUpdate({ ...item, photo_url: "" })}
-                      className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </>
               ) : (
-                <label htmlFor={inputId}
-                  className="flex flex-col items-center justify-center gap-3 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors py-14 px-4">
+                <label
+                  htmlFor={inputId}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
+                >
                   <input id={inputId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
                   {uploading ? (
                     <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Image className="w-12 h-12 opacity-20" />
-                      <span className="text-sm font-medium opacity-50 text-center">Click, drag & drop, or paste image</span>
+                      <Image className="w-10 h-10 opacity-20" />
+                      <span className="text-xs font-medium opacity-50">Click, drag & drop, or paste image</span>
                     </>
                   )}
                 </label>
@@ -144,12 +131,48 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
             </div>
           )}
         </div>
+
+        {/* Toolbar below the row */}
+        <div className="flex items-center justify-between gap-2 border-t border-border/50 px-4 py-1.5 bg-muted/10">
+          {/* Left: photo actions */}
+          <div className="flex items-center gap-1">
+            {!noteOnly && item.photo_url && (
+              <>
+                <button onClick={() => setLightbox(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors">
+                  <ZoomIn className="w-3.5 h-3.5" /> View
+                </button>
+                <label htmlFor={replaceId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors cursor-pointer">
+                  <Upload className="w-3.5 h-3.5" /> Replace
+                </label>
+                <input id={replaceId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
+                <button onClick={() => onUpdate({ ...item, photo_url: "" })} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors">
+                  <X className="w-3.5 h-3.5" /> Remove photo
+                </button>
+              </>
+            )}
+            {!noteOnly && !item.photo_url && !uploading && (
+              <label htmlFor={inputId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors cursor-pointer">
+                <Upload className="w-3.5 h-3.5" /> Upload photo
+              </label>
+            )}
+          </div>
+
+          {/* Right: delete row */}
+          {!isFirst && (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors ml-auto"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete row
+            </button>
+          )}
+        </div>
       </div>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this entry?</AlertDialogTitle>
+            <AlertDialogTitle>Remove this step?</AlertDialogTitle>
             <AlertDialogDescription>This will permanently remove the note and photo. This cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -193,7 +216,7 @@ export default function CMMWorkHolding({ items = [], onChange }) {
       </div>
       <div className="border-b border-border mb-5" />
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         {ensuredItems.map((item, idx) => (
           <PhotoRow
             key={item._id || idx}
@@ -206,7 +229,7 @@ export default function CMMWorkHolding({ items = [], onChange }) {
         ))}
       </div>
 
-      <div className="flex gap-3 mt-6">
+      <div className="flex gap-3 mt-5">
         <button onClick={addNoteOnly}
           className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
           <Plus className="w-4 h-4" /> Add Note
