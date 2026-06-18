@@ -201,7 +201,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   return (
     <div className="px-4 py-3 bg-background border-t border-border/30">
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">General Information</p>
       <div className="flex flex-wrap gap-x-3 gap-y-2 mb-3">
         {/* Fixed removable fields */}
         {fixedFields.map(f => {
@@ -327,38 +326,38 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         )}
 
         {/* Type dropdown */}
-        <div className="flex-1 min-w-[140px]">
+        <div className="w-36 shrink-0">
           <ToolTypeDropdown toolKind={tool.tool_kind} value={typeValue} onChange={handleTypeChange} />
         </div>
 
-        {/* Rad — shown in header for turning (non-groove, non-holemaking, non-thread) */}
+        {/* Rad */}
         {showRad && (
-          <div className="shrink-0 flex flex-col">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Rad</span>
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
             <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
           </div>
         )}
 
-        {/* Width — shown in header for groove tools */}
+        {/* Width */}
         {showWidth && (
-          <div className="shrink-0 flex flex-col">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Width</span>
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
             <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
           </div>
         )}
 
-        {/* Dia — shown for hole making */}
+        {/* Dia */}
         {showDia && (
-          <div className="shrink-0 flex flex-col">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Dia.</span>
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
             <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
           </div>
         )}
 
-        {/* Deg — shown for turning tools */}
+        {/* Deg */}
         {showDeg && (
-          <div className="shrink-0 flex flex-col">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Deg</span>
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
             <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
           </div>
         )}
