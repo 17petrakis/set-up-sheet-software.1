@@ -113,7 +113,7 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
               ) : (
                 <label
                   htmlFor={inputId}
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
+                  className="flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors w-full py-8"
                 >
                   <input id={inputId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
                   {uploading ? (
