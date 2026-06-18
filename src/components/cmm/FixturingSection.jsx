@@ -76,7 +76,7 @@ export default function FixturingSection({ items = [], onChange }) {
           Fixturing Equipment
         </h2>
         <a
-          href="https://docs.google.com/document/d/16oZitq4cgSlJ81-Ab_S-EE4HQ_JxXEiyj3-M4Bm3l_o/edit?usp=sharing"
+          href="https://1drv.ms/w/c/35cb3214252603ac/IQCfB0YMGSoYSY7c0m81SyuoAeZMS8tVdD7kK0epLnvTJx0?e=fGrkKU"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
