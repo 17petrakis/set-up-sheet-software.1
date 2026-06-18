@@ -3,12 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen, Menu } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen, Menu, ClipboardList } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import MobileNav from "@/components/home/MobileNav";
 import PartFolderCard from "@/components/home/PartFolderCard";
 import PartFolderView from "@/components/home/PartFolderView";
+import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -39,6 +40,12 @@ export default function Home() {
 
   useEffect(() => {
     if (!session) navigate("/employee-login");
+    // Support ?tab=quality_control redirect from CMM sheet back button
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "quality_control") {
+      setActiveNav("quality_control");
+      window.history.replaceState({}, "", "/");
+    }
   }, []);
 
   const load = async () => {
@@ -216,6 +223,15 @@ export default function Home() {
             <Users className="w-4 h-4 shrink-0" /> Customers
           </button>
           <button
+            onClick={() => switchNav("quality_control")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "quality_control" ? "bg-emerald-600 text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+            )}
+          >
+            <ClipboardList className="w-4 h-4 shrink-0" /> Quality Control
+          </button>
+          <button
             onClick={() => setShowNewDialog(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
@@ -266,7 +282,9 @@ export default function Home() {
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
 
-          {activeNav === "customers" ? (
+          {activeNav === "quality_control" ? (
+            <CMMDashboardContent allCustomerNames={allCustomerNames} />
+          ) : activeNav === "customers" ? (
             selectedCustomer && openFolder ? (
               /* Customer → Folder drill-down */
               <PartFolderView

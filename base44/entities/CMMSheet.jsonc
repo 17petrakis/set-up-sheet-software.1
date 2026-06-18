@@ -1,0 +1,65 @@
+{
+  "name": "CMMSheet",
+  "type": "object",
+  "properties": {
+    "part_number": {
+      "type": "string"
+    },
+    "customer": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "folder_id": {
+      "type": "string"
+    },
+    "machine": {
+      "type": "string"
+    },
+    "material": {
+      "type": "string"
+    },
+    "cycle_time": {
+      "type": "string"
+    },
+    "program_number": {
+      "type": "string"
+    },
+    "program_location": {
+      "type": "string"
+    },
+    "units": {
+      "type": "string",
+      "enum": [
+        "in",
+        "mm"
+      ],
+      "default": "in"
+    },
+    "fixturing": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "work_holding": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "important_notes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "program_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "part_number"
+  ]
+}
