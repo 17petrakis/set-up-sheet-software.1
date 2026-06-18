@@ -20,9 +20,12 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
   const inputId = `cmm-photo-${index}`;
   const replaceId = `cmm-photo-replace-${index}`;
 
+  const photoOnly = !isFirst && item.photo_only;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1fr_3fr] gap-4 items-start border border-border/40 rounded-xl p-4 bg-muted/10">
+    <div className={`grid gap-4 items-start border border-border/40 rounded-xl p-4 bg-muted/10 ${photoOnly ? "grid-cols-1" : "grid-cols-1 md:grid-cols-[1fr_3fr]"}`}>
       {/* Note column */}
+      {!photoOnly && (
       <div className="flex flex-col gap-2">
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Note</p>
         {isFirst ? (
@@ -42,9 +45,15 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
           </Button>
         )}
       </div>
+      )}
 
       {/* Photo column */}
       <div className="relative rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted/10" style={{ minHeight: "280px" }}>
+        {photoOnly && (
+          <button onClick={onRemove} className="absolute top-2 left-2 z-10 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
         {item.photo_url ? (
           <>
             <img src={item.photo_url} alt="" className="w-full h-full object-cover absolute inset-0" style={{ minHeight: "280px" }} />
@@ -87,8 +96,8 @@ export default function CMMWorkHolding({ items = [], onChange }) {
     onChange(next);
   };
 
-  const addItem = () => {
-    onChange([...ensuredItems, { _id: `row_${Date.now()}`, note: "", photo_url: "" }]);
+  const addItem = (photoOnly = false) => {
+    onChange([...ensuredItems, { _id: `row_${Date.now()}`, note: "", photo_url: "", photo_only: photoOnly }]);
   };
 
   const removeItem = (idx) => {
@@ -97,15 +106,11 @@ export default function CMMWorkHolding({ items = [], onChange }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center mb-1">
         <h2 className="text-sm font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
           <Camera className="w-4 h-4 text-primary" />
           Work Holding
         </h2>
-        <button onClick={addItem}
-          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Add Note & Photo
-        </button>
       </div>
       <div className="border-b border-border mb-5" />
 
@@ -120,6 +125,17 @@ export default function CMMWorkHolding({ items = [], onChange }) {
             onRemove={() => removeItem(idx)}
           />
         ))}
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <button onClick={() => addItem(false)}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary transition-colors font-medium text-sm">
+          <Plus className="w-4 h-4" /> Add Note &amp; Photo
+        </button>
+        <button onClick={() => addItem(true)}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-primary/40 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors font-medium text-sm">
+          <Image className="w-4 h-4" /> Add Photo Only
+        </button>
       </div>
     </div>
   );
