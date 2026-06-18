@@ -499,21 +499,45 @@ export default function SetupSheet() {
           nextOpNumber={(general.operation_number || 1) + 1}
           onAdd={async (machineType) => {
             const isTurning = machineType === "turning";
+            const sameType = general.machine_type === machineType;
             // Find the max operation_number among siblings
             const siblings = await base44.entities.SetupSheet.filter({ folder_id: general.folder_id });
             const maxOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0);
+
+            let createData;
+            if (sameType) {
+              // Same type: copy everything from current sheet
+              createData = {
+                ...general,
+                tools: tools,
+                turning_tools: turningTools,
+                part_zero: partZero,
+                operations: operations,
+                photos: photos,
+                fixturing_notes: fixturingNotes,
+                turning_chuck: turningChuck,
+                operation_description: "",
+                operation_notes: "",
+                work_holding_notes: "",
+              };
+            } else {
+              // Different type: only copy shared general info fields
+              const SHARED_FIELDS = ["job_number", "programmer", "revision", "date", "quantity", "material", "units", "status", "program", "program_software", "program_location", "machine", "photos"];
+              createData = { ...emptyGeneral, machine_type: machineType };
+              SHARED_FIELDS.forEach(k => { if (general[k]) createData[k] = general[k]; });
+              createData.tools = isTurning ? [] : [{ ...emptyTool }];
+              createData.turning_tools = isTurning ? { ...emptyTurningTools } : undefined;
+              createData.part_zero = { ...emptyPartZero };
+              createData.operations = isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }];
+              createData.turning_chuck = isTurning ? { ...emptyTurningChuck } : undefined;
+            }
+
             const newSheet = await base44.entities.SetupSheet.create({
-              ...emptyGeneral,
-              machine_type: machineType,
+              ...createData,
               part_number: general.part_number,
               customer: general.customer,
               folder_id: general.folder_id,
               operation_number: maxOp + 1,
-              tools: isTurning ? [] : [{ ...emptyTool }],
-              turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
-              part_zero: { ...emptyPartZero },
-              operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
-              turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
             });
             setShowAddOp(false);
             navigate(`/sheet/${newSheet.id}`);
