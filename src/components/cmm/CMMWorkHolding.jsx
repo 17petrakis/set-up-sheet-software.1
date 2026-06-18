@@ -73,9 +73,6 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
         <div className={`flex ${noteOnly ? "" : "divide-x divide-border"}`}>
           {/* Note column — 30% */}
           <div className={`${noteOnly ? "w-full" : "w-[30%] shrink-0"} p-4 flex flex-col justify-center`}>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
-              {isFirst ? "Step 1" : `Step ${index + 1}`}
-            </p>
             {isFirst ? (
               <p className="text-sm font-semibold text-foreground leading-snug">
                 Final position on CMM table before running program
@@ -94,8 +91,8 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
           {/* Photo column — 70% */}
           {!noteOnly && (
             <div
-              className={`flex-1 relative bg-muted/20 ${dragOver ? "bg-primary/5" : ""} transition-colors`}
-              style={{ height: "300px" }}
+              className={`flex-1 bg-muted/20 ${dragOver ? "bg-primary/5" : ""} transition-colors flex items-stretch`}
+              style={{ minHeight: "120px" }}
               onDragOver={e => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
@@ -108,7 +105,8 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
                   <img
                     src={item.photo_url}
                     alt=""
-                    className="w-full h-full object-cover cursor-zoom-in"
+                    className="w-full cursor-zoom-in object-contain bg-muted/20"
+                    style={{ maxHeight: "500px", height: "auto", display: "block" }}
                     onClick={() => setLightbox(true)}
                   />
                 </>
