@@ -306,13 +306,13 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   return (
     <div className="border border-border/40 rounded-lg mb-2">
       {/* ── Header row ── */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/20 hover:bg-muted/30 transition-colors flex-wrap">
-        <button type="button" onClick={() => setExpanded(e => !e)} className="text-muted-foreground hover:text-foreground shrink-0">
+      <div style={{ flexWrap: "nowrap", overflow: "hidden" }} className="flex items-center gap-2 px-3 py-2 bg-muted/20 hover:bg-muted/30 transition-colors">
+        <button type="button" onClick={() => setExpanded(e => !e)} style={{ flexShrink: 0 }} className="text-muted-foreground hover:text-foreground">
           {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
         {/* T# */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div style={{ flexShrink: 0 }} className="flex items-center gap-1">
           <span className="text-xs text-muted-foreground font-mono">T#</span>
           <Input value={tool.tool_number || ""} onChange={(e) => set("tool_number")(e.target.value)}
             placeholder="#" className="h-7 w-10 text-xs bg-background border-border/60 px-1.5 text-center font-mono" />
@@ -320,19 +320,19 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Kind badge */}
         {tool.tool_kind && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${tool.tool_kind === "Mill" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"}`}>
+          <span style={{ flexShrink: 0 }} className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${tool.tool_kind === "Mill" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700"}`}>
             {tool.tool_kind}
           </span>
         )}
 
         {/* Type dropdown */}
-        <div className="w-36 max-w-[144px] shrink-0">
+        <div style={{ width: 140, flexShrink: 0 }}>
           <ToolTypeDropdown toolKind={tool.tool_kind} value={typeValue} onChange={handleTypeChange} />
         </div>
 
         {/* Rad */}
         {showRad && (
-          <div className="shrink-0 flex items-center gap-1">
+          <div style={{ flexShrink: 0 }} className="flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
             <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
           </div>
@@ -340,7 +340,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Width */}
         {showWidth && (
-          <div className="shrink-0 flex items-center gap-1">
+          <div style={{ flexShrink: 0 }} className="flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
             <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
           </div>
@@ -348,7 +348,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Dia */}
         {showDia && (
-          <div className="shrink-0 flex items-center gap-1">
+          <div style={{ flexShrink: 0 }} className="flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
             <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
           </div>
@@ -356,14 +356,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Deg */}
         {showDeg && (
-          <div className="shrink-0 flex items-center gap-1">
+          <div style={{ flexShrink: 0 }} className="flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
             <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
           </div>
         )}
 
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
-          className="h-7 w-7 ml-auto text-destructive hover:text-destructive shrink-0">
+          style={{ flexShrink: 0 }} className="h-7 w-7 ml-auto text-destructive hover:text-destructive">
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
