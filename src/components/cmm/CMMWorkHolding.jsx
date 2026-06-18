@@ -4,8 +4,25 @@ import { Camera, Upload, X, Plus, Trash2, Image } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
+function Lightbox({ url, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={onClose}>
+      <button onClick={onClose} className="absolute top-4 right-4 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 transition-colors">
+        <X className="w-5 h-5" />
+      </button>
+      <img
+        src={url}
+        alt=""
+        className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      />
+    </div>
+  );
+}
+
 function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
   const [uploading, setUploading] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -49,7 +66,13 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
       {!noteOnly && <div className="relative rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted/10" style={{ minHeight: "280px" }}>
         {item.photo_url ? (
           <>
-            <img src={item.photo_url} alt="" className="w-full h-full object-cover absolute inset-0" style={{ minHeight: "280px" }} />
+            {lightbox && <Lightbox url={item.photo_url} onClose={() => setLightbox(false)} />}
+            <img
+              src={item.photo_url} alt=""
+              className="w-full h-full object-cover absolute inset-0 cursor-zoom-in"
+              style={{ minHeight: "280px" }}
+              onClick={() => setLightbox(true)}
+            />
             <div className="absolute top-2 right-2 flex gap-1.5">
               <label htmlFor={replaceId} className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 cursor-pointer transition-colors">
                 <Upload className="w-3.5 h-3.5" />
