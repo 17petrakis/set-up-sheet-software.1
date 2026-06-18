@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
+
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
@@ -134,7 +135,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
-    { key: "insert", label: "Insert", show: !isMill },
+    { key: "insert", label: "Insert", show: false },
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
@@ -261,25 +262,16 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
   );
 }
 
-// ── Add Tool dropdown ──────────────────────────────────────────────────────────
+// ── Add Tool buttons ───────────────────────────────────────────────────────────
 function AddToolButton({ onAdd }) {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="relative" tabIndex={-1} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
-      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(o => !o)} className="h-7 text-xs gap-1">
-        + Add Tool
-        <ChevronDown className="w-3 h-3" />
+    <div className="flex items-center gap-1.5">
+      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Turn")} className="h-7 text-xs gap-1">
+        + Turn Tool
       </Button>
-      {open && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-28 bg-popover border border-border rounded-md shadow-lg py-1">
-          {["Turn", "Mill"].map(k => (
-            <div key={k} onClick={() => { onAdd(k); setOpen(false); }}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1">
-              {k}
-            </div>
-          ))}
-        </div>
-      )}
+      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Mill")} className="h-7 text-xs gap-1">
+        + Mill Tool
+      </Button>
     </div>
   );
 }
@@ -359,6 +351,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <div className="shrink-0 flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
             <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+          </div>
+        )}
+
+        {/* Insert (Turn only, in header) */}
+        {tool.tool_kind === "Turn" && typeValue && (
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Insert</span>
+            <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />
           </div>
         )}
 
