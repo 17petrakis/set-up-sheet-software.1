@@ -280,7 +280,7 @@ export { AddToolButton };
 
 // ── Main ToolRow ──────────────────────────────────────────────────────────────
 export default function ToolRow({ tool, onUpdate, onRemove }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
   const typeValue = tool.tool_type || "";
@@ -348,7 +348,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Deg */}
         {showDeg && (
-          <div className="shrink-0 flex items-center gap-1">
+          <div className={`shrink-0 flex items-center gap-1 ${!showRad && !showWidth && !showDia ? "ml-4" : ""}`}>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
             <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
           </div>
