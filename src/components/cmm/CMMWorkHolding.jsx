@@ -228,13 +228,13 @@ export default function CMMWorkHolding({ items = [], onChange }) {
       </div>
 
       <div className="flex gap-3 mt-5">
-        <button onClick={addNoteOnly}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-          <Plus className="w-4 h-4" /> Add Note
-        </button>
         <button onClick={addItemWithPhoto}
           className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
           <Camera className="w-4 h-4" /> Add Note & Photo
+        </button>
+        <button onClick={addNoteOnly}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+          <Plus className="w-4 h-4" /> Add Note
         </button>
       </div>
     </div>
