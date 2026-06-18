@@ -32,18 +32,25 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   const handleAddOperation = async (machineType) => {
     const isTurning = machineType === "turning";
+    // Find the last operation to copy data from
+    const lastSheet = sorted[sorted.length - 1];
+    // Fields we don't want to carry over
+    const { id, created_date, updated_date, created_by_id, operation_number, folder_id: _fid, ...prevData } = lastSheet || {};
+    const baseData = lastSheet ? prevData : emptyGeneral;
+
     const newSheet = await base44.entities.SetupSheet.create({
-      ...emptyGeneral,
+      ...baseData,
       machine_type: machineType,
       part_number: partNumber,
       customer: customer,
       folder_id: folderId,
       operation_number: nextOpNumber,
+      // Reset operation-specific fields
+      operation_description: "",
+      operation_notes: "",
       tools: isTurning ? [] : [{ ...emptyTool }],
       turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
-      part_zero: { ...emptyPartZero },
       operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
-      turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
     });
     onSheetsChange([...sheets, newSheet]);
     setShowAddOp(false);

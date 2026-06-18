@@ -18,6 +18,8 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
 
+  const isPdf = url && (url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("application/pdf") || url.includes("pdf"));
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -26,7 +28,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
       const result = await base44.integrations.Core.UploadFile({ file });
       onUpload(result.file_url);
     } catch (err) {
-      console.error("Photo upload failed:", err);
+      console.error("Upload failed:", err);
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
       setUploading(false);
@@ -63,13 +65,20 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
       >
         {url ? (
           <>
-            <img
-              src={url}
-              alt={label}
-              className="w-full h-full object-cover absolute inset-0 cursor-pointer"
-              style={{ minHeight: "420px" }}
-              onClick={() => setLightbox(true)}
-            />
+            {isPdf ? (
+              <a href={url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground hover:bg-muted/20 transition-colors" style={{ minHeight: "420px" }}>
+                <svg className="w-16 h-16 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                <span className="text-sm font-medium">PDF — Click to open</span>
+              </a>
+            ) : (
+              <img
+                src={url}
+                alt={label}
+                className="w-full h-full object-cover absolute inset-0 cursor-pointer"
+                style={{ minHeight: "420px" }}
+                onClick={() => setLightbox(true)}
+              />
+            )}
             <div className="absolute top-2 right-2 flex gap-1.5 no-print">
               <label
                 htmlFor={replaceId}
@@ -78,7 +87,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
               >
                 <Upload className="w-3.5 h-3.5" />
               </label>
-              <input id={replaceId} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+              <input id={replaceId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
               <button
                 onClick={onRemove}
                 className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
@@ -93,7 +102,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
             htmlFor={inputId}
             className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
           >
-            <input id={inputId} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+            <input id={inputId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
             {uploading ? (
               <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
             ) : (
