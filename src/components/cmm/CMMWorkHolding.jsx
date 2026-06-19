@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Plus, Trash2, Image, ZoomIn } from "lucide-react";
+import { Camera, Upload, X, Plus, Trash2, Image, ZoomIn, Pencil } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import PhotoMarkupEditor from "@/components/cmm/PhotoMarkupEditor";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -27,6 +28,7 @@ function Lightbox({ url, onClose }) {
 function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  const [markup, setMarkup] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputId = `cmm-photo-${index}`;
@@ -107,6 +109,13 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
               {item.photo_url ? (
                 <>
                   {lightbox && <Lightbox url={item.photo_url} onClose={() => setLightbox(false)} />}
+                  {markup && (
+                    <PhotoMarkupEditor
+                      photoUrl={item.photo_url}
+                      onSave={(url) => { onUpdate({ ...item, photo_url: url }); setMarkup(false); }}
+                      onClose={() => setMarkup(false)}
+                    />
+                  )}
                   <img
                     src={item.photo_url}
                     alt=""
@@ -143,6 +152,9 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
               <>
                 <button onClick={() => setLightbox(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors">
                   <ZoomIn className="w-3.5 h-3.5" /> View
+                </button>
+                <button onClick={() => setMarkup(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                  <Pencil className="w-3.5 h-3.5" /> Markup
                 </button>
                 <label htmlFor={replaceId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors cursor-pointer">
                   <Upload className="w-3.5 h-3.5" /> Replace

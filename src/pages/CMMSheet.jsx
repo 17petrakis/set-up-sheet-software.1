@@ -108,7 +108,15 @@ export default function CMMSheet() {
                 <Input value={sheet.description || ""} onChange={e => update("description", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
               <FieldGroup label="Machine">
-                <Input value={sheet.machine || ""} onChange={e => update("machine", e.target.value)} className="h-9 text-sm" />
+                <select
+                  value={sheet.machine || ""}
+                  onChange={e => update("machine", e.target.value)}
+                  className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">— Select —</option>
+                  <option value="Zeiss">Zeiss</option>
+                  <option value="Hexagon">Hexagon</option>
+                </select>
               </FieldGroup>
               <FieldGroup label="REV">
                 <Input value={sheet.material || ""} onChange={e => update("material", e.target.value)} className="h-9 text-sm" />
