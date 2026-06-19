@@ -23,9 +23,9 @@ const FIXTURING_OPTIONS = [
 ];
 
 function getItemLabel(item) {
-  if (item.custom_name) return item.custom_name;
-  if (item.variant) return `${item.type} – ${item.variant}`;
-  return item.type;
+  if (item.custom_name) return item.note ? `${item.custom_name} – ${item.note}` : item.custom_name;
+  const base = item.variant ? `${item.type} – ${item.variant}` : item.type;
+  return item.note ? `${base} – ${item.note}` : base;
 }
 
 export default function FixturingSection({ items = [], onChange }) {
@@ -34,6 +34,7 @@ export default function FixturingSection({ items = [], onChange }) {
   const [selectedVariant, setSelectedVariant] = useState("");
   const [customVariant, setCustomVariant] = useState("");
   const [customType, setCustomType] = useState("");
+  const [note, setNote] = useState("");
 
   const selectedOption = FIXTURING_OPTIONS.find(o => o.label && o.label === selectedType);
 
@@ -49,16 +50,17 @@ export default function FixturingSection({ items = [], onChange }) {
     if (!canAdd()) return;
     let newItem;
     if (selectedType === "__other__") {
-      newItem = { _id: Date.now(), type: "Other", variant: "", custom_name: customType.trim() };
+      newItem = { _id: Date.now(), type: "Other", variant: "", custom_name: customType.trim(), note: note.trim() };
     } else {
       const variantValue = selectedVariant === "Other" ? customVariant.trim() : selectedVariant;
-      newItem = { _id: Date.now(), type: selectedType, variant: variantValue, custom_name: "" };
+      newItem = { _id: Date.now(), type: selectedType, variant: variantValue, custom_name: "", note: note.trim() };
     }
     onChange([...items, newItem]);
     setSelectedType("");
     setSelectedVariant("");
     setCustomVariant("");
     setCustomType("");
+    setNote("");
     setAdding(false);
   };
 
@@ -70,6 +72,7 @@ export default function FixturingSection({ items = [], onChange }) {
     setSelectedVariant("");
     setCustomVariant("");
     setCustomType("");
+    setNote("");
   };
 
   return (
@@ -154,6 +157,11 @@ export default function FixturingSection({ items = [], onChange }) {
               <Input value={customVariant} onChange={e => setCustomVariant(e.target.value)} placeholder="Enter variant name" className="h-9 text-sm" />
             </div>
           )}
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Note <span className="normal-case font-normal">(optional)</span></label>
+            <Input value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. qty 2, upside down..." className="h-9 text-sm" />
+          </div>
 
           <div className="flex gap-2">
             <Button size="sm" onClick={handleAdd} disabled={!canAdd()} className="h-8 text-xs">Add</Button>
