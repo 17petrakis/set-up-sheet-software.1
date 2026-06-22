@@ -13,6 +13,7 @@ import ToolListPrint from '@/pages/ToolListPrint';
 import EmployeeLogin from '@/pages/EmployeeLogin';
 import EmployeeManagement from '@/pages/EmployeeManagement';
 import CMMSheet from '@/pages/CMMSheet';
+import CMMPrintView from '@/pages/CMMPrintView';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
       <Route path="/employee-login" element={<EmployeeLogin />} />
       <Route path="/employee-management" element={<EmployeeManagement />} />
       <Route path="/cmm-sheet/:id" element={<CMMSheet />} />
+      <Route path="/cmm-sheet/:id/print" element={<CMMPrintView />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

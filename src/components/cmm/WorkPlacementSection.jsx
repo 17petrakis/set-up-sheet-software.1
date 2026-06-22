@@ -27,7 +27,8 @@ export default function WorkPlacementSection({ items = [], onChange }) {
 
   const isStandard = isStandardConfig(items);
 
-  const canAdd = () => size !== "" && x.trim() !== "" && y.trim() !== "";
+  const isValidInt = (v) => /^-?\d+$/.test(v.trim());
+  const canAdd = () => size !== "" && isValidInt(x) && isValidInt(y);
 
   const handleAdd = () => {
     if (!canAdd()) return;
@@ -104,8 +105,8 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                     <option value="">—</option>
                     {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  <Input value={post.x || ""} onChange={e => updatePost(idx, "x", e.target.value)} className="h-8 text-sm" />
-                  <Input value={post.y || ""} onChange={e => updatePost(idx, "y", e.target.value)} className="h-8 text-sm" />
+                  <Input value={post.x || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "x", e.target.value); }} className="h-8 text-sm" />
+                  <Input value={post.y || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "y", e.target.value); }} className="h-8 text-sm" />
                   <button onClick={() => removePost(idx)} className="text-muted-foreground hover:text-destructive transition-colors justify-self-start">
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -138,11 +139,11 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-muted-foreground block mb-1">X</label>
-                    <Input value={post.x || ""} onChange={e => updatePost(idx, "x", e.target.value)} className="h-9 text-sm" />
+                    <Input value={post.x || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "x", e.target.value); }} className="h-9 text-sm" />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground block mb-1">Y</label>
-                    <Input value={post.y || ""} onChange={e => updatePost(idx, "y", e.target.value)} className="h-9 text-sm" />
+                    <Input value={post.y || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "y", e.target.value); }} className="h-9 text-sm" />
                   </div>
                 </div>
               </div>
@@ -167,11 +168,11 @@ export default function WorkPlacementSection({ items = [], onChange }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">X</label>
-              <Input value={x} onChange={e => setX(e.target.value)} className="h-9 text-sm" placeholder="0.000" />
+              <Input value={x} onChange={e => { if (/^-?\d*$/.test(e.target.value)) setX(e.target.value); }} className="h-9 text-sm" placeholder="0" />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Y</label>
-              <Input value={y} onChange={e => setY(e.target.value)} className="h-9 text-sm" placeholder="0.000" />
+              <Input value={y} onChange={e => { if (/^-?\d*$/.test(e.target.value)) setY(e.target.value); }} className="h-9 text-sm" placeholder="0" />
             </div>
           </div>
           <div className="flex gap-2">

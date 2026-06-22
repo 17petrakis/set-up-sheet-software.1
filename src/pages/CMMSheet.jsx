@@ -3,12 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, FileSpreadsheet, Settings2 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Settings2, Printer } from "lucide-react";
 import { motion } from "framer-motion";
 import FixturingSection from "@/components/cmm/FixturingSection";
 import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
 import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
 import CMMNotesSection from "@/components/cmm/CMMNotesSection";
+import CMMPrintView from "@/pages/CMMPrintView";
 
 function FieldGroup({ label, children }) {
   return (
@@ -86,6 +87,9 @@ export default function CMMSheet() {
               {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : sheet.customer || "Quality Control"}
             </p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="ml-auto gap-1.5 text-xs no-print">
+            <Printer className="w-4 h-4" /> Print
+          </Button>
         </div>
       </header>
 
