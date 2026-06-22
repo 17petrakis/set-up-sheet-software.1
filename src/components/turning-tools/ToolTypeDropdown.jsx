@@ -9,10 +9,12 @@ const HOLE_MAKING_CHILDREN = [
       { label: "HSS", value: "Drill – HSS" },
       { label: "Insert", value: "Drill – Insert" },
       { label: "Ex Tip", value: "Drill – Ex Tip" },
+      { label: "Center", value: "Drill – Center" },
     ]
   },
   { label: "Tap", value: "Hole Making – Tap" },
-  { label: "Spot/CSK", value: "Hole Making – Spot/CSK" },
+  { label: "Spot Drill", value: "Hole Making – Spot Drill" },
+  { label: "Countersink", value: "Hole Making – Countersink" },
 ];
 
 const TURN_OPTIONS = [
@@ -44,7 +46,8 @@ const MILL_OPTIONS = [
   {
     label: "Hole Making", children: [
       { label: "Drill", value: "Mill Hole Making – Drill" },
-      { label: "Spot/CSK", value: "Mill Hole Making – Spot/CSK" },
+      { label: "Spot Drill", value: "Mill Hole Making – Spot Drill" },
+      { label: "Countersink", value: "Mill Hole Making – Countersink" },
       { label: "Tap", value: "Mill Hole Making – Tap" },
       { label: "Bore", value: "Mill Hole Making – Bore" },
     ]
@@ -69,8 +72,8 @@ const FLAT_MILL = flattenOptions(MILL_OPTIONS);
 
 // ── OD/ID/Face selector ────────────────────────────────────────────────────────
 const HOLE_MAKING_VALUES = [
-  "Drill – Carbide", "Drill – HSS", "Drill – Insert", "Drill – Ex Tip",
-  "Hole Making – Tap", "Hole Making – Spot/CSK",
+  "Drill – Carbide", "Drill – HSS", "Drill – Insert", "Drill – Ex Tip", "Drill – Center",
+  "Hole Making – Tap", "Hole Making – Spot Drill", "Hole Making – Countersink",
 ];
 
 export function isHoleMaking(typeValue) {

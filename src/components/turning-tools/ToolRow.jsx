@@ -21,11 +21,22 @@ const ENDMILL_DIR_OPTIONS = ["X", "Z-", "Z+"];
 const HOLDER_COLLET_OPTIONS = ["ER25x1", "ER32x1", "ER16x3/4", "ER11x5/8", "DA"];
 const COOLANT_OPTIONS = ["No coolant", "From outside", "Thru collet", "Thru tool"];
 const EXTENSION_OPTIONS = ["ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"];
+const ANGLE_DRILL_OPTIONS = ["118", "135", "180"];
+const ANGLE_SPOT_OPTIONS = ["82", "90", "100"];
 
 // Whether a type uses Width instead of Deg in the header
 function isGroove(typeValue) { return typeValue === "Groove/Part"; }
 function isTap(typeValue) { return typeValue === "Hole Making – Tap" || typeValue === "Mill Hole Making – Tap"; }
 function isHoleMakingOrTap(typeValue) { return isHoleMaking(typeValue) || isTap(typeValue); }
+function isDrill(typeValue) {
+  if (!typeValue) return false;
+  return typeValue.startsWith("Drill – ") || typeValue === "Mill Hole Making – Drill";
+}
+function isSpotOrCsk(typeValue) {
+  return ["Hole Making – Spot Drill", "Hole Making – Countersink",
+    "Mill Hole Making – Spot Drill", "Mill Hole Making – Countersink"].includes(typeValue);
+}
+function isInsertDrill(typeValue) { return typeValue === "Drill – Insert"; }
 
 // ── Small field helpers ────────────────────────────────────────────────────────
 function Label({ children }) {
@@ -124,7 +135,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
-    { key: "insert", label: (isHoleMakingType || isMill) ? "Tool" : "Insert", show: false },
+    { key: "insert", label: isInsertDrill(typeValue) ? "Insert" : (isHoleMakingType || isMill) ? "Tool" : "Insert", show: isInsertDrill(typeValue) && isMill },
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
@@ -306,7 +317,9 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   // Show Rad in header for turn tools that aren't holemaking
   const showRad = tool.tool_kind === "Turn" && !showDia && typeValue;
   // Show Deg in header for relevant turn types (not Thread or Profile)
-  const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue && typeValue !== "Thread" && typeValue !== "Profile";
+  const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue && typeValue !== "Thread" && typeValue !== "Profile" && !isHoleMakingOrTap(typeValue);
+  const showAngle = isDrill(typeValue) || isSpotOrCsk(typeValue);
+  const angleOptions = isSpotOrCsk(typeValue) ? ANGLE_SPOT_OPTIONS : ANGLE_DRILL_OPTIONS;
   // Show Reach for Profile tools
   const showReach = tool.tool_kind === "Turn" && typeValue === "Profile";
   // Show Pitch for Thread tools
@@ -315,7 +328,10 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const odIdOptions = tool.tool_kind === "Mill" ? ["Axial", "Radial"] : ["OD", "ID"];
 
   const handleTypeChange = (val) => {
-    onUpdate({ ...tool, tool_type: val });
+    const updates = { tool_type: val };
+    if (val === "Drill – Center") updates.angle = "60";
+    else if (isSpotOrCsk(val)) updates.angle = "180";
+    onUpdate({ ...tool, ...updates });
   };
 
   return (
@@ -377,6 +393,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           </div>
         )}
 
+        {/* Angle (Holemaking drills & spot/countersink) */}
+        {showAngle && (
+          <div className="shrink-0 flex items-center gap-1 ml-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Angle</span>
+            <SmallSelect value={tool.angle} onChange={set("angle")} options={angleOptions} className="w-14" />
+          </div>
+        )}
+
         {/* Reach (Profile only) */}
         {showReach && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
@@ -396,7 +420,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {/* Insert/Tool (Turn only, in header) */}
         {tool.tool_kind === "Turn" && typeValue && (
           <div className="flex-1 flex items-center gap-1 min-w-0">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isHoleMakingOrTap(typeValue) ? "Tool" : "Insert"}</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isHoleMakingOrTap(typeValue) && !isInsertDrill(typeValue) ? "Tool" : "Insert"}</span>
             <SmallInput value={tool.insert} onChange={set("insert")} className="flex-1 w-full min-w-0" />
           </div>
         )}
