@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
+import ComboBox from "./ComboBox";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
@@ -34,31 +35,15 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   );
 }
 
-function SmallSelect({ value, onChange, options, placeholder = "—", className = "w-20", allowOther = false }) {
-  const [showOther, setShowOther] = useState(false);
-  const [otherVal, setOtherVal] = useState("");
-
-  if (allowOther && showOther) {
-    return (
-      <div className="flex gap-1">
-        <Input value={otherVal} onChange={(e) => { setOtherVal(e.target.value); onChange(e.target.value); }}
-          placeholder="Enter" className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`} />
-        <button type="button" onClick={() => { setShowOther(false); onChange(""); }}
-          className="shrink-0 px-1.5 text-xs text-muted-foreground hover:text-foreground border border-border/60 rounded-md bg-background">↩</button>
-      </div>
-    );
-  }
-
+function SmallSelect({ value, onChange, options, placeholder = "—", className = "w-20" }) {
   return (
-    <Select value={value || ""} onValueChange={(v) => { if (v === "__other__") { setShowOther(true); onChange(""); } else onChange(v); }}>
-      <SelectTrigger className={`h-7 text-xs bg-background border-border/60 ${className}`}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map(o => <SelectItem key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</SelectItem>)}
-        {allowOther && <SelectItem value="__other__">Other…</SelectItem>}
-      </SelectContent>
-    </Select>
+    <ComboBox
+      value={value || ""}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      className={`h-7 text-xs px-1.5 ${className}`}
+    />
   );
 }
 

@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from "react";
+import ComboBox from "./ComboBox";
 
 // ── Shared Hole Making sub-tree ────────────────────────────────────────────────
 const HOLE_MAKING_CHILDREN = [
@@ -16,19 +15,12 @@ const HOLE_MAKING_CHILDREN = [
   { label: "Spot/CSK", value: "Hole Making – Spot/CSK" },
 ];
 
-const OTHER_CHILDREN = [
-  { label: "Knurl", value: "Other – Knurl" },
-  { label: "Form", value: "Other – Form" },
-  { label: "Custom", value: "Other – Custom" },
-];
-
 const TURN_OPTIONS = [
   { label: "Turning", value: "Turning" },
   { label: "Groove/Part", value: "Groove/Part" },
   { label: "Thread", value: "Thread" },
   { label: "Hole Making", children: HOLE_MAKING_CHILDREN },
   { label: "Profile", value: "Profile" },
-  { label: "Other", children: OTHER_CHILDREN },
 ];
 
 const MILL_OPTIONS = [
@@ -59,6 +51,22 @@ const MILL_OPTIONS = [
   },
 ];
 
+// ── Flatten option tree into {label, value} list ─────────────────────────────
+function flattenOptions(options) {
+  const result = [];
+  for (const opt of options) {
+    if (opt.children) {
+      result.push(...flattenOptions(opt.children));
+    } else {
+      result.push({ label: opt.value, value: opt.value });
+    }
+  }
+  return result;
+}
+
+const FLAT_TURN = flattenOptions(TURN_OPTIONS);
+const FLAT_MILL = flattenOptions(MILL_OPTIONS);
+
 // ── OD/ID/Face selector ────────────────────────────────────────────────────────
 const HOLE_MAKING_VALUES = [
   "Drill – Carbide", "Drill – HSS", "Drill – Insert", "Drill – Ex Tip",
@@ -71,84 +79,25 @@ export function isHoleMaking(typeValue) {
 
 export function ToolBlockSelect({ value, onChange }) {
   return (
-    <Select value={value || ""} onValueChange={onChange}>
-      <SelectTrigger className="h-8 text-xs bg-background border-border/60 w-36 shrink-0">
-        <SelectValue placeholder="Tool Block…" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Turn OD">Turn OD</SelectItem>
-        <SelectItem value="Bore OD">Bore OD</SelectItem>
-        <SelectItem value="Part off OD">Part off OD</SelectItem>
-        <SelectItem value="Axial Face">Axial Face</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-}
-
-// ── Generic recursive cascade renderer ────────────────────────────────────────
-function CascadeMenu({ options, onSelect, depth = 0 }) {
-  const [expanded, setExpanded] = useState(null);
-
-  return (
-    <div className={depth > 0 ? "bg-muted/40 border-y border-border/40 py-1 mb-1" : ""}>
-      {options.map((opt) => (
-        <div key={opt.label}>
-          {opt.children ? (
-            <>
-              <div
-                onClick={(e) => { e.stopPropagation(); setExpanded(ex => ex === opt.label ? null : opt.label); }}
-                className={`flex items-center justify-between py-1.5 text-sm cursor-pointer rounded-sm mx-1 hover:bg-accent text-foreground ${depth > 0 ? "px-6" : "px-3 py-2"}`}
-              >
-                <span>{opt.label}</span>
-                <ChevronRight className={`w-3.5 h-3.5 transition-transform shrink-0 ${expanded === opt.label ? "rotate-90" : ""}`} />
-              </div>
-              {expanded === opt.label && (
-                <CascadeMenu options={opt.children} onSelect={onSelect} depth={depth + 1} />
-              )}
-            </>
-          ) : (
-            <div
-              onClick={() => onSelect(opt.value)}
-              className={`py-1.5 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1 ${depth > 0 ? "px-8" : "px-3 py-2"}`}
-            >
-              {opt.label}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+    <ComboBox
+      value={value || ""}
+      onChange={onChange}
+      options={["Turn OD", "Bore OD", "Part off OD", "Axial Face"]}
+      placeholder="Tool Block…"
+      className="h-8 text-xs px-2 w-36 shrink-0"
+    />
   );
 }
 
 export default function ToolTypeDropdown({ toolKind, value, onChange }) {
-  const [open, setOpen] = useState(false);
-
-  const options = toolKind === "Mill" ? MILL_OPTIONS : TURN_OPTIONS;
-
-  const handleSelect = (val) => {
-    onChange(val);
-    setOpen(false);
-  };
-
+  const options = toolKind === "Mill" ? FLAT_MILL : FLAT_TURN;
   return (
-    <div
-      className="relative min-w-[160px]"
-      tabIndex={-1}
-      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full h-8 px-2 text-xs bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
-      >
-        <span className={value ? "text-foreground truncate" : "text-muted-foreground"}>{value || "Select type…"}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground rotate-90 shrink-0 ml-1" />
-      </button>
-      {open && (
-        <div className="absolute z-[500] top-full left-0 mt-1 w-52 bg-popover border border-border rounded-md shadow-xl py-1 max-h-80 overflow-y-auto">
-          <CascadeMenu options={options} onSelect={handleSelect} />
-        </div>
-      )}
-    </div>
+    <ComboBox
+      value={value || ""}
+      onChange={onChange}
+      options={options}
+      placeholder="Select type…"
+      className="h-8 text-xs px-2 w-full min-w-[160px]"
+    />
   );
 }
