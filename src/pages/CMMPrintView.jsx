@@ -90,10 +90,12 @@ export default function CMMPrintView() {
             <div>
               <FieldRow label="REV" value={sheet.material} />
               <FieldRow label="Cycle Time" value={sheet.cycle_time} />
-              <FieldRow label="Program #" value={sheet.program_number} />
-              <FieldRow label="Program Location" value={sheet.program_location} />
               <FieldRow label="Units" value={sheet.units === "mm" ? "mm" : "in"} />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 mt-2">
+            <FieldRow label="Program #" value={sheet.program_number} />
+            <FieldRow label="Program Location" value={sheet.program_location} />
           </div>
         </section>
 
@@ -151,10 +153,14 @@ export default function CMMPrintView() {
         {workHolding.length > 0 && (
           <section className="mb-6">
             <h2 className="text-sm font-bold uppercase tracking-widest mb-2 border-b border-border pb-1">Work Holding</h2>
-            <div className="space-y-1">
+            <div className="space-y-3">
               {workHolding.map((wh, idx) => (
-                <div key={idx} className="text-sm">
-                  <span className="font-medium">Step {idx + 1}:</span> {wh.note || "—"}
+                <div key={idx} className="flex gap-3 items-start break-inside-avoid">
+                  <span className="text-sm font-medium shrink-0">Step {idx + 1}:</span>
+                  <div className="text-sm flex-1">{wh.note || "—"}</div>
+                  {wh.photo_url && (
+                    <img src={wh.photo_url} alt={`Step ${idx + 1}`} className="w-32 h-32 object-contain border border-border rounded shrink-0" />
+                  )}
                 </div>
               ))}
             </div>
