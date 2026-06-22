@@ -105,8 +105,8 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
         </div>
 
-        {/* Row 2: Machine, Machinist, Program */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+        {/* Row 2: Machine, Machinist, CAM, Automated */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           {/* Machine ComboBox */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -123,10 +123,10 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
 
-          {/* Program ComboBox */}
+          {/* CAM ComboBox */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Program
+              CAM
             </Label>
             <ComboBox
               value={data.program_software || ""}
@@ -135,6 +135,23 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               placeholder="Select or type…"
               className="h-9 text-sm px-3 w-full"
             />
+          </div>
+
+          {/* Automated dropdown */}
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Automated
+            </Label>
+            <select
+              value={data.automation || ""}
+              onChange={e => update("automation")(e.target.value)}
+              className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">—</option>
+              <option value="Fully">Fully</option>
+              <option value="Semi">Semi</option>
+              <option value="No">No</option>
+            </select>
           </div>
         </div>
 

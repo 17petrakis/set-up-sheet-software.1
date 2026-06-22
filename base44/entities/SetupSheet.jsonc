@@ -62,6 +62,15 @@
       "type": "string",
       "description": "CAM software used (Mastercam, Gibbscam, etc.)"
     },
+    "automation": {
+      "type": "string",
+      "enum": [
+        "Fully",
+        "Semi",
+        "No"
+      ],
+      "description": "Level of automation"
+    },
     "program_location": {
       "type": "string",
       "description": "Where the program is stored"
