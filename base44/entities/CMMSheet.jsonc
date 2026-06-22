@@ -43,6 +43,13 @@
         "type": "object"
       }
     },
+    "work_placement": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Work placement posts with size and x/y coordinates"
+    },
     "work_holding": {
       "type": "array",
       "items": {

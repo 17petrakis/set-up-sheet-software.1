@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, FileSpreadsheet, Settings2 } from "lucide-react";
 import { motion } from "framer-motion";
 import FixturingSection from "@/components/cmm/FixturingSection";
+import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
 import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
 import CMMNotesSection from "@/components/cmm/CMMNotesSection";
 
@@ -147,6 +148,11 @@ export default function CMMSheet() {
         {/* Fixturing Equipment */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
           <FixturingSection items={sheet.fixturing || []} onChange={v => update("fixturing", v)} />
+        </motion.div>
+
+        {/* Work Placement */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+          <WorkPlacementSection items={sheet.work_placement || []} onChange={v => update("work_placement", v)} />
         </motion.div>
 
         {/* Work Holding */}
