@@ -17,6 +17,9 @@ const HOLDER_TURN_OPTIONS = ["DCLNR 16 4C (RH)", "DCLNL 16 4C (LH)", "DCKNR 16 4
 const TOOL_BLOCK_OPTIONS = ["Turn OD", "Bore OD", "Part off OD", "Axial Face"];
 const TAP_TYPE_OPTIONS = ["Form", "SF", "SP", "Hard"];
 const ENDMILL_DIR_OPTIONS = ["X", "Z-", "Z+"];
+const HOLDER_COLLET_OPTIONS = ["ER25x1", "ER32x1", "ER16x3/4", "ER11x5/8", "DA"];
+const COOLANT_OPTIONS = ["No coolant", "From outside", "Thru collet", "Thru tool"];
+const EXTENSION_OPTIONS = ["ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"];
 
 // Whether a type uses Width instead of Deg in the header
 function isGroove(typeValue) { return typeValue === "Groove/Part"; }
@@ -132,8 +135,21 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     ...(typeValue === "Thread" ? [{ key: "angle", label: "Angle" }] : []),
     ...(typeValue === "Profile" ? [{ key: "relief_angle", label: "Relief Angle" }] : []),
     ...(!isMill && !isHoleMakingType ? [{ key: "sleeve_shim", label: "Sleeve/Shim" }] : []),
-    ...(isHoleMakingType ? [{ key: "sleeve", label: "Sleeve" }] : []),
-    ...(isTap(typeValue) ? [{ key: "tap_type", label: "Tap Type" }, { key: "chamfer_r", label: "Chamfer x R" }] : []),
+    ...(isHoleMakingType ? [
+      { key: "holder_collet", label: "Holder + Collet size" },
+      { key: "num_flutes", label: "#-Flt" },
+      { key: "flute_length", label: "Flute length" },
+      { key: "oal", label: "OAL" },
+      { key: "stickout_holder", label: "Stickout (from holder" },
+      { key: "reach", label: "Reach" },
+      { key: "shank_dia", label: "Shank Dia." },
+      { key: "neck_dia", label: "Neck Dia." },
+      { key: "tip_dia", label: "Tip Dia." },
+      { key: "coolant", label: "Coolant" },
+      { key: "extension", label: "Extension" },
+      { key: "part_number_desc", label: "Part #/Desc." },
+      { key: "note", label: "Note" },
+    ] : []),
     ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
     ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
     { key: "material", label: "Material" },
@@ -178,6 +194,21 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           {f.key === "flute_length" && <SmallInput value={tool.flute_length} onChange={set("flute_length")} className="w-24" />}
           {f.key === "neck_dia" && <SmallInput value={tool.neck_dia} onChange={set("neck_dia")} className="w-20" />}
           {f.key === "max_depth" && <SmallInput value={tool.max_depth} onChange={set("max_depth")} className="w-24" />}
+          {f.key === "holder_collet" && <SmallSelect value={tool.holder_collet} onChange={set("holder_collet")} options={HOLDER_COLLET_OPTIONS} allowOther className="w-32" />}
+          {f.key === "oal" && <SmallInput value={tool.oal} onChange={set("oal")} className="w-20" />}
+          {f.key === "stickout_holder" && <SmallInput value={tool.stickout_holder} onChange={set("stickout_holder")} className="w-20" />}
+          {f.key === "shank_dia" && <SmallInput value={tool.shank_dia} onChange={set("shank_dia")} className="w-20" />}
+          {f.key === "tip_dia" && <SmallInput value={tool.tip_dia} onChange={set("tip_dia")} className="w-20" />}
+          {f.key === "coolant" && (
+            <select value={tool.coolant || ""} onChange={(e) => set("coolant")(e.target.value)}
+              className="h-7 text-xs bg-background border border-border/60 rounded-md px-1.5 w-28">
+              <option value="" disabled>—</option>
+              {COOLANT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          )}
+          {f.key === "extension" && <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />}
+          {f.key === "part_number_desc" && <SmallInput value={tool.part_number_desc} onChange={set("part_number_desc")} className="w-32" />}
+          {f.key === "note" && <SmallInput value={tool.note} onChange={set("note")} className="w-32" />}
         </F>
       </RemovableField>
     );
