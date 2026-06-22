@@ -64,6 +64,13 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
           <Input value={offset.dist_from_jaws || ""} onChange={setE("dist_from_jaws")} placeholder="e.g. 1.250"
             className="h-9 text-sm bg-background border-border/60 w-32 font-mono" />
         </FieldWrap>
+        {/* Relative Pickoff — only on subsequent stages */}
+        {index > 0 && (
+          <FieldWrap label="Relative Pickoff">
+            <Input value={offset.relative_pickoff || ""} onChange={setE("relative_pickoff")} placeholder="0.000"
+              className="h-9 text-sm bg-background border-border/60 w-32 font-mono" />
+          </FieldWrap>
+        )}
         {/* + Note */}
         <Button
           type="button"
