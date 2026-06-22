@@ -127,7 +127,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
-    { key: "stickout", label: "Stickout", show: true },
+    { key: "stickout", label: isHoleMakingType ? "Stickout (from holder)" : "Stickout", show: true },
   ].filter(f => f.show);
 
   // Extra fields (hidden by default, addable per tool type)
@@ -140,7 +140,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
       { key: "num_flutes", label: "#-Flt" },
       { key: "flute_length", label: "Flute length" },
       { key: "oal", label: "OAL" },
-      { key: "stickout_holder", label: "Stickout (from holder" },
       { key: "reach", label: "Reach" },
       { key: "shank_dia", label: "Shank Dia." },
       { key: "neck_dia", label: "Neck Dia." },
@@ -152,8 +151,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     ] : []),
     ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
     ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
-    { key: "material", label: "Material" },
-    { key: "name", label: "Name/Description" },
+    ...(!isHoleMakingType ? [{ key: "material", label: "Material" }, { key: "name", label: "Name/Description" }] : []),
   ];
 
   // Build add-field menu options
@@ -196,7 +194,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           {f.key === "max_depth" && <SmallInput value={tool.max_depth} onChange={set("max_depth")} className="w-24" />}
           {f.key === "holder_collet" && <SmallSelect value={tool.holder_collet} onChange={set("holder_collet")} options={HOLDER_COLLET_OPTIONS} allowOther className="w-32" />}
           {f.key === "oal" && <SmallInput value={tool.oal} onChange={set("oal")} className="w-20" />}
-          {f.key === "stickout_holder" && <SmallInput value={tool.stickout_holder} onChange={set("stickout_holder")} className="w-20" />}
           {f.key === "shank_dia" && <SmallInput value={tool.shank_dia} onChange={set("shank_dia")} className="w-20" />}
           {f.key === "tip_dia" && <SmallInput value={tool.tip_dia} onChange={set("tip_dia")} className="w-20" />}
           {f.key === "coolant" && (
