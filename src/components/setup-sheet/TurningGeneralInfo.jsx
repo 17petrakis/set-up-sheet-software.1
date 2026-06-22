@@ -84,8 +84,8 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Settings2} title="General Information" />
 
-        {/* Row 1: Customer, Part Number, Rev */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+        {/* Row 1: Customer, Part Number, Rev, Part Name */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           {/* Customer */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -101,7 +101,8 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
 
           <Field label="Part Number" value={data.part_number} onChange={update("part_number")} />
-          <Field label="Rev" value={data.revision} onChange={update("revision")} />
+          <Field label="Rev" value={data.revision} onChange={(v) => update("revision")(v.slice(0, 5))} />
+          <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
         </div>
 
         {/* Row 2: Machine, Machinist, Program */}

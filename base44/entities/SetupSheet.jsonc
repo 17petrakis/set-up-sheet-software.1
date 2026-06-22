@@ -15,6 +15,10 @@
       "type": "string",
       "description": "Part number"
     },
+    "part_name": {
+      "type": "string",
+      "description": "Description / name of the part"
+    },
     "revision": {
       "type": "string",
       "description": "Revision"
