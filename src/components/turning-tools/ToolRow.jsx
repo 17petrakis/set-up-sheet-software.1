@@ -6,6 +6,7 @@ import { Trash2, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
 import ComboBox from "@/components/ui/ComboBox";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
@@ -127,7 +128,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
-    { key: "stickout", label: isHoleMakingType ? "Stickout (from holder)" : "Stickout", show: true },
+    { key: "stickout", label: (isHoleMakingType || isMill) ? "Stickout (from holder)" : "Stickout", show: true },
   ].filter(f => f.show);
 
   // Extra fields (hidden by default, addable per tool type)
@@ -152,6 +153,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
     ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
     ...(!isHoleMakingType ? [{ key: "material", label: "Material" }, { key: "name", label: "Name/Description" }] : []),
+    ...(isMill ? [{ key: "note", label: "Note" }] : []),
   ];
 
   // Build add-field menu options
@@ -205,7 +207,14 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           )}
           {f.key === "extension" && <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />}
           {f.key === "part_number_desc" && <SmallInput value={tool.part_number_desc} onChange={set("part_number_desc")} className="w-32" />}
-          {f.key === "note" && <SmallInput value={tool.note} onChange={set("note")} className="w-32" />}
+          {f.key === "note" && (
+            <AutoResizeTextarea
+              value={tool.note || ""}
+              onChange={(e) => set("note")(e.target.value)}
+              className="text-xs min-h-[28px] py-1 px-1.5 w-48"
+              placeholder=""
+            />
+          )}
         </F>
       </RemovableField>
     );
@@ -234,7 +243,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
                 {f.key === "orientation" && (
                   <SmallSelect value={tool.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
                 )}
-                {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className="w-24" />}
+                {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className={isHoleMakingType || isMill ? "w-36" : "w-24"} />}
               </F>
             </RemovableField>
           );
