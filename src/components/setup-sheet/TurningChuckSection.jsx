@@ -138,7 +138,6 @@ function ChuckPressureField({ value, unit, onValueChange, onUnitChange }) {
 
 // ── Optional add-on fields for spindle ────────────────────────────────────────
 const OPTIONAL_SPINDLE_FIELDS = [
-  { key: "initial_stickout", label: "Initial Stickout (Stock)", type: "input", placeholder: 'e.g. 2.500"' },
   { key: "concentricity", label: "Concentricity", type: "input", placeholder: "" },
   { key: "surface_finish", label: "Surface Finish", type: "input", placeholder: "" },
   { key: "notes", label: "Notes", type: "textarea" },
@@ -182,14 +181,33 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {label}
       </div>
       <div className="px-4 py-4 space-y-3">
-        {/* Row 1 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
+        {/* Row 1: Chuck Type, Jaw Type, Chuck Pressure, Initial Stickout */}
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1.5fr] gap-x-4 gap-y-3">
           <FieldWrap label="Chuck Type">
             <ChuckTypeDropdown value={s.chuck_type || ""} onChange={(v) => set("chuck_type", v)} />
           </FieldWrap>
           <FieldWrap label="Jaw Type">
             <JawTypeDropdown value={s.jaw_type || ""} onChange={(v) => set("jaw_type", v)} />
           </FieldWrap>
+          <FieldWrap label="Chuck Pressure">
+            <ChuckPressureField
+              value={s.chuck_pressure || ""}
+              unit={s.chuck_pressure_unit || "PSI"}
+              onValueChange={(v) => set("chuck_pressure", v)}
+              onUnitChange={(v) => set("chuck_pressure_unit", v)}
+            />
+          </FieldWrap>
+          <FieldWrap label="Initial Stickout">
+            <Input
+              value={s.initial_stickout || ""}
+              onChange={(e) => set("initial_stickout", e.target.value)}
+              placeholder='e.g. 2.500"'
+              className="h-9 text-sm bg-background border-border/60"
+            />
+          </FieldWrap>
+        </div>
+        {/* Row 2: Jaw Description, Min Grip Length, Accessories */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
           <FieldWrap label="Jaw Description">
             <Input
               value={s.jaw_description || ""}
@@ -198,9 +216,6 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               className="h-9 text-sm bg-background border-border/60"
             />
           </FieldWrap>
-        </div>
-        {/* Row 2 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
           <FieldWrap label="Min Grip Length">
             <Input
               value={s.min_grip_length || ""}
@@ -212,14 +227,6 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             <AccessoriesDropdown
               value={localAccessories}
               onChange={handleAccessoriesChange}
-            />
-          </FieldWrap>
-          <FieldWrap label="Chuck Pressure">
-            <ChuckPressureField
-              value={s.chuck_pressure || ""}
-              unit={s.chuck_pressure_unit || "PSI"}
-              onValueChange={(v) => set("chuck_pressure", v)}
-              onUnitChange={(v) => set("chuck_pressure_unit", v)}
             />
           </FieldWrap>
         </div>
