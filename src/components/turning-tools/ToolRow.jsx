@@ -347,7 +347,16 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {showOdIdBox && (
           <div className="ml-auto shrink-0">
-            <SmallSelect value={tool.od_id} onChange={set("od_id")} options={odIdOptions} className="w-20" placeholder="—" />
+            <select
+              value={tool.od_id || ""}
+              onChange={(e) => set("od_id")(e.target.value)}
+              className="h-7 text-xs bg-background border border-border/60 rounded-md px-1.5 w-20"
+            >
+              <option value="" disabled>{tool.tool_kind === "Mill" ? "Axl/Rad" : "OD/ID"}</option>
+              {odIdOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
           </div>
         )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
