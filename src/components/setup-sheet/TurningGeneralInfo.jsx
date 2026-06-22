@@ -142,16 +142,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Automated
             </Label>
-            <select
+            <ComboBox
               value={data.automation || ""}
-              onChange={e => update("automation")(e.target.value)}
-              className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">—</option>
-              <option value="Fully">Fully</option>
-              <option value="Semi">Semi</option>
-              <option value="No">No</option>
-            </select>
+              onChange={update("automation")}
+              options={["Fully", "Semi", "No"]}
+              placeholder="—"
+              className="w-full h-9 px-3 text-sm"
+            />
           </div>
         </div>
 
@@ -171,17 +168,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Program Desc.
             </Label>
-            <select
+            <ComboBox
               value={data.program_description || ""}
-              onChange={e => update("program_description")(e.target.value)}
-              className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">—</option>
-              <option value="Roughing">Roughing</option>
-              <option value="Finishing">Finishing</option>
-              <option value="Prep">Prep</option>
-              <option value="Complete with transfer">Complete with transfer</option>
-            </select>
+              onChange={update("program_description")}
+              options={["Roughing", "Finishing", "Prep", "Complete with transfer"]}
+              placeholder="—"
+              className="w-full h-9 px-3 text-sm"
+            />
           </div>
         </div>
 
