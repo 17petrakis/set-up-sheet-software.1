@@ -120,12 +120,11 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
-    { key: "insert", label: "Insert", show: false },
+    { key: "insert", label: (isHoleMakingType || isMill) ? "Tool" : "Insert", show: false },
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
     { key: "stickout", label: "Stickout", show: true },
-    { key: "tool_block", label: "Tool Block", show: tool.tool_kind === "Turn" && !isHoleMakingType },
   ].filter(f => f.show);
 
   // Extra fields (hidden by default, addable per tool type)
@@ -209,9 +208,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
                   <SmallSelect value={tool.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
                 )}
                 {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className="w-24" />}
-                {f.key === "tool_block" && (
-                  <SmallSelect value={tool.od_id_face} onChange={set("od_id_face")} options={TOOL_BLOCK_OPTIONS} className="w-36" placeholder="Select…" />
-                )}
               </F>
             </RemovableField>
           );
@@ -252,10 +248,10 @@ function AddToolButton({ onAdd }) {
   return (
     <div className="flex items-center gap-1.5">
       <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Turn")} className="h-7 text-xs gap-1">
-        + Turn Tool
+        + Turning Tool
       </Button>
       <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Mill")} className="h-7 text-xs gap-1">
-        + Mill Tool
+        + Milling Tool
       </Button>
     </div>
   );
@@ -275,6 +271,8 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const showRad = tool.tool_kind === "Turn" && !showWidth && !showDia && typeValue && typeValue !== "Thread";
   // Show Deg in header for relevant turn types
   const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue;
+  const showOdIdBox = typeValue && ((tool.tool_kind === "Turn" && !isHoleMakingOrTap(typeValue)) || tool.tool_kind === "Mill");
+  const odIdOptions = tool.tool_kind === "Mill" ? ["Axial", "Radial"] : ["OD", "ID"];
 
   const handleTypeChange = (val) => {
     onUpdate({ ...tool, tool_type: val });
@@ -339,16 +337,21 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           </div>
         )}
 
-        {/* Insert (Turn only, in header) */}
+        {/* Insert/Tool (Turn only, in header) */}
         {tool.tool_kind === "Turn" && typeValue && (
           <div className="shrink-0 flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Insert</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{isHoleMakingOrTap(typeValue) ? "Tool" : "Insert"}</span>
             <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />
           </div>
         )}
 
+        {showOdIdBox && (
+          <div className="ml-auto shrink-0">
+            <SmallSelect value={tool.od_id} onChange={set("od_id")} options={odIdOptions} className="w-20" placeholder="—" />
+          </div>
+        )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
-          className="h-7 w-7 ml-auto text-destructive hover:text-destructive shrink-0">
+          className={`h-7 w-7 text-destructive hover:text-destructive shrink-0 ${showOdIdBox ? "" : "ml-auto"}`}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
