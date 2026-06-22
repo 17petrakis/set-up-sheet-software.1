@@ -38,24 +38,27 @@ function ChuckTypeDropdown({ value, onChange }) {
 }
 
 // ── Accessories ComboBox ───────────────────────────────────────────────────────
-const ACCESSORY_OPTIONS = [
-  { label: 'None', value: 'None' },
-  { label: 'Liner – Black', value: 'Liner – Black' },
-  { label: 'Liner – Red', value: 'Liner – Red' },
-  { label: 'Coolant Plug Front', value: 'Coolant Plug Front' },
-  { label: 'Coolant Plug Back', value: 'Coolant Plug Back' },
-  { label: 'Work Stop', value: 'Work Stop' },
-  { label: 'Ejector', value: 'Ejector' },
-  { label: 'Bar Feeder', value: 'Bar Feeder' },
-];
+function getAccessoryOptions(spindleKey) {
+  const isMain = spindleKey === "wh_s1";
+  const isSub = spindleKey === "wh_s2";
+  const options = ['None', 'Coolant Plug Front', 'Coolant Plug Back', 'Work Stop'];
+  if (isMain) {
+    options.push('Liner (Black +.03)', 'Liner (Red +.05)', 'Bar Feeder');
+  }
+  if (isSub) {
+    options.push('Ejector');
+  }
+  options.push('Parts Catcher');
+  return options;
+}
 
-function AccessoriesDropdown({ value, onChange }) {
+function AccessoriesDropdown({ value, onChange, spindleKey }) {
   return (
     <ComboBox
       value={value || ""}
       onChange={onChange}
-      options={ACCESSORY_OPTIONS}
-      placeholder="Select or type…"
+      options={getAccessoryOptions(spindleKey)}
+      placeholder="Select…"
       className="h-9 text-sm px-3 w-full"
     />
   );
@@ -137,12 +140,40 @@ function ChuckPressureField({ value, unit, onValueChange, onUnitChange }) {
         placeholder="e.g. 60"
         className="h-9 text-sm bg-background border-border/60"
       />
-      <ComboBox
+      <select
         value={unit || "PSI"}
-        onChange={onUnitChange}
-        options={["PSI", "Bar", "MPa"]}
-        className="h-9 text-sm px-3 w-20 shrink-0"
-      />
+        onChange={(e) => onUnitChange(e.target.value)}
+        className="h-9 text-sm px-3 w-20 shrink-0 bg-background border border-border/60 rounded-md focus:outline-none focus:ring-1 focus:ring-ring"
+      >
+        <option value="PSI">PSI</option>
+        <option value="Bar">Bar</option>
+        <option value="MPa">MPa</option>
+      </select>
+    </div>
+  );
+}
+
+// ── Parts Catcher fields ───────────────────────────────────────────────────────
+function PartsCatcherFields({ data, onChange }) {
+  const f = (field) => (e) => onChange({ ...data, [field]: e.target.value });
+  return (
+    <div className="mt-3 border border-border/50 rounded-lg">
+      <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground rounded-t-lg">
+        Parts Catcher
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
+        <FieldWrap label="Concentricity">
+          <Input value={data.concentricity || ""} onChange={f("concentricity")} className="h-9 text-sm bg-background border-border/60" />
+        </FieldWrap>
+        <FieldWrap label="Surface Finish">
+          <Input value={data.surface_finish || ""} onChange={f("surface_finish")} className="h-9 text-sm bg-background border-border/60" />
+        </FieldWrap>
+        <div className="sm:col-span-2">
+          <FieldWrap label="Notes">
+            <AutoResizeTextarea value={data.notes || ""} onChange={f("notes")} className="min-h-[64px] text-sm bg-background border-border/60" />
+          </FieldWrap>
+        </div>
+      </div>
     </div>
   );
 }
@@ -287,6 +318,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             <AccessoriesDropdown
               value={localAccessories}
               onChange={handleAccessoriesChange}
+              spindleKey={spindleKey}
             />
           </FieldWrap>
         </div>
@@ -296,7 +328,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           <Input
             value={s.accessories_extra || ""}
             onChange={(e) => set("accessories_extra", e.target.value)}
-            placeholder={localAccessories === 'Work Stop' ? 'Size & Length' : 'Size'}
+            placeholder={localAccessories === 'Work Stop' ? 'Work Stop Description' : 'Size'}
             className="h-9 text-sm bg-background border-border/60"
           />
         )}
@@ -306,6 +338,11 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {/* Bar Feeder fields */}
         {localAccessories === 'Bar Feeder' && (
           <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
+        )}
+
+        {/* Parts Catcher fields */}
+        {localAccessories === 'Parts Catcher' && (
+          <PartsCatcherFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
         )}
 
         {/* Optional added fields */}
