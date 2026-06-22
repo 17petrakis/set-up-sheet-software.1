@@ -21,6 +21,7 @@ const ENDMILL_DIR_OPTIONS = ["X", "Z-", "Z+"];
 const HOLDER_COLLET_OPTIONS = ["ER25x1", "ER32x1", "ER16x3/4", "ER11x5/8", "DA"];
 const COOLANT_OPTIONS = ["No coolant", "From outside", "Thru collet", "Thru tool"];
 const EXTENSION_OPTIONS = ["ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"];
+const EXTENSION_MILL_OPTIONS = ["ER25", "ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"];
 const ANGLE_DRILL_OPTIONS = ["118", "135", "180"];
 const ANGLE_SPOT_OPTIONS = ["82", "90", "100"];
 
@@ -59,6 +60,29 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
       placeholder={placeholder}
       className={`h-7 text-xs px-1.5 ${className}`}
     />
+  );
+}
+
+// ── Stackable Extension (multiple entries) ─────────────────────────────────────
+function StackableExtension({ value, onChange, options }) {
+  const items = Array.isArray(value) ? value : [];
+  const update = (i, val) => { const u = [...items]; u[i] = val; onChange(u); };
+  const remove = (i) => onChange(items.filter((_, idx) => idx !== i));
+  const add = () => onChange([...items, ""]);
+  return (
+    <div className="flex flex-col gap-1">
+      {items.map((item, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <SmallSelect value={item} onChange={(v) => update(i, v)} options={options} className="w-36" />
+          <button type="button" onClick={() => remove(i)} className="text-destructive hover:text-destructive/80 p-0.5">
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={add} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground w-fit">
+        <Plus className="w-3 h-3" /> Add
+      </button>
+    </div>
   );
 }
 
@@ -135,7 +159,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
-    { key: "insert", label: isInsertDrill(typeValue) ? "Insert" : (isHoleMakingType || isMill) ? "Tool" : "Insert", show: isInsertDrill(typeValue) && isMill },
+    { key: "insert", label: "Insert", show: false },
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
@@ -143,10 +167,22 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
   ].filter(f => f.show);
 
   // Extra fields (hidden by default, addable per tool type)
-  const extraFieldDefs = [
+  const extraFieldDefs = isMill ? [
+    { key: "num_flutes", label: "#-Flt" },
+    { key: "flute_length", label: "Flute length" },
+    { key: "oal", label: "OAL" },
+    { key: "reach", label: "Reach" },
+    { key: "shank_dia", label: "Shank Dia." },
+    { key: "neck_dia", label: "Neck Dia." },
+    { key: "tip_dia", label: "Tip" },
+    { key: "extension", label: "Extension" },
+    { key: "part_number_desc", label: "Part #/Desc." },
+    { key: "insert", label: "Insert" },
+    { key: "note", label: "Note" },
+  ] : [
     ...(typeValue === "Thread" ? [{ key: "angle", label: "Angle" }] : []),
     ...(typeValue === "Profile" ? [{ key: "relief_angle", label: "Relief Angle" }] : []),
-    ...(!isMill && !isHoleMakingType ? [{ key: "sleeve_shim", label: "Sleeve/Shim" }] : []),
+    ...(!isHoleMakingType ? [{ key: "sleeve_shim", label: "Sleeve/Shim" }] : []),
     ...(isHoleMakingType ? [
       { key: "holder_collet", label: "Holder + Collet size" },
       { key: "num_flutes", label: "#-Flt" },
@@ -161,11 +197,8 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
       { key: "part_number_desc", label: "Part #/Desc." },
       { key: "note", label: "Note" },
     ] : []),
-    ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
-    ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
     ...(!isHoleMakingType ? [{ key: "material", label: "Material" }, { key: "name", label: "Name/Description" }] : []),
     ...(isTap(typeValue) ? [{ key: "chamfer_x_p", label: "Chamfer x P" }] : []),
-    ...(isMill ? [{ key: "note", label: "Note" }] : []),
   ];
 
   // Build add-field menu options
@@ -217,7 +250,12 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
               {COOLANT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           )}
-          {f.key === "extension" && <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />}
+          {f.key === "extension" && (
+            isMill
+              ? <StackableExtension value={tool.extensions} onChange={set("extensions")} options={EXTENSION_MILL_OPTIONS} />
+              : <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />
+          )}
+          {f.key === "insert" && <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />}
           {f.key === "chamfer_x_p" && <SmallInput value={tool.chamfer_x_p} onChange={set("chamfer_x_p")} className="w-24" />}
           {f.key === "part_number_desc" && <SmallInput value={tool.part_number_desc} onChange={set("part_number_desc")} className="w-32" />}
           {f.key === "note" && (
