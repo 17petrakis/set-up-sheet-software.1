@@ -16,6 +16,8 @@ const ORIENTATION_OPTIONS = ["UP", "DOWN"];
 const HOLDER_TURN_OPTIONS = ["DCLNR 16 4C (RH)", "DCLNL 16 4C (LH)", "DCKNR 16 4C KC3 (FACE)"];
 const TOOL_BLOCK_OPTIONS = ["Turn OD", "Bore OD", "Part off OD", "Axial Face"];
 const TAP_TYPE_OPTIONS = ["Form", "SF", "SP", "Hard"];
+const OD_ID_OPTIONS = ["OD", "ID"];
+const AXIAL_RADIAL_OPTIONS = ["Axial", "Radial"];
 const ENDMILL_DIR_OPTIONS = ["X", "Z-", "Z+"];
 
 // Whether a type uses Width instead of Deg in the header
@@ -120,12 +122,11 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
-    { key: "insert", label: "Insert", show: false },
+    { key: "insert", label: (isHoleMakingType || isMill) ? "Tool" : "Insert", show: false },
     { key: "holder", label: "Holder", show: true },
     { key: "direction", label: "Direction", show: true },
     { key: "orientation", label: "Orientation", show: !isMill },
     { key: "stickout", label: "Stickout", show: true },
-    { key: "tool_block", label: "Tool Block", show: tool.tool_kind === "Turn" && !isHoleMakingType },
   ].filter(f => f.show);
 
   // Extra fields (hidden by default, addable per tool type)
@@ -209,9 +210,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
                   <SmallSelect value={tool.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
                 )}
                 {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className="w-24" />}
-                {f.key === "tool_block" && (
-                  <SmallSelect value={tool.od_id_face} onChange={set("od_id_face")} options={TOOL_BLOCK_OPTIONS} className="w-36" placeholder="Select…" />
-                )}
               </F>
             </RemovableField>
           );
@@ -252,10 +250,10 @@ function AddToolButton({ onAdd }) {
   return (
     <div className="flex items-center gap-1.5">
       <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Turn")} className="h-7 text-xs gap-1">
-        + Turn Tool
+        + Turning Tool
       </Button>
       <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Mill")} className="h-7 text-xs gap-1">
-        + Mill Tool
+        + Milling Tool
       </Button>
     </div>
   );
@@ -275,6 +273,9 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const showRad = tool.tool_kind === "Turn" && !showWidth && !showDia && typeValue && typeValue !== "Thread";
   // Show Deg in header for relevant turn types
   const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue;
+  const insertLabel = (isHoleMakingOrTap(typeValue) || tool.tool_kind === "Mill") ? "Tool" : "Insert";
+  const showOdId = tool.tool_kind === "Turn" && typeValue && !isHoleMakingOrTap(typeValue);
+  const showAxialRadial = tool.tool_kind === "Mill" && typeValue;
 
   const handleTypeChange = (val) => {
     onUpdate({ ...tool, tool_type: val });
@@ -303,47 +304,61 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         )}
 
         {/* Type dropdown */}
-        <div className="w-36 shrink-0">
+        <div className="w-28 shrink-0">
           <ToolTypeDropdown toolKind={tool.tool_kind} value={typeValue} onChange={handleTypeChange} />
         </div>
 
         {/* Rad */}
         {showRad && (
-          <div className="shrink-0 flex items-center gap-1 ml-4">
+          <div className="shrink-0 flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
-            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-14" />
           </div>
         )}
 
         {/* Width */}
         {showWidth && (
-          <div className="shrink-0 flex items-center gap-1 ml-4">
+          <div className="shrink-0 flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
-            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
+            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-20" />
           </div>
         )}
 
         {/* Dia */}
         {showDia && (
-          <div className="shrink-0 flex items-center gap-1 ml-4">
+          <div className="shrink-0 flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
-            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
+            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-14" />
           </div>
         )}
 
         {/* Deg */}
         {showDeg && (
-          <div className={`shrink-0 flex items-center gap-1 ${!showRad && !showWidth && !showDia ? "ml-4" : ""}`}>
+          <div className="shrink-0 flex items-center gap-1">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
-            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-14" />
           </div>
         )}
 
-        {/* Insert (Turn only, in header) */}
-        {tool.tool_kind === "Turn" && typeValue && (
+        {/* Insert / Tool (all tools, grows to fill space) */}
+        {typeValue && (
+          <div className="flex items-center gap-1 flex-1 min-w-[80px]">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{insertLabel}</span>
+            <SmallInput value={tool.insert} onChange={set("insert")} className="flex-1" />
+          </div>
+        )}
+
+        {/* OD/ID box — Turning non-holemaking */}
+        {showOdId && (
           <div className="shrink-0 flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Insert</span>
-            <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />
+            <SmallSelect value={tool.od_id} onChange={set("od_id")} options={OD_ID_OPTIONS} className="w-14" placeholder="OD/ID" />
+          </div>
+        )}
+
+        {/* Axial/Radial box — Milling */}
+        {showAxialRadial && (
+          <div className="shrink-0 flex items-center gap-1">
+            <SmallSelect value={tool.axial_radial} onChange={set("axial_radial")} options={AXIAL_RADIAL_OPTIONS} className="w-20" placeholder="Ax/Rad" />
           </div>
         )}
 
