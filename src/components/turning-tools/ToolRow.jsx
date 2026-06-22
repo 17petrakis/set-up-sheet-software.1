@@ -309,7 +309,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showRad && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
-            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-20" />
+            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-14" />
           </div>
         )}
 
@@ -317,7 +317,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showWidth && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
-            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-32" />
+            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-20" />
           </div>
         )}
 
@@ -325,7 +325,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showDia && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
-            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
+            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-12" />
           </div>
         )}
 
@@ -333,15 +333,15 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showDeg && (
           <div className={`shrink-0 flex items-center gap-1 ${!showRad && !showWidth && !showDia ? "ml-4" : ""}`}>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
-            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-20" />
+            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-14" />
           </div>
         )}
 
         {/* Insert/Tool (Turn only, in header) */}
         {tool.tool_kind === "Turn" && typeValue && (
-          <div className="shrink-0 flex items-center gap-1">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{isHoleMakingOrTap(typeValue) ? "Tool" : "Insert"}</span>
-            <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />
+          <div className="flex-1 flex items-center gap-1 min-w-0">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isHoleMakingOrTap(typeValue) ? "Tool" : "Insert"}</span>
+            <SmallInput value={tool.insert} onChange={set("insert")} className="flex-1 w-full min-w-0" />
           </div>
         )}
 
