@@ -174,6 +174,21 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
 
   const needsExtra = localAccessories.startsWith('Liner') || localAccessories === 'Work Stop';
 
+  const chuckType = s.chuck_type || "";
+  const jawType = s.jaw_type || "";
+  const isColletChuck = chuckType.includes("NJ-5") || chuckType.includes("FlexC");
+
+  let descLabel = "Jaw Description";
+  let showFixtureDesc = false;
+  if (jawType === "Soft Jaw") {
+    descLabel = "Jaw Description";
+    showFixtureDesc = true;
+  } else if (jawType === "Mounted Fixture") {
+    descLabel = "Fixture Description";
+  } else if (chuckType.includes("3-Jaw")) {
+    descLabel = "Collet Description";
+  }
+
   // Track which optional fields are visible (added). A field is visible if it has a value saved OR was added this session.
   const [addedFields, setAddedFields] = useState(() =>
     OPTIONAL_SPINDLE_FIELDS.filter(f => !!s[f.key]).map(f => f.key)
@@ -212,8 +227,17 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               />
             )}
           </FieldWrap>
-          <FieldWrap label="Jaw Type">
-            <JawTypeDropdown value={s.jaw_type || ""} onChange={(v) => set("jaw_type", v)} />
+          <FieldWrap label={isColletChuck ? "Collet" : "Jaw Type"}>
+            {isColletChuck ? (
+              <Input
+                value={s.jaw_type || ""}
+                onChange={(e) => set("jaw_type", e.target.value)}
+                placeholder="Enter collet…"
+                className="h-9 text-sm bg-background border-border/60"
+              />
+            ) : (
+              <JawTypeDropdown value={s.jaw_type || ""} onChange={(v) => set("jaw_type", v)} />
+            )}
           </FieldWrap>
           <FieldWrap label="Chuck Pressure">
             <ChuckPressureField
@@ -233,8 +257,8 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           </FieldWrap>
         </div>
         {/* Row 2: Jaw Description (wide), Min Grip Length, Spindle Accessories */}
-        <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-x-4 gap-y-3">
-          <FieldWrap label="Jaw Description">
+        <div className={`grid grid-cols-1 gap-x-4 gap-y-3 ${showFixtureDesc ? 'sm:grid-cols-3' : 'sm:grid-cols-[2fr_1fr_1fr]'}`}>
+          <FieldWrap label={descLabel}>
             <Input
               value={s.jaw_description || ""}
               onChange={(e) => set("jaw_description", e.target.value)}
@@ -242,6 +266,16 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               className="h-9 text-sm bg-background border-border/60"
             />
           </FieldWrap>
+          {showFixtureDesc && (
+            <FieldWrap label="Fixture Description *">
+              <Input
+                value={s.fixture_description || ""}
+                onChange={(e) => set("fixture_description", e.target.value)}
+                placeholder="Describe fixture…"
+                className="h-9 text-sm bg-background border-border/60"
+              />
+            </FieldWrap>
+          )}
           <FieldWrap label="Min Grip Length">
             <Input
               value={s.min_grip_length || ""}
