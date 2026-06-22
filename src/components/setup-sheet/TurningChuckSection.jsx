@@ -206,8 +206,8 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             />
           </FieldWrap>
         </div>
-        {/* Row 2: Jaw Description, Min Grip Length, Accessories */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
+        {/* Row 2: Jaw Description (wide), Min Grip Length, Spindle Accessories */}
+        <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-x-4 gap-y-3">
           <FieldWrap label="Jaw Description">
             <Input
               value={s.jaw_description || ""}
@@ -223,7 +223,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               className="h-9 text-sm bg-background border-border/60"
             />
           </FieldWrap>
-          <FieldWrap label="Accessories">
+          <FieldWrap label="Spindle Accessories">
             <AccessoriesDropdown
               value={localAccessories}
               onChange={handleAccessoriesChange}
@@ -239,6 +239,21 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             placeholder={localAccessories === 'Work Stop' ? 'Size & Length' : 'Size'}
             className="h-9 text-sm bg-background border-border/60"
           />
+        )}
+
+        {/* Front / Back dropdown for Coolant Plug */}
+        {localAccessories === 'Coolant Plug' && (
+          <div className="max-w-[200px]">
+            <FieldWrap label="Coolant Plug Position">
+              <ComboBox
+                value={s.accessories_extra || ""}
+                onChange={(v) => set("accessories_extra", v)}
+                options={["Front", "Back"]}
+                placeholder="Select…"
+                className="h-9 text-sm px-3 w-full"
+              />
+            </FieldWrap>
+          </div>
         )}
 
         {/* Bar Feeder fields */}
