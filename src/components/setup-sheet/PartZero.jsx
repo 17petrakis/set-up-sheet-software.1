@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,8 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
   const set = (k) => (v) => onChange({ ...offset, [k]: v });
   const setE = (k) => (e) => onChange({ ...offset, [k]: e.target.value });
 
+  const [showNote, setShowNote] = useState(!!offset.note);
+
   return (
     <div className="border border-border/50 rounded-lg p-3 mb-3 bg-muted/10">
       <div className="flex items-center justify-between mb-2">
@@ -37,7 +39,7 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
           </Button>
         )}
       </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-3">
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-3">
         {/* G-code selector */}
         <FieldWrap label="Work Offset">
           <ComboBox
@@ -54,15 +56,39 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
         </FieldWrap>
         {/* C */}
         <FieldWrap label="C">
-          <Input value={offset.c || ""} onChange={setE("c")} placeholder="0.000"
+          <Input value={offset.c || ""} onChange={setE("c")} placeholder="C Null"
             className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
         </FieldWrap>
-        {/* Distance from jaws */}
-        <FieldWrap label="Dist. from Jaws">
+        {/* Z stock amount */}
+        <FieldWrap label="Z stock amount">
           <Input value={offset.dist_from_jaws || ""} onChange={setE("dist_from_jaws")} placeholder="e.g. 1.250"
             className="h-9 text-sm bg-background border-border/60 w-32 font-mono" />
         </FieldWrap>
+        {/* + Note */}
+        <Button
+          type="button"
+          size="sm"
+          variant={showNote ? "secondary" : "outline"}
+          onClick={() => {
+            const next = !showNote;
+            setShowNote(next);
+            if (!next) set("note")("");
+          }}
+          className={`h-9 text-xs gap-1 ${showNote ? "text-primary" : "text-muted-foreground"}`}
+        >
+          <Plus className="w-3 h-3" /> Note
+        </Button>
       </div>
+      {showNote && (
+        <div className="mt-2">
+          <AutoResizeTextarea
+            value={offset.note || ""}
+            onChange={setE("note")}
+            placeholder="Note: e.g. tight clearance, pullout stage description…"
+            className="text-sm bg-background border-border/60 min-h-[60px]"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -74,14 +100,14 @@ export default function PartZero({ data, onChange, machineType }) {
   // Offsets array for turning
   const offsets = (data.offsets && data.offsets.length > 0)
     ? data.offsets
-    : [{ g_code: "G54", z: "", c: "", dist_from_jaws: "" }];
+    : [{ g_code: "G54", z: "", c: "", dist_from_jaws: "" }]; // C defaults to "C Null" via placeholder
 
   const updateOffset = (i, updated) => {
     const next = [...offsets];
     next[i] = updated;
     onChange({ ...data, offsets: next });
   };
-  const addOffset = () => onChange({ ...data, offsets: [...offsets, { g_code: "G54", z: "", c: "", dist_from_jaws: "" }] });
+  const addOffset = () => onChange({ ...data, offsets: [...offsets, { g_code: "G54", z: "", c: "", dist_from_jaws: "" }] }); // C Null by default
   const removeOffset = (i) => onChange({ ...data, offsets: offsets.filter((_, idx) => idx !== i) });
 
   return (
