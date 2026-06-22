@@ -164,6 +164,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
     ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
     ...(!isHoleMakingType ? [{ key: "material", label: "Material" }, { key: "name", label: "Name/Description" }] : []),
+    ...(isTap(typeValue) ? [{ key: "chamfer_x_p", label: "Chamfer x P" }] : []),
     ...(isMill ? [{ key: "note", label: "Note" }] : []),
   ];
 
@@ -217,6 +218,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
             </select>
           )}
           {f.key === "extension" && <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />}
+          {f.key === "chamfer_x_p" && <SmallInput value={tool.chamfer_x_p} onChange={set("chamfer_x_p")} className="w-24" />}
           {f.key === "part_number_desc" && <SmallInput value={tool.part_number_desc} onChange={set("part_number_desc")} className="w-32" />}
           {f.key === "note" && (
             <AutoResizeTextarea
@@ -323,7 +325,8 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   // Show Reach for Profile tools
   const showReach = tool.tool_kind === "Turn" && typeValue === "Profile";
   // Show Pitch for Thread tools
-  const showPitch = tool.tool_kind === "Turn" && typeValue === "Thread";
+  const showPitch = tool.tool_kind === "Turn" && (typeValue === "Thread" || isTap(typeValue));
+  const showTapType = isTap(typeValue);
   const showOdIdBox = typeValue && ((tool.tool_kind === "Turn" && !isHoleMakingOrTap(typeValue)) || tool.tool_kind === "Mill");
   const odIdOptions = tool.tool_kind === "Mill" ? ["Axial", "Radial"] : ["OD", "ID"];
 
@@ -409,7 +412,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           </div>
         )}
 
-        {/* Pitch (Thread only) */}
+        {/* Pitch (Thread & Tap) */}
         {showPitch && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Pitch</span>
@@ -417,11 +420,19 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           </div>
         )}
 
-        {/* Insert/Tool (Turn only, in header) */}
+        {/* Tap Typ (Tap only) */}
+        {showTapType && (
+          <div className="shrink-0 flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Typ</span>
+            <SmallSelect value={tool.tap_type} onChange={set("tap_type")} options={TAP_TYPE_OPTIONS} className="w-20" />
+          </div>
+        )}
+
+        {/* Insert/Tool/Name (Turn only, in header) */}
         {tool.tool_kind === "Turn" && typeValue && (
           <div className="flex-1 flex items-center gap-1 min-w-0">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isHoleMakingOrTap(typeValue) && !isInsertDrill(typeValue) ? "Tool" : "Insert"}</span>
-            <SmallInput value={tool.insert} onChange={set("insert")} className="flex-1 w-full min-w-0" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isTap(typeValue) ? "Name" : isHoleMakingOrTap(typeValue) && !isInsertDrill(typeValue) ? "Tool" : "Insert"}</span>
+            <SmallInput value={isTap(typeValue) ? tool.name : tool.insert} onChange={isTap(typeValue) ? set("name") : set("insert")} className="flex-1 w-full min-w-0" />
           </div>
         )}
 
