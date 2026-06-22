@@ -9,7 +9,7 @@ import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 
 const MACHINES = [
-  { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST", "Puma MX 2100 ST"] },
+  { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST"] },
   { group: "Mori", models: ["NL-2000"] },
   { group: "HAAS", models: ["SL-10"] },
   { group: "Nakamura", models: ["WY-150", "NTY3-150"] },
@@ -20,7 +20,10 @@ const MACHINES = [
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
 
 const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
-  models.map(m => ({ label: `${group} ${m}`, value: `${group} ${m}` }))
+  models.map(m => {
+    const label = group === m ? group : `${group} ${m}`;
+    return { label, value: label };
+  })
 );
 
 const Field = ({ label, note, value, onChange, type = "text", className = "" }) => (
@@ -116,7 +119,8 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               value={data.machine || ""}
               onChange={update("machine")}
               options={FLAT_MACHINES}
-              placeholder="Select or type…"
+              allowFreeText={false}
+              placeholder="Select…"
               className="h-9 text-sm px-3 w-full"
             />
           </div>

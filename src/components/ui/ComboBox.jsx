@@ -12,7 +12,7 @@ import { ChevronDown } from "lucide-react";
  *   - Escape → close without changing
  *   - Blur → select highlighted or accept typed text
  */
-export default function ComboBox({ value, onChange, options, placeholder = "Select…", className = "" }) {
+export default function ComboBox({ value, onChange, options, placeholder = "Select…", className = "", allowFreeText = true }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [highlighted, setHighlighted] = useState(0);
@@ -58,7 +58,7 @@ export default function ComboBox({ value, onChange, options, placeholder = "Sele
 
     if (filtered.length > 0) {
       onChange(filtered[safeHL].value);
-    } else {
+    } else if (allowFreeText) {
       const trimmed = input.trim();
       if (trimmed) onChange(trimmed);
     }
@@ -106,7 +106,7 @@ export default function ComboBox({ value, onChange, options, placeholder = "Sele
         <div ref={listRef} className="absolute z-[500] top-full left-0 mt-0.5 w-full min-w-[160px] bg-popover border border-border rounded-md shadow-xl py-1 max-h-60 overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="px-3 py-1.5 text-xs text-muted-foreground italic">
-              Press Enter to use "{input}"
+              {allowFreeText ? `Press Enter to use "${input}"` : "No results found"}
             </div>
           ) : (
             filtered.map((opt, i) => (

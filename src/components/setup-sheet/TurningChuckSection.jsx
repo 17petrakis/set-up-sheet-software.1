@@ -15,6 +15,16 @@ const CHUCK_OPTIONS = [
   { label: 'Collet – Flex-C65', value: 'Collet – Flex-C65' },
 ];
 
+// Machine → chuck type mapping. Machines not listed (Manual, Citizen) use manual input.
+const MACHINE_CHUCK_MAP = {
+  "Doosan Puma 2100 YII": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: false },
+  "Doosan Puma SMX 2100 ST": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: true },
+  "HAAS SL-10": { main: '6" 3-Jaw', sub: null, allowSub: false },
+  "Nakamura WY-150": { main: 'Collet – Flex-C65', sub: 'Collet – Flex-C65', allowSub: true },
+  "Nakamura NTY3-150": { main: 'Collet – Flex-C65', sub: 'Collet – Flex-C65', allowSub: true },
+  "Mori NL-2000": { main: 'Collet – NJ-5', sub: '6" 3-Jaw', allowSub: true },
+};
+
 function ChuckTypeDropdown({ value, onChange }) {
   return (
     <ComboBox
@@ -147,6 +157,8 @@ const OPTIONAL_SPINDLE_FIELDS = [
 // ── Spindle Form (shown when checkbox is checked) ──────────────────────────────
 function SpindleForm({ spindleKey, label, data, onChange }) {
   const s = data[spindleKey] || {};
+  const machineConfig = MACHINE_CHUCK_MAP[data.machine];
+  const isChuckLocked = !!machineConfig;
   const set = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
   const setAndClear = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
 
@@ -185,7 +197,20 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {/* Row 1: Chuck Type, Jaw Type, Chuck Pressure, Initial Stickout */}
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1.5fr] gap-x-4 gap-y-3">
           <FieldWrap label="Chuck Type">
-            <ChuckTypeDropdown value={s.chuck_type || ""} onChange={(v) => set("chuck_type", v)} />
+            {isChuckLocked ? (
+              <Input
+                value={s.chuck_type || ""}
+                readOnly
+                className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+              />
+            ) : (
+              <Input
+                value={s.chuck_type || ""}
+                onChange={(e) => set("chuck_type", e.target.value)}
+                placeholder="Enter chuck type…"
+                className="h-9 text-sm bg-background border-border/60"
+              />
+            )}
           </FieldWrap>
           <FieldWrap label="Jaw Type">
             <JawTypeDropdown value={s.jaw_type || ""} onChange={(v) => set("jaw_type", v)} />
@@ -306,8 +331,39 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
 export default function TurningChuckSection({ data, onChange }) {
   const s1Active = !!data.wh_s1_active;
   const s2Active = !!data.wh_s2_active;
+  const machineConfig = MACHINE_CHUCK_MAP[data.machine];
+  const subAllowed = machineConfig ? machineConfig.allowSub : true;
 
   const toggle = (field) => () => onChange({ ...data, [field]: !data[field] });
+
+  // Auto-set chuck type and deactivate S2 when machine doesn't allow sub
+  useEffect(() => {
+    const config = MACHINE_CHUCK_MAP[data.machine];
+    if (!config) return;
+    let needsUpdate = false;
+    const updated = { ...data };
+    if (!config.allowSub && data.wh_s2_active) {
+      updated.wh_s2_active = false;
+      needsUpdate = true;
+    }
+    if (data.wh_s1_active) {
+      const s1 = { ...(data.wh_s1 || {}) };
+      if (s1.chuck_type !== config.main) {
+        s1.chuck_type = config.main;
+        updated.wh_s1 = s1;
+        needsUpdate = true;
+      }
+    }
+    if (config.allowSub && data.wh_s2_active) {
+      const s2 = { ...(data.wh_s2 || {}) };
+      if (s2.chuck_type !== config.sub) {
+        s2.chuck_type = config.sub;
+        updated.wh_s2 = s2;
+        needsUpdate = true;
+      }
+    }
+    if (needsUpdate) onChange(updated);
+  }, [data.machine]); // eslint-disable-line
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -324,12 +380,13 @@ export default function TurningChuckSection({ data, onChange }) {
             />
             <span className="text-sm font-medium text-foreground">S1 Main</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer select-none">
+          <label className={`flex items-center gap-2 select-none ${subAllowed ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
             <input
               type="checkbox"
               checked={s2Active}
               onChange={toggle("wh_s2_active")}
-              className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+              disabled={!subAllowed}
+              className="w-4 h-4 rounded border-border accent-primary cursor-pointer disabled:cursor-not-allowed"
             />
             <span className="text-sm font-medium text-foreground">S2 Sub</span>
           </label>
