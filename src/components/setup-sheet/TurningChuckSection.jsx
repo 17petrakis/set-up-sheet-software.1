@@ -48,7 +48,6 @@ function getAccessoryOptions(spindleKey) {
   if (isSub) {
     options.push('Ejector');
   }
-  options.push('Parts Catcher');
   return options;
 }
 
@@ -153,35 +152,11 @@ function ChuckPressureField({ value, unit, onValueChange, onUnitChange }) {
   );
 }
 
-// ── Parts Catcher fields ───────────────────────────────────────────────────────
-function PartsCatcherFields({ data, onChange }) {
-  const f = (field) => (e) => onChange({ ...data, [field]: e.target.value });
-  return (
-    <div className="mt-3 border border-border/50 rounded-lg">
-      <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground rounded-t-lg">
-        Parts Catcher
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
-        <FieldWrap label="Concentricity">
-          <Input value={data.concentricity || ""} onChange={f("concentricity")} className="h-9 text-sm bg-background border-border/60" />
-        </FieldWrap>
-        <FieldWrap label="Surface Finish">
-          <Input value={data.surface_finish || ""} onChange={f("surface_finish")} className="h-9 text-sm bg-background border-border/60" />
-        </FieldWrap>
-        <div className="sm:col-span-2">
-          <FieldWrap label="Notes">
-            <AutoResizeTextarea value={data.notes || ""} onChange={f("notes")} className="min-h-[64px] text-sm bg-background border-border/60" />
-          </FieldWrap>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Optional add-on fields for spindle ────────────────────────────────────────
 const OPTIONAL_SPINDLE_FIELDS = [
   { key: "concentricity", label: "Concentricity", type: "input", placeholder: "" },
   { key: "surface_finish", label: "Surface Finish", type: "input", placeholder: "" },
+  { key: "parts_catcher", label: "Parts Catcher", type: "input", placeholder: "" },
   { key: "notes", label: "Notes", type: "textarea" },
 ];
 
@@ -338,11 +313,6 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {/* Bar Feeder fields */}
         {localAccessories === 'Bar Feeder' && (
           <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
-        )}
-
-        {/* Parts Catcher fields */}
-        {localAccessories === 'Parts Catcher' && (
-          <PartsCatcherFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
         )}
 
         {/* Optional added fields */}
