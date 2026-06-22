@@ -10,7 +10,7 @@ import ComboBox from "@/components/ui/ComboBox";
 // ── Inline options ─────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
 const DEG_TURN_OPTIONS = ["100", "80", "55", "35"];
-const WIDTH_OPTIONS = [".158 (4mm)", ".156 (5/32)", ".125 (⅛)", ".088", ".094 (3/32)", ".118 (3mm)", ".079 (2mm)", ".0625 (1/16)", ".059 (1.5mm)", ".047 (3/64)", ".031 (1/32)"];
+const WIDTH_OPTIONS = [".158 (4mm)", ".156 (5/32)", ".125 (1/8)", ".088", ".094 (3/32)", ".118 (3mm)", ".079 (2mm)", ".0625 (1/16)", ".059 (1.5mm)", ".047 (3/64)", ".031 (1/32)"];
 const DIRECTION_OPTIONS = ["Main (S1)", "Sub (S2)"];
 const ORIENTATION_OPTIONS = ["UP", "DOWN"];
 const HOLDER_TURN_OPTIONS = ["DCLNR 16 4C (RH)", "DCLNL 16 4C (LH)", "DCKNR 16 4C KC3 (FACE)"];
@@ -129,10 +129,10 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
 
   // Extra fields (hidden by default, addable per tool type)
   const extraFieldDefs = [
-    ...(typeValue === "Thread" ? [{ key: "angle", label: "Angle" }, { key: "pitch", label: "Pitch" }] : []),
-    ...(typeValue === "Profile" ? [{ key: "relief_angle", label: "Relief Angle" }, { key: "reach", label: "Reach" }] : []),
+    ...(typeValue === "Thread" ? [{ key: "angle", label: "Angle" }] : []),
+    ...(typeValue === "Profile" ? [{ key: "relief_angle", label: "Relief Angle" }] : []),
     ...(!isMill && !isHoleMakingType ? [{ key: "sleeve_shim", label: "Sleeve/Shim" }] : []),
-    ...(isHoleMakingType ? [{ key: "tool", label: "Tool" }, { key: "sleeve", label: "Sleeve" }] : []),
+    ...(isHoleMakingType ? [{ key: "sleeve", label: "Sleeve" }] : []),
     ...(isTap(typeValue) ? [{ key: "tap_type", label: "Tap Type" }, { key: "chamfer_r", label: "Chamfer x R" }] : []),
     ...(isMill && !isHoleMakingType ? [{ key: "num_flutes", label: "# Flutes" }, { key: "flute_length", label: "Flute Length" }] : []),
     ...(typeValue === "Mill – Thread Mills" ? [{ key: "neck_dia", label: "Neck Dia" }, { key: "max_depth", label: "Max Depth" }] : []),
@@ -173,7 +173,6 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           {f.key === "reach" && <SmallInput value={tool.reach} onChange={set("reach")} className="w-20" />}
           {f.key === "sleeve_shim" && <SmallInput value={tool.sleeve_shim} onChange={set("sleeve_shim")} className="w-24" />}
           {f.key === "sleeve" && <SmallInput value={tool.sleeve} onChange={set("sleeve")} className="w-24" />}
-          {f.key === "tool" && <SmallInput value={tool.tool} onChange={set("tool")} className="w-24" />}
           {f.key === "chamfer_r" && <SmallInput value={tool.chamfer_r} onChange={set("chamfer_r")} className="w-24" />}
           {f.key === "num_flutes" && <SmallInput value={tool.num_flutes} onChange={set("num_flutes")} className="w-20" />}
           {f.key === "flute_length" && <SmallInput value={tool.flute_length} onChange={set("flute_length")} className="w-24" />}
@@ -267,10 +266,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const typeValue = tool.tool_type || "";
   const showWidth = isGroove(typeValue);
   const showDia = isHoleMakingOrTap(typeValue);
-  // Show Rad in header for turn tools that aren't groove/holemaking
-  const showRad = tool.tool_kind === "Turn" && !showWidth && !showDia && typeValue && typeValue !== "Thread";
-  // Show Deg in header for relevant turn types
-  const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue;
+  // Show Rad in header for turn tools that aren't holemaking
+  const showRad = tool.tool_kind === "Turn" && !showDia && typeValue;
+  // Show Deg in header for relevant turn types (not Thread or Profile)
+  const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue && typeValue !== "Thread" && typeValue !== "Profile";
+  // Show Reach for Profile tools
+  const showReach = tool.tool_kind === "Turn" && typeValue === "Profile";
+  // Show Pitch for Thread tools
+  const showPitch = tool.tool_kind === "Turn" && typeValue === "Thread";
   const showOdIdBox = typeValue && ((tool.tool_kind === "Turn" && !isHoleMakingOrTap(typeValue)) || tool.tool_kind === "Mill");
   const odIdOptions = tool.tool_kind === "Mill" ? ["Axial", "Radial"] : ["OD", "ID"];
 
@@ -334,6 +337,22 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <div className={`shrink-0 flex items-center gap-1 ${!showRad && !showWidth && !showDia ? "ml-4" : ""}`}>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
             <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-14" />
+          </div>
+        )}
+
+        {/* Reach (Profile only) */}
+        {showReach && (
+          <div className="shrink-0 flex items-center gap-1 ml-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Reach</span>
+            <SmallInput value={tool.reach} onChange={set("reach")} placeholder="" className="w-16" />
+          </div>
+        )}
+
+        {/* Pitch (Thread only) */}
+        {showPitch && (
+          <div className="shrink-0 flex items-center gap-1 ml-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Pitch</span>
+            <SmallInput value={tool.pitch} onChange={set("pitch")} placeholder="" className="w-16" />
           </div>
         )}
 
