@@ -181,9 +181,11 @@ export default function WorkPlacementSection({ items = [], onChange }) {
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={handleAddStandard} className="h-8 text-xs gap-1.5">
-            <LayoutGrid className="w-3.5 h-3.5" /> Add Standard
-          </Button>
+          {items.length === 0 && (
+            <Button size="sm" variant="outline" onClick={handleAddStandard} className="h-8 text-xs gap-1.5">
+              <LayoutGrid className="w-3.5 h-3.5" /> Add Standard
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => setAdding(true)} className="h-8 text-xs gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Add Post
           </Button>
