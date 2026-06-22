@@ -71,6 +71,16 @@
       ],
       "description": "Level of automation"
     },
+    "program_description": {
+      "type": "string",
+      "enum": [
+        "Roughing",
+        "Finishing",
+        "Prep",
+        "Complete with transfer"
+      ],
+      "description": "What is happening in this operation"
+    },
     "program_location": {
       "type": "string",
       "description": "Where the program is stored"

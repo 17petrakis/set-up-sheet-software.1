@@ -155,22 +155,34 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
         </div>
 
-        {/* Row 3: Material, Stock, Quantity, Consumed per Part */}
+        {/* Row 3: Material, Stock, Qty., Length/1pc */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           <Field label="Material" value={data.material} onChange={update("material")} />
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
-          <Field
-            label="Quantity"
-            value={data.quantity}
-            onChange={update("quantity")}
-          />
-          <Field label="Consumed per Part" value={data.consumed_per_part} onChange={update("consumed_per_part")} />
+          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
+          <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} />
         </div>
 
-        {/* Row 4: Program #, Program Location */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-3">
+        {/* Row 4: Program #, Program Location, Program Desc. */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <Field label="Program #" value={data.program} onChange={update("program")} />
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Program Desc.
+            </Label>
+            <select
+              value={data.program_description || ""}
+              onChange={e => update("program_description")(e.target.value)}
+              className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">—</option>
+              <option value="Roughing">Roughing</option>
+              <option value="Finishing">Finishing</option>
+              <option value="Prep">Prep</option>
+              <option value="Complete with transfer">Complete with transfer</option>
+            </select>
+          </div>
         </div>
 
         {/* Row 5: Cycle Time, Handling Time, Total Combined */}
