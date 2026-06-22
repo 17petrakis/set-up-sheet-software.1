@@ -153,13 +153,15 @@ export default function CMMPrintView() {
         {workHolding.length > 0 && (
           <section className="mb-6">
             <h2 className="text-sm font-bold uppercase tracking-widest mb-2 border-b border-border pb-1">Work Holding</h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {workHolding.map((wh, idx) => (
-                <div key={idx} className="flex gap-3 items-start break-inside-avoid">
-                  <span className="text-sm font-medium shrink-0">Step {idx + 1}:</span>
-                  <div className="text-sm flex-1">{wh.note || "—"}</div>
+                <div key={idx} className="break-inside-avoid">
+                  {idx === 0 && (
+                    <p className="text-sm font-medium mb-1">Final position on CMM table before running program</p>
+                  )}
+                  {wh.note && <p className="text-sm mb-1">{wh.note}</p>}
                   {wh.photo_url && (
-                    <img src={wh.photo_url} alt={`Step ${idx + 1}`} className="w-32 h-32 object-contain border border-border rounded shrink-0" />
+                    <img src={wh.photo_url} alt="" className="w-1/2 object-contain border border-border rounded" />
                   )}
                 </div>
               ))}
