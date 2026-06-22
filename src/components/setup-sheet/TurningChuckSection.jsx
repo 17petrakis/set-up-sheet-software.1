@@ -32,7 +32,8 @@ const ACCESSORY_OPTIONS = [
   { label: 'None', value: 'None' },
   { label: 'Liner – Black', value: 'Liner – Black' },
   { label: 'Liner – Red', value: 'Liner – Red' },
-  { label: 'Coolant Plug', value: 'Coolant Plug' },
+  { label: 'Coolant Plug Front', value: 'Coolant Plug Front' },
+  { label: 'Coolant Plug Back', value: 'Coolant Plug Back' },
   { label: 'Work Stop', value: 'Work Stop' },
   { label: 'Ejector', value: 'Ejector' },
   { label: 'Bar Feeder', value: 'Bar Feeder' },
@@ -241,20 +242,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           />
         )}
 
-        {/* Front / Back dropdown for Coolant Plug */}
-        {localAccessories === 'Coolant Plug' && (
-          <div className="max-w-[200px]">
-            <FieldWrap label="Coolant Plug Position">
-              <ComboBox
-                value={s.accessories_extra || ""}
-                onChange={(v) => set("accessories_extra", v)}
-                options={["Front", "Back"]}
-                placeholder="Select…"
-                className="h-9 text-sm px-3 w-full"
-              />
-            </FieldWrap>
-          </div>
-        )}
+
 
         {/* Bar Feeder fields */}
         {localAccessories === 'Bar Feeder' && (
