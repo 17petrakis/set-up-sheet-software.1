@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
+import ComboBox from "@/components/ui/ComboBox";
 import SectionHeader from "./SectionHeader";
-import { Settings2, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { Settings2, Plus, Trash2 } from "lucide-react";
 
 const MACHINES = [
   { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST", "Puma MX 2100 ST"] },
@@ -18,6 +18,10 @@ const MACHINES = [
 ];
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
+
+const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
+  models.map(m => ({ label: `${group} ${m}`, value: `${group} ${m}` }))
+);
 
 const Field = ({ label, note, value, onChange, type = "text", className = "" }) => (
   <div className={className}>
@@ -34,76 +38,12 @@ const Field = ({ label, note, value, onChange, type = "text", className = "" }) 
   </div>
 );
 
-// Cascading machine dropdown
-function MachineDropdown({ value, onSelect }) {
-  const [open, setOpen] = useState(false);
-  const [hoveredGroup, setHoveredGroup] = useState(null);
-  const containerRef = useRef(null);
 
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-        setHoveredGroup(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => { setOpen(o => !o); setHoveredGroup(null); }}
-        className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-left flex items-center justify-between hover:border-border focus:outline-none focus:ring-1 focus:ring-ring"
-      >
-        <span className={value ? "text-foreground" : "text-muted-foreground"}>
-          {value || "Select machine…"}
-        </span>
-        <ChevronRight className="w-4 h-4 text-muted-foreground rotate-90" />
-      </button>
-
-      {open && (
-        <div className="absolute z-50 top-full left-0 mt-1 w-44 bg-popover border border-border rounded-md shadow-lg py-1">
-          {MACHINES.map(({ group, models }) => (
-            <div
-              key={group}
-              className="relative"
-              onMouseEnter={() => setHoveredGroup(group)}
-              onMouseLeave={() => setHoveredGroup(null)}
-            >
-              <div className={`flex items-center justify-between px-3 py-2 text-sm cursor-default select-none rounded-sm mx-1 ${hoveredGroup === group ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-accent hover:text-accent-foreground"}`}>
-                <span>{group}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </div>
-
-              {hoveredGroup === group && (
-                <div className="absolute left-full top-0 ml-1 w-52 bg-popover border border-border rounded-md shadow-lg py-1">
-                  {models.map(m => (
-                    <div
-                      key={m}
-                      onClick={() => { onSelect(`${group} ${m}`); setOpen(false); setHoveredGroup(null); }}
-                      className="px-3 py-2 text-sm cursor-pointer rounded-sm mx-1 hover:bg-primary hover:text-primary-foreground"
-                    >
-                      {m}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function TurningGeneralInfo({ data, onChange, onReplace }) {
   const update = (field) => (value) => onChange(field, value);
 
   const [customerNames, setCustomerNames] = useState([]);
-  const [customerMode, setCustomerMode] = useState("select");
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
 
   useEffect(() => {
@@ -112,13 +52,6 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
       setCustomerNames([...new Set(names)]);
     });
   }, []);
-
-  useEffect(() => {
-    if (data.customer && customerNames.length > 0) {
-      const match = customerNames.some(c => c.toLowerCase() === data.customer.toLowerCase());
-      setCustomerMode(match ? "select" : "new");
-    }
-  }, [customerNames]);
 
   // Auto-calculate total combined cycle time
   useEffect(() => {
@@ -146,15 +79,6 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
     // Data is preserved when hiding — only the UI collapses
   };
 
-  const handleCustomerSelect = (val) => {
-    if (val === "__new__") {
-      setCustomerMode("new");
-      onChange("customer", "");
-    } else {
-      onChange("customer", val === "__none__" ? "" : val);
-    }
-  };
-
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
@@ -167,35 +91,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Customer
             </Label>
-            {customerMode === "select" ? (
-              <select
-                value={data.customer || ""}
-                onChange={e => handleCustomerSelect(e.target.value)}
-                className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="__none__">— None —</option>
-                {customerNames.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-                <option value="__new__">+ New Customer…</option>
-              </select>
-            ) : (
-              <div className="flex gap-1">
-                <Input
-                  value={data.customer || ""}
-                  onChange={e => update("customer")(e.target.value)}
-                  placeholder="Enter customer name"
-                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-                />
-                {customerNames.length > 0 && (
-                  <button
-                    onClick={() => setCustomerMode("select")}
-                    className="shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground border border-border/60 rounded-md bg-background"
-                    title="Pick existing"
-                  >↩</button>
-                )}
-              </div>
-            )}
+            <ComboBox
+              value={data.customer || ""}
+              onChange={update("customer")}
+              options={customerNames}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
 
           <Field label="Part Number" value={data.part_number} onChange={update("part_number")} />
@@ -204,31 +106,34 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 2: Machine, Machinist, Program */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          {/* Machine cascading dropdown */}
+          {/* Machine ComboBox */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
-            <MachineDropdown value={data.machine} onSelect={update("machine")} />
+            <ComboBox
+              value={data.machine || ""}
+              onChange={update("machine")}
+              options={FLAT_MACHINES}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
 
-          {/* Program dropdown */}
+          {/* Program ComboBox */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Program
             </Label>
-            <Select value={data.program_software || ""} onValueChange={update("program_software")}>
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                <SelectValue placeholder="Select…" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROGRAMS.map(p => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboBox
+              value={data.program_software || ""}
+              onChange={update("program_software")}
+              options={PROGRAMS}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import ComboBox from "./ComboBox";
+import ComboBox from "@/components/ui/ComboBox";
 
 // ── Shared Hole Making sub-tree ────────────────────────────────────────────────
 const HOLE_MAKING_CHILDREN = [

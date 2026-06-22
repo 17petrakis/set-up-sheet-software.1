@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ComboBox from "@/components/ui/ComboBox";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionHeader from "./SectionHeader";
@@ -26,7 +26,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
   const update = (field) => (value) => onChange(field, value);
 
   const [customerNames, setCustomerNames] = useState([]);
-  const [customerMode, setCustomerMode] = useState("select");
 
   useEffect(() => {
     base44.entities.Customer.list("name", 200).then(list => {
@@ -34,23 +33,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
       setCustomerNames([...new Set(names)]);
     });
   }, []);
-
-  // If current customer value isn't in the list, default to "new" mode
-  useEffect(() => {
-    if (data.customer && customerNames.length > 0) {
-      const match = customerNames.some(c => c.toLowerCase() === data.customer.toLowerCase());
-      setCustomerMode(match ? "select" : "new");
-    }
-  }, [customerNames]);
-
-  const handleCustomerSelect = (val) => {
-    if (val === "__new__") {
-      setCustomerMode("new");
-      onChange("customer", "");
-    } else {
-      onChange("customer", val === "__none__" ? "" : val);
-    }
-  };
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -61,42 +43,18 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <Field label="Machine" value={data.machine} onChange={update("machine")} />
           <Field label="Job Number" value={data.job_number} onChange={update("job_number")} />
 
-          {/* Customer field with dropdown or text input */}
+          {/* Customer field with ComboBox */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Customer
             </Label>
-            {customerMode === "select" ? (
-              <select
-                value={data.customer || ""}
-                onChange={e => handleCustomerSelect(e.target.value)}
-                className="w-full h-9 px-3 text-sm bg-background border border-border/60 rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="__none__">— None —</option>
-                {customerNames.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-                <option value="__new__">+ New Customer…</option>
-              </select>
-            ) : (
-              <div className="flex gap-1">
-                <Input
-                  value={data.customer || ""}
-                  onChange={e => update("customer")(e.target.value)}
-                  placeholder="Enter customer name"
-                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-                />
-                {customerNames.length > 0 && (
-                  <button
-                    onClick={() => setCustomerMode("select")}
-                    className="shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground border border-border/60 rounded-md bg-background"
-                    title="Pick existing"
-                  >
-                    ↩
-                  </button>
-                )}
-              </div>
-            )}
+            <ComboBox
+              value={data.customer || ""}
+              onChange={update("customer")}
+              options={customerNames}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
 
           <Field label="Programmer" value={data.programmer} onChange={update("programmer")} />
@@ -112,15 +70,13 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Units
             </Label>
-            <Select value={data.units} onValueChange={update("units")}>
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Inch">Inch</SelectItem>
-                <SelectItem value="Metric">Metric</SelectItem>
-              </SelectContent>
-            </Select>
+            <ComboBox
+              value={data.units}
+              onChange={update("units")}
+              options={["Inch", "Metric"]}
+              placeholder="Select…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
 
           <Field label="Total Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
@@ -129,18 +85,13 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Status
             </Label>
-            <Select value={data.status || "Active"} onValueChange={update("status")}>
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Repeating">Repeating</SelectItem>
-                <SelectItem value="One Time">One Time</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="On Hold">On Hold</SelectItem>
-              </SelectContent>
-            </Select>
+            <ComboBox
+              value={data.status || "Active"}
+              onChange={update("status")}
+              options={["Active", "Repeating", "One Time", "Completed", "On Hold"]}
+              placeholder="Select…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
         </div>
 

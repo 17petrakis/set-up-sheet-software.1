@@ -1,5 +1,5 @@
 import React from "react";
-import ComboBox from "./ComboBox";
+import ComboBox from "@/components/ui/ComboBox";
 
 const FLAT_TURRET_OPTIONS = [
   { label: "Lower (Turn)", value: "Lower (Turn)" },

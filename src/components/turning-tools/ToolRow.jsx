@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
-import ComboBox from "./ComboBox";
+import ComboBox from "@/components/ui/ComboBox";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];

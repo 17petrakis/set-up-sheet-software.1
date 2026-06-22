@@ -77,7 +77,7 @@ export default function ComboBox({ value, onChange, options, placeholder = "Sele
     } else if (e.key === "Enter") {
       if (open) { e.preventDefault(); commit(); }
     } else if (e.key === "Tab") {
-      if (open) commit(); // Don't preventDefault — let Tab move focus
+      if (open) commit();
     } else if (e.key === "Escape") {
       e.preventDefault();
       setOpen(false);
