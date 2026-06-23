@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNewSheet, isAdmin }) {
@@ -29,6 +29,16 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
           </button>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
+          {isAdmin && (
+            <a
+              href="https://straightline-precision-industries-procedures.base44.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 shrink-0" /> Procedures
+            </a>
+          )}
           <button
             onClick={() => { onSwitchNav("dashboard"); onClose(); }}
             className={cn(
@@ -60,16 +70,6 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
             >
               <Users className="w-4 h-4 shrink-0" /> Employees
             </button>
-          )}
-          {isAdmin && (
-            <a
-              href="https://straightline-precision-industries-procedures.base44.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
-            >
-              <BookOpen className="w-4 h-4 shrink-0" /> Procedures
-            </a>
           )}
           <button
             onClick={() => { onSwitchNav("quality_control"); onClose(); }}

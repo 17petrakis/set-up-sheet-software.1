@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen, Menu, ClipboardList } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, ChevronDown, BookOpen, Menu, ClipboardList, ArrowLeftCircle } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import MobileNav from "@/components/home/MobileNav";
@@ -204,6 +204,16 @@ export default function Home() {
           />
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
+          {isAdmin && (
+            <a
+              href="https://straightline-precision-industries-procedures.base44.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 shrink-0" /> Procedures
+            </a>
+          )}
           <button
             onClick={() => switchNav("dashboard")}
             className={cn(
@@ -235,16 +245,6 @@ export default function Home() {
             >
               <Users className="w-4 h-4 shrink-0" /> Employees
             </button>
-          )}
-          {isAdmin && (
-            <a
-              href="https://straightline-precision-industries-procedures.base44.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-            >
-              <BookOpen className="w-4 h-4 shrink-0" /> Procedures
-            </a>
           )}
           <button
             onClick={() => switchNav("quality_control")}
