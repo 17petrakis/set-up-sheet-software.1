@@ -180,7 +180,7 @@ export default function CMMPrintView() {
             <h2 className="text-sm font-bold uppercase tracking-widest mb-2 border-b border-border pb-1">Important Notes</h2>
             <ul className="list-disc list-inside text-sm space-y-0.5">
               {importantNotes.map((note, idx) => (
-                <li key={idx}>{typeof note === "object" ? note.note || JSON.stringify(note) : note}</li>
+                <li key={idx}>{typeof note === "object" ? note.text || note.note || "" : note}</li>
               ))}
             </ul>
           </section>
