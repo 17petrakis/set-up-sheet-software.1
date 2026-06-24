@@ -24,6 +24,12 @@ const EXTENSION_OPTIONS = ["ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25
 const EXTENSION_MILL_OPTIONS = ["ER25", "ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"];
 const ANGLE_DRILL_OPTIONS = ["118", "135", "180"];
 const ANGLE_SPOT_OPTIONS = ["82", "90", "100"];
+const MILL_CHAMFER_ANGLE_OPTIONS = ["90", "60", "45", "30"];
+const MILL_DIA_TYPES = [
+  "Mill Endmill – SQ.", "Mill Endmill – Radius", "Mill Endmill – Chamfer",
+  "Mill – Chamfer Mills", "Mill – Engraving", "Mill – Thread Mills",
+  "Mill – Lollipop", "Mill – T-Slot",
+];
 
 // Whether a type uses Width instead of Deg in the header
 function isGroove(typeValue) { return typeValue === "Groove/Part"; }
@@ -352,21 +358,31 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
   const typeValue = tool.tool_type || "";
-  const showWidth = isGroove(typeValue);
-  const showDia = isHoleMakingOrTap(typeValue);
-  // Show Rad in header for turn tools that aren't holemaking
-  const showRad = tool.tool_kind === "Turn" && !showDia && typeValue;
+  const isMillTool = tool.tool_kind === "Mill";
+  const showWidth = isGroove(typeValue) || typeValue === "Mill – T-Slot";
+  const showDia = isHoleMakingOrTap(typeValue) || MILL_DIA_TYPES.includes(typeValue);
+  // Show Rad in header for turn tools that aren't holemaking, and Mill Radius endmills
+  const showRad = (tool.tool_kind === "Turn" && !showDia && typeValue) || typeValue === "Mill Endmill – Radius";
+  // Show Chmf for Mill Chamfer endmills
+  const showMillChmf = typeValue === "Mill Endmill – Chamfer";
   // Show Deg in header for relevant turn types (not Thread or Profile)
   const showDeg = tool.tool_kind === "Turn" && !showWidth && typeValue && typeValue !== "Thread" && typeValue !== "Profile" && !isHoleMakingOrTap(typeValue);
-  const showAngle = isDrill(typeValue) || isSpotOrCsk(typeValue);
-  const angleOptions = isSpotOrCsk(typeValue) ? ANGLE_SPOT_OPTIONS : ANGLE_DRILL_OPTIONS;
-  // Show Reach for Profile tools
-  const showReach = tool.tool_kind === "Turn" && typeValue === "Profile";
-  // Show Pitch for Thread tools
-  const showPitch = tool.tool_kind === "Turn" && (typeValue === "Thread" || isTap(typeValue));
+  const showAngle = isDrill(typeValue) || isSpotOrCsk(typeValue) ||
+    typeValue === "Mill – Chamfer Mills" || typeValue === "Mill – Engraving";
+  const angleOptions = isSpotOrCsk(typeValue) ? ANGLE_SPOT_OPTIONS :
+    (isDrill(typeValue) ? ANGLE_DRILL_OPTIONS : MILL_CHAMFER_ANGLE_OPTIONS);
+  // Show Reach for Profile tools and Mill Thread Mills / Lollipop
+  const showReach = (tool.tool_kind === "Turn" && typeValue === "Profile") ||
+    typeValue === "Mill – Thread Mills" || typeValue === "Mill – Lollipop";
+  // Show Pitch for Thread tools and Mill Thread Mills
+  const showPitch = (tool.tool_kind === "Turn" && (typeValue === "Thread" || isTap(typeValue))) ||
+    typeValue === "Mill – Thread Mills";
   const showTapType = isTap(typeValue);
-  const showOdIdBox = typeValue && ((tool.tool_kind === "Turn" && !isHoleMakingOrTap(typeValue)) || tool.tool_kind === "Mill");
-  const odIdOptions = tool.tool_kind === "Mill" ? ["Axial", "Radial"] : ["OD", "ID"];
+  const showOdIdBox = typeValue && ((tool.tool_kind === "Turn" && !isHoleMakingOrTap(typeValue)) || isMillTool);
+  const odIdOptions = isMillTool ? ["Axial", "Radial"] : ["OD", "ID"];
+  // Mill Name/Tool field: show for all mill types except Thread Mills
+  const millShowNameField = isMillTool && typeValue && typeValue !== "Mill – Thread Mills";
+  const millIsHoleMakingNonTap = isMillTool && isHoleMakingOrTap(typeValue) && !isTap(typeValue);
 
   const handleTypeChange = (val) => {
     const updates = { tool_type: val };
@@ -402,6 +418,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <ToolTypeDropdown toolKind={tool.tool_kind} value={typeValue} onChange={handleTypeChange} />
         </div>
 
+        {/* Dia */}
+        {showDia && (
+          <div className="shrink-0 flex items-center gap-1 ml-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
+            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
+          </div>
+        )}
+
         {/* Rad */}
         {showRad && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
@@ -410,19 +434,19 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           </div>
         )}
 
+        {/* Chmf (Mill Chamfer endmill) */}
+        {showMillChmf && (
+          <div className="shrink-0 flex items-center gap-1 ml-4">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Chmf.</span>
+            <SmallInput value={tool.chmf} onChange={set("chmf")} placeholder="" className="w-16" />
+          </div>
+        )}
+
         {/* Width */}
         {showWidth && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
             <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-24" />
-          </div>
-        )}
-
-        {/* Dia */}
-        {showDia && (
-          <div className="shrink-0 flex items-center gap-1 ml-4">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Dia.</span>
-            <SmallInput value={tool.dia} onChange={set("dia")} placeholder="0.000" className="w-16" />
           </div>
         )}
 
@@ -471,6 +495,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <div className="flex-1 flex items-center gap-1 min-w-0">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isTap(typeValue) ? "Name" : isHoleMakingOrTap(typeValue) && !isInsertDrill(typeValue) ? "Tool" : "Insert"}</span>
             <SmallInput value={isTap(typeValue) ? tool.name : tool.insert} onChange={isTap(typeValue) ? set("name") : set("insert")} className="flex-1 w-full min-w-0" />
+          </div>
+        )}
+
+        {/* Name/Tool (Mill, in header) */}
+        {millShowNameField && (
+          <div className="flex-1 flex items-center gap-1 min-w-0">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{millIsHoleMakingNonTap ? "Tool" : "Name"}</span>
+            <SmallInput value={millIsHoleMakingNonTap ? tool.insert : tool.name} onChange={millIsHoleMakingNonTap ? set("insert") : set("name")} className="flex-1 w-full min-w-0" />
           </div>
         )}
 

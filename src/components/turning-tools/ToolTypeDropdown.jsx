@@ -74,6 +74,8 @@ const FLAT_MILL = flattenOptions(MILL_OPTIONS);
 const HOLE_MAKING_VALUES = [
   "Drill – Carbide", "Drill – HSS", "Drill – Insert", "Drill – Ex Tip", "Drill – Center",
   "Hole Making – Tap", "Hole Making – Spot Drill", "Hole Making – Countersink",
+  "Mill Hole Making – Drill", "Mill Hole Making – Spot Drill", "Mill Hole Making – Countersink",
+  "Mill Hole Making – Bore",
 ];
 
 export function isHoleMaking(typeValue) {
