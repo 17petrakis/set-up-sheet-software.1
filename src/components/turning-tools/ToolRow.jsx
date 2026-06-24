@@ -362,7 +362,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const showWidth = isGroove(typeValue) || typeValue === "Mill – T-Slot";
   const showDia = isHoleMakingOrTap(typeValue) || MILL_DIA_TYPES.includes(typeValue);
   // Show Rad in header for turn tools that aren't holemaking, and Mill Radius endmills
-  const showRad = (tool.tool_kind === "Turn" && !showDia && typeValue) || typeValue === "Mill Endmill – Radius";
+  const showRad = (tool.tool_kind === "Turn" && !showDia && typeValue) || typeValue === "Mill Endmill – Radius" || typeValue === "Mill Endmill – Ball";
   // Show Chmf for Mill Chamfer endmills
   const showMillChmf = typeValue === "Mill Endmill – Chamfer";
   // Show Deg in header for relevant turn types (not Thread or Profile)
