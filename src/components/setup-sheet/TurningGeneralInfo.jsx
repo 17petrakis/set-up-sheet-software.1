@@ -111,49 +111,60 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 2: Machine, Machinist, CAM, Automated */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
-          {/* Machine ComboBox */}
+          {/* Machine select */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
-            <ComboBox
+            <select
               value={data.machine || ""}
-              onChange={update("machine")}
-              options={FLAT_MACHINES}
-              allowFreeText={false}
-              placeholder="Select…"
-              className="h-9 text-sm px-3 w-full"
-            />
+              onChange={(e) => update("machine")(e.target.value)}
+              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>Select…</option>
+              {MACHINES.map(({ group, models }) => (
+                <optgroup key={group} label={group}>
+                  {models.map(m => {
+                    const label = group === m ? group : `${group} ${m}`;
+                    return <option key={label} value={label}>{label}</option>;
+                  })}
+                </optgroup>
+              ))}
+            </select>
           </div>
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
 
-          {/* CAM ComboBox */}
+          {/* CAM select */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               CAM
             </Label>
-            <ComboBox
+            <select
               value={data.program_software || ""}
-              onChange={update("program_software")}
-              options={PROGRAMS}
-              placeholder="Select or type…"
-              className="h-9 text-sm px-3 w-full"
-            />
+              onChange={(e) => update("program_software")(e.target.value)}
+              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>Select…</option>
+              {PROGRAMS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </div>
 
-          {/* Automated dropdown */}
+          {/* Automated select */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Automated
             </Label>
-            <ComboBox
+            <select
               value={data.automation || ""}
-              onChange={update("automation")}
-              options={["Fully", "Semi", "No"]}
-              placeholder="—"
-              className="w-full h-9 px-3 text-sm"
-            />
+              onChange={(e) => update("automation")(e.target.value)}
+              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>—</option>
+              <option value="Fully">Fully</option>
+              <option value="Semi">Semi</option>
+              <option value="No">No</option>
+            </select>
           </div>
         </div>
 
@@ -184,12 +195,11 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Program Desc.
             </Label>
-            <ComboBox
+            <Input
               value={data.program_description || ""}
-              onChange={update("program_description")}
-              options={["Roughing", "Finishing", "Prep", "Complete with transfer"]}
-              placeholder="—"
-              className="w-full h-9 px-3 text-sm"
+              onChange={(e) => update("program_description")(e.target.value)}
+              placeholder="Roughing"
+              className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
             />
           </div>
         </div>

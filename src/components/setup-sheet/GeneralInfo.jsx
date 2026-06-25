@@ -82,13 +82,15 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Units
             </Label>
-            <ComboBox
-              value={data.units}
-              onChange={update("units")}
-              options={["Inch", "Metric"]}
-              placeholder="Select…"
-              className="h-9 text-sm px-3 w-full"
-            />
+            <select
+              value={data.units || ""}
+              onChange={(e) => update("units")(e.target.value)}
+              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>Select…</option>
+              <option value="Inch">Inch</option>
+              <option value="Metric">Metric</option>
+            </select>
           </div>
 
           <Field label="Total Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
@@ -97,13 +99,18 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Status
             </Label>
-            <ComboBox
+            <select
               value={data.status || "Active"}
-              onChange={update("status")}
-              options={["Active", "Repeating", "One Time", "Completed", "On Hold"]}
-              placeholder="Select…"
-              className="h-9 text-sm px-3 w-full"
-            />
+              onChange={(e) => update("status")(e.target.value)}
+              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="" disabled>Select…</option>
+              <option value="Active">Active</option>
+              <option value="Repeating">Repeating</option>
+              <option value="One Time">One Time</option>
+              <option value="Completed">Completed</option>
+              <option value="On Hold">On Hold</option>
+            </select>
           </div>
         </div>
 
