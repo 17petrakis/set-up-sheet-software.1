@@ -104,15 +104,28 @@
     "finishing_time": {
       "type": "string"
     },
+    "wash_time": {
+      "type": "string"
+    },
     "total_additional_time": {
       "type": "string",
-      "description": "Sum of deburring + finishing times"
+      "description": "Sum of deburring + finishing + wash times"
     },
     "deburring_notes": {
       "type": "string"
     },
     "finishing_notes": {
       "type": "string"
+    },
+    "wash_notes": {
+      "type": "string"
+    },
+    "stops": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Process stops list (milling & turning)"
     },
     "operation_description": {
       "type": "string"
