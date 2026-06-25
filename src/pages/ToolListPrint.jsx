@@ -169,7 +169,7 @@ export default function ToolListPrint() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-border">
-                  {["Tool #", "Description", "Diameter", "Flutes", "Cut Length", "Holder"].map((h) => (
+                  {["Tool #", "Tool Type", "Diameter", "Flutes", "Cut Length", "Holder"].map((h) => (
                     <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -178,7 +178,7 @@ export default function ToolListPrint() {
                 {sheet.tools.map((tool, idx) => (
                   <tr key={idx} className="border-b border-border">
                     <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
+                    <td className="py-3 px-3 text-foreground">{tool.tool_type || tool.description || "-"}</td>
                     <td className="py-3 px-3 text-foreground">{tool.diameter || "-"}</td>
                     <td className="py-3 px-3 text-foreground">{tool.flutes || "-"}</td>
                     <td className="py-3 px-3 text-foreground">{tool.cut_length || "-"}</td>

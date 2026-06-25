@@ -14,8 +14,8 @@ const DEFAULT_PHOTO_SLOTS = [
   { key: "final_part_2", label: "Final Part 2" },
 ];
 
-const TOOL_COLS = ["Tool #", "Description", "Diameter", "Flutes", "Exp. Length", "Cut Length", "Holder"];
-const TOOL_KEYS = ["tool_number", "description", "diameter", "flutes", "exposed_length", "cut_length", "holder"];
+const TOOL_COLS = ["Tool #", "Tool Type", "Diameter", "Flutes", "Exp. Length", "Cut Length", "Holder"];
+const TOOL_KEYS = ["tool_number", "tool_type", "diameter", "flutes", "exposed_length", "cut_length", "holder"];
 
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Max Z", "Cycle Time", "Spindle RPM"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "max_z", "cycle_time", "spindle_rpm"];

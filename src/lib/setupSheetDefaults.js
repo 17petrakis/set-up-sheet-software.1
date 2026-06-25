@@ -21,7 +21,7 @@ export const emptyGeneral = {
 
 export const emptyTool = {
   tool_number: "",
-  description: "",
+  tool_type: "",
   diameter: "",
   flutes: "",
   flute_length: "",
@@ -29,6 +29,14 @@ export const emptyTool = {
   exposed_length: "",
   cut_length: "",
   holder: "",
+  thread_pitch: "",
+  thread_form: "",
+  min_bore_diameter: "",
+  max_bore_diameter: "",
+  insert_count: "",
+  insert_type: "",
+  blade_thickness: "",
+  arbor_size: "",
 };
 
 export const emptyPartZero = {

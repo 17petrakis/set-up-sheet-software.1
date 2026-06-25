@@ -80,7 +80,7 @@ export function parseExcel(file) {
             if (!row || !row[0] || String(row[0]).trim() === "") break;
             tools.push({
               tool_number: row[0] != null ? String(row[0]).trim() : "",
-              description: row[1] != null ? String(row[1]).trim() : "",
+              tool_type: row[1] != null ? String(row[1]).trim() : "",
               diameter: row[2] != null ? String(row[2]).trim() : "",
               flutes: row[3] != null ? String(row[3]).trim() : "",
               length: row[4] != null ? String(row[4]).trim() : "",
@@ -252,7 +252,7 @@ export async function parsePDF(file) {
       const holder  = row.items.find(i => i.x >= 440);
       tools.push({
         tool_number:   parseInt(toolNumItem.str),
-        description:   desc ? desc.str : null,
+        tool_type:     desc ? desc.str : null,
         diameter:      dia ? parseFloat(dia.str) : null,
         flutes:        null,
         length:        null,

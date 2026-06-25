@@ -1,30 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2 } from "lucide-react";
+import { Wrench, Plus, Trash2, Pencil } from "lucide-react";
 import { emptyTool } from "@/lib/setupSheetDefaults";
-
-const columns = [
-  { key: "tool_number", label: "Tool #", w: "w-16" },
-  { key: "description", label: "Description", w: "w-auto" },
-  { key: "diameter", label: "Diameter", w: "w-20" },
-  { key: "flutes", label: "Flutes", w: "w-16" },
-  { key: "flute_length", label: "Flute Length", w: "w-24" },
-  { key: "stickout_length", label: "Stickout Length", w: "w-28" },
-  { key: "exposed_length", label: "Exposed Length", w: "w-28" },
-  { key: "cut_length", label: "Cut Length", w: "w-24" },
-  { key: "holder", label: "Holder", w: "w-24" },
-];
+import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
+import ToolEditModal from "./ToolEditModal";
 
 export default function ToolList({ tools, onChange }) {
+  const [editingIndex, setEditingIndex] = useState(null);
+
   const addRow = () => onChange([...tools, { ...emptyTool }]);
   const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
   const updateCell = (i, key, val) => {
     const updated = [...tools];
     updated[i] = { ...updated[i], [key]: val };
+    onChange(updated);
+  };
+  const updateTool = (i, updated) => {
+    const newTools = [...tools];
+    newTools[i] = updated;
+    onChange(newTools);
+  };
+
+  const handleTypeChange = (i, newType) => {
+    const updated = [...tools];
+    updated[i] = { ...updated[i], tool_type: newType, visible_fields: null };
     onChange(updated);
   };
 
@@ -37,52 +40,72 @@ export default function ToolList({ tools, onChange }) {
           </Button>
         </SectionHeader>
 
-        <div className="overflow-x-auto rounded-lg border border-border/50">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                {columns.map((c) => (
-                  <TableHead key={c.key} className={`${c.w} text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2 px-2`}>
-                    {c.label}
-                  </TableHead>
-                ))}
-                <TableHead className="w-10 py-2 px-2" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tools.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
-                    No tools added. Click "Add Tool" to start.
-                  </TableCell>
-                </TableRow>
-              )}
-              {tools.map((tool, i) => (
-                <TableRow key={i} className="group">
-                  {columns.map((c) => (
-                    <TableCell key={c.key} className="py-1 px-1.5">
+        {tools.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground py-8">No tools added. Click "Add Tool" to start.</p>
+        ) : (
+          <div className="space-y-1">
+            {tools.map((tool, i) => {
+              const visible = getEffectiveVisibleFields(tool);
+              return (
+                <div key={i} className="group flex items-end gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/20 border border-transparent hover:border-border/40 transition-colors flex-wrap">
+                  {/* T# */}
+                  <div className="shrink-0 w-14">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">T#</span>
+                    <Input
+                      value={tool.tool_number || ""}
+                      onChange={(e) => updateCell(i, "tool_number", e.target.value)}
+                      className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
+                    />
+                  </div>
+
+                  {/* Tool Type */}
+                  <div className="shrink-0 w-40">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
+                    <TreeCascadingDropdown
+                      value={tool.tool_type || ""}
+                      onChange={(v) => handleTypeChange(i, v)}
+                      options={TOOL_TYPE_OPTIONS}
+                      placeholder="Select…"
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Dynamic fields */}
+                  {TOOL_FIELDS.filter(f => visible[f.key]).map(f => (
+                    <div key={f.key} className="shrink-0 w-[100px]">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
                       <Input
-                        value={tool[c.key]}
-                        onChange={(e) => updateCell(i, c.key, e.target.value)}
+                        value={tool[f.key] || ""}
+                        onChange={(e) => updateCell(i, f.key, e.target.value)}
                         className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
                       />
-                    </TableCell>
+                    </div>
                   ))}
-                  <TableCell className="py-1 px-1.5">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeRow(i)}
-                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                    >
+
+                  {/* Actions */}
+                  <div className="flex items-end gap-0.5 ml-auto">
+                    <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)}
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => removeRow(i)}
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {editingIndex !== null && tools[editingIndex] && (
+          <ToolEditModal
+            tool={tools[editingIndex]}
+            onChange={(updated) => updateTool(editingIndex, updated)}
+            onClose={() => setEditingIndex(null)}
+          />
+        )}
       </CardContent>
     </Card>
   );
