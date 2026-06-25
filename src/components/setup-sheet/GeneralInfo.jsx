@@ -11,11 +11,11 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
 
 const MACHINES = [
-  { group: "HAAS", models: ["VF-2", "VF-3", "VF-4", "Mini Mill", "DM-1"] },
-  { group: "Doosan", models: ["DNM 4500", "DNM 5700"] },
-  { group: "Mori Seiki", models: ["NVX 5000"] },
-  { group: "Mazak", models: ["VC-500"] },
-  { group: "Manual", models: ["Manual"] },
+  { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
+  { group: "Mori Seiki", models: ["NH 4000 DCG"] },
+  { group: "HAAS", models: ["DT1", "VF 4SS", "DM1"] },
+  { group: "OKUMA", models: ["OKUMA"] },
+  { group: "HYD MECH", models: ["H-10A"] },
 ];
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
