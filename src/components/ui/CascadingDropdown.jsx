@@ -50,9 +50,9 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
       </button>
 
       {open && (
-        <div className="absolute z-[500] top-full left-0 mt-0.5 w-full flex gap-0 rounded-md shadow-xl overflow-hidden border border-border/60">
+        <div className="absolute z-[500] top-full left-0 mt-0.5 w-full flex gap-0 rounded-md shadow-xl overflow-visible border border-border/60">
           {/* Left panel — group headers or flat options */}
-          <div className="bg-popover py-1 w-full">
+          <div className="bg-popover py-1 w-full rounded-md">
             {isGrouped ? (
               options.map(g => {
                 const isActive = expandedGroup === g.group;
@@ -107,7 +107,7 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
 
           {/* Right panel — options for expanded group */}
           {isGrouped && expandedGroup && (
-            <div className="bg-popover py-1 min-w-[140px] border-l border-border/60">
+            <div className="bg-popover py-1 min-w-[140px] absolute top-0 left-full ml-0.5 rounded-md border border-border/60 shadow-xl">
               {(options.find(g => g.group === expandedGroup)?.models || []).map(m => {
                 const label = expandedGroup === m ? expandedGroup : `${expandedGroup} ${m}`;
                 const isSelected = value === label;
