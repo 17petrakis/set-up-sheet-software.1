@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-
-const BTN_BASE = "px-3 py-1.5 text-xs font-medium rounded border border-gray-200 whitespace-nowrap transition-colors text-blue-900";
+import { ChevronDown, ChevronRight, Check } from "lucide-react";
 
 export default function CascadingDropdown({ value, onChange, options, placeholder = "Select…", className = "" }) {
   const [open, setOpen] = useState(false);
@@ -38,68 +36,101 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
     setExpandedGroup(null);
   };
 
+  const TEAL = "#4db6ac";
+
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="h-9 w-full flex items-center justify-between px-3 rounded-md border border-gray-200 bg-white text-sm text-blue-900 hover:border-blue-300 transition-colors"
+        className="h-9 w-full flex items-center justify-between px-3 rounded-md border border-border bg-background text-sm hover:border-primary/40 transition-colors"
       >
-        <span className={selectedLabel ? "text-blue-900" : "text-muted-foreground"}>{selectedLabel || placeholder}</span>
-        <ChevronDown className="w-3.5 h-3.5 text-blue-900 opacity-60" />
+        <span className={selectedLabel ? "text-foreground" : "text-muted-foreground"}>{selectedLabel || placeholder}</span>
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
       </button>
 
       {open && (
-        <div className="absolute z-[500] top-full left-0 mt-0.5 p-1.5 rounded-md border border-gray-200 bg-gray-300 shadow-xl">
-          {isGrouped ? (
-            <div className="flex gap-1 items-start">
-              <div className="flex flex-col gap-1">
-                {options.map(g => (
+        <div className="absolute z-[500] top-full left-0 mt-0.5 flex gap-0 rounded-lg shadow-2xl overflow-hidden border border-zinc-700">
+          {/* Left panel */}
+          <div className="bg-zinc-800 py-1 min-w-[140px]">
+            {isGrouped ? (
+              options.map(g => {
+                const isActive = expandedGroup === g.group;
+                const hasSelected = (g.models || []).some(m => {
+                  const label = g.group === m ? g.group : `${g.group} ${m}`;
+                  return label === value;
+                });
+                return (
                   <button
                     key={g.group}
                     type="button"
-                    onClick={() => setExpandedGroup(expandedGroup === g.group ? null : g.group)}
-                    className={`${BTN_BASE} ${expandedGroup === g.group ? "bg-emerald-100" : "bg-white hover:bg-yellow-100"}`}
+                    onClick={() => setExpandedGroup(isActive ? null : g.group)}
+                    className="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors"
+                    style={{
+                      backgroundColor: isActive ? "#3a3a3a" : "transparent",
+                      color: "#e0e0e0",
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = "#333"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = "transparent"; }}
                   >
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
+                      {hasSelected && <Check className="w-3 h-3" style={{ color: TEAL }} />}
                       {g.group}
-                      {expandedGroup === g.group
-                        ? <ChevronDown className="w-3 h-3" />
-                        : <ChevronRight className="w-3 h-3" />}
+                    </span>
+                    <ChevronRight className="w-3 h-3" style={{ color: TEAL, opacity: isActive ? 1 : 0.5 }} />
+                  </button>
+                );
+              })
+            ) : (
+              flatOptions.map(opt => {
+                const isSelected = value === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleSelect(opt.value)}
+                    className="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between transition-colors"
+                    style={{
+                      backgroundColor: isSelected ? "#3a3a3a" : "transparent",
+                      color: isSelected ? TEAL : "#e0e0e0",
+                    }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "#333"; }}
+                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      {isSelected && <Check className="w-3 h-3" style={{ color: TEAL }} />}
+                      {opt.label}
                     </span>
                   </button>
-                ))}
-              </div>
-              {expandedGroup && (
-                <div className="flex flex-col gap-1">
-                  {(options.find(g => g.group === expandedGroup)?.models || []).map(m => {
-                    const label = expandedGroup === m ? expandedGroup : `${expandedGroup} ${m}`;
-                    return (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => handleSelect(label)}
-                        className={`${BTN_BASE} ${value === label ? "bg-yellow-200" : "bg-white hover:bg-yellow-100"}`}
-                      >
-                        {m}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1">
-              {flatOptions.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSelect(opt.value)}
-                  className={`${BTN_BASE} ${value === opt.value ? "bg-yellow-200" : "bg-white hover:bg-yellow-100"}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+                );
+              })
+            )}
+          </div>
+
+          {/* Right panel (only for grouped) */}
+          {isGrouped && expandedGroup && (
+            <div className="bg-zinc-800 py-1 min-w-[140px] border-l border-zinc-700">
+              {(options.find(g => g.group === expandedGroup)?.models || []).map(m => {
+                const label = expandedGroup === m ? expandedGroup : `${expandedGroup} ${m}`;
+                const isSelected = value === label;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => handleSelect(label)}
+                    className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-1.5 transition-colors"
+                    style={{
+                      backgroundColor: isSelected ? "#3a3a3a" : "transparent",
+                      color: isSelected ? TEAL : "#e0e0e0",
+                    }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "#333"; }}
+                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    {isSelected && <Check className="w-3 h-3" style={{ color: TEAL }} />}
+                    {m}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
