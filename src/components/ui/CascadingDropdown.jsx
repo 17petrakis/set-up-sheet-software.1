@@ -50,9 +50,9 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
       </button>
 
       {open && (
-        <div className="absolute z-[500] top-full left-0 mt-0.5 flex gap-0 rounded-md shadow-xl overflow-hidden border border-border/60">
+        <div className="absolute z-[500] top-full left-0 mt-0.5 w-full flex gap-0 rounded-md shadow-xl overflow-hidden border border-border/60">
           {/* Left panel — group headers or flat options */}
-          <div className="bg-popover py-1 min-w-full sm:min-w-[160px]">
+          <div className="bg-popover py-1 w-full">
             {isGrouped ? (
               options.map(g => {
                 const isActive = expandedGroup === g.group;
