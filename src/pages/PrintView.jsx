@@ -5,6 +5,7 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/se
 import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import { getMachineGroup } from "@/lib/machineGroups";
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -169,20 +170,89 @@ export default function PrintView() {
                 <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.work_holding_notes}</p>
               </div>
             )}
-            {!isTurning && (data.fixturing_notes?.fixture || data.fixturing_notes?.vise) && (
-              <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Fixturing</p>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-                  <InfoRow label="Fixture" value={data.fixturing_notes?.fixture} />
-                  <InfoRow label="Vise" value={data.fixturing_notes?.vise} />
-                </div>
-              </div>
-            )}
-            {!isTurning && data.fixturing_notes?.photo && (
-              <div className="mt-2">
-                <img src={data.fixturing_notes.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
-              </div>
-            )}
+            {!isTurning && data.fixturing_notes && (() => {
+              const fix = data.fixturing_notes;
+              const fGroup = getMachineGroup(general.machine);
+              if (!fGroup) return null;
+
+              if (fGroup === "hmc") {
+                const stations = fix.stations || [];
+                if (stations.length === 0 && !fix.photo) return null;
+                return (
+                  <>
+                    {stations.length > 0 && (
+                      <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing Stations</p>
+                        <div className="space-y-3">
+                          {stations.map((s, i) => (
+                            <div key={i} className="border border-gray-200 rounded p-2 bg-white">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">Station {i + 1}</p>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                                <InfoRow label="Pallet" value={s.pallet_id} />
+                                <InfoRow label="Tombstone" value={s.tombstone_type} />
+                                <InfoRow label="Bolt Pattern" value={s.bolt_pattern} />
+                                <InfoRow label="Workholding" value={s.workholding_type} />
+                                {s.workholding_type === "Vise" && (
+                                  <>
+                                    <InfoRow label="Vise Model" value={s.vise_model} />
+                                    <InfoRow label="Jaw Type" value={s.jaw_type} />
+                                    <InfoRow label="Parallels" value={s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"} />
+                                  </>
+                                )}
+                                <InfoRow label="Stickout" value={s.part_stickout} />
+                              </div>
+                              {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {fix.photo && (
+                      <div className="mt-2">
+                        <img src={fix.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
+                      </div>
+                    )}
+                  </>
+                );
+              }
+
+              // VMC or Drill-Tap
+              const rows = [];
+              rows.push(["Fixture Type", fix.fixture_type]);
+              if (fGroup === "drill_tap" && fix.fixture_type === "Collet Chuck") rows.push(["Collet Size", fix.collet_size]);
+              if (fix.fixture_type === "Vise") {
+                if (fGroup === "vmc") rows.push(["Vise Model", fix.vise_model]);
+                rows.push(["Jaw Type", fix.jaw_type]);
+                rows.push(["Parallels", fix.parallels ? `Yes${fix.parallel_height ? ` (${fix.parallel_height})` : ""}` : "No"]);
+              }
+              rows.push(["Work Offset", fix.work_offset]);
+              rows.push(["Part Stickout", fix.part_stickout]);
+              const hasData = rows.some(([, v]) => v);
+
+              if (!hasData && !fix.notes && !fix.photo) return null;
+              return (
+                <>
+                  {(hasData || fix.notes) && (
+                    <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing</p>
+                      {hasData && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                          {rows.filter(([, v]) => v).map(([label, value]) => (
+                            <InfoRow key={label} label={label} value={value} />
+                          ))}
+                        </div>
+                      )}
+                      {fix.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{fix.notes}</p>}
+                    </div>
+                  )}
+                  {fix.photo && (
+                    <div className="mt-2">
+                      <img src={fix.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </section>
 
           {isTurning ? (
