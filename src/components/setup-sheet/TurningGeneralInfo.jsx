@@ -7,6 +7,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import ComboBox from "@/components/ui/ComboBox";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
+import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
 
 const MACHINES = [
   { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST"] },
@@ -158,7 +159,18 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 3: Material, Stock, Qty., Length/1pc */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
-          <Field label="Material" value={data.material} onChange={update("material")} />
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Material
+            </Label>
+            <ComboBox
+              value={data.material || ""}
+              onChange={update("material")}
+              options={MATERIAL_OPTIONS}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
+          </div>
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
           <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} />

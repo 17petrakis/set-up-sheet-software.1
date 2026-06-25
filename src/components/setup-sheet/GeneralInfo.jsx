@@ -7,6 +7,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionHeader from "./SectionHeader";
 import { Settings2 } from "lucide-react";
+import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
 
 const Field = ({ label, value, onChange, type = "text", className = "" }) => (
   <div className={className}>
@@ -62,7 +63,18 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <Field label="Revision" value={data.revision} onChange={update("revision")} />
           <Field label="Date" value={data.date} onChange={update("date")} type="date" />
           <Field label="Quantity" value={data.quantity} onChange={update("quantity")} />
-          <Field label="Material" value={data.material} onChange={update("material")} />
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Material
+            </Label>
+            <ComboBox
+              value={data.material || ""}
+              onChange={update("material")}
+              options={MATERIAL_OPTIONS}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
+          </div>
           <Field label="Pre Machine Size" value={data.pre_machine_size} onChange={update("pre_machine_size")} />
           <Field label="Program" value={data.program} onChange={update("program")} />
 
