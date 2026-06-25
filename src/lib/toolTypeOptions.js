@@ -46,7 +46,6 @@ export const TOOL_TYPE_OPTIONS = [
 
 // ── Toggleable field definitions (tool_number & tool_type are always visible) ─
 export const TOOL_FIELDS = [
-  { key: "name", label: "Name" },
   { key: "diameter", label: "Diameter" },
   { key: "flutes", label: "Flutes" },
   { key: "flute_length", label: "Flute Length" },
@@ -62,6 +61,7 @@ export const TOOL_FIELDS = [
   { key: "insert_type", label: "Insert Type" },
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
+  { key: "name", label: "Name" },
 ];
 
 // Short labels for compact row display
