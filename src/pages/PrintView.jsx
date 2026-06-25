@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -13,9 +14,6 @@ const DEFAULT_PHOTO_SLOTS = [
   { key: "final_part", label: "Final Part 1" },
   { key: "final_part_2", label: "Final Part 2" },
 ];
-
-const TOOL_COLS = ["Tool #", "Tool Type", "Diameter", "Flutes", "Exp. Length", "Cut Length", "Holder"];
-const TOOL_KEYS = ["tool_number", "tool_type", "diameter", "flutes", "exposed_length", "cut_length", "holder"];
 
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Max Z", "Cycle Time", "Spindle RPM"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "max_z", "cycle_time", "spindle_rpm"];
@@ -60,6 +58,16 @@ export default function PrintView() {
   const general = { ...emptyGeneral, ...data };
   const isTurning = general.machine_type === "turning";
   const tools = data.tools?.length ? data.tools : [];
+  const millToolColumns = tools.length > 0 ? (() => {
+    const alwaysCols = [{ key: "tool_number", label: "Tool #" }, { key: "tool_type", label: "Tool Type" }];
+    const visibleKeys = new Set();
+    tools.forEach(t => {
+      const vis = getEffectiveVisibleFields(t);
+      TOOL_FIELDS.forEach(f => { if (vis[f.key]) visibleKeys.add(f.key); });
+    });
+    const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
+    return [...alwaysCols, ...dynamicCols];
+  })() : [];
   const turningTools = data.turning_tools || { axial: [], radial: [] };
   const turningChuck = data.turning_chuck || {};
   const partZero = data.part_zero && Object.keys(data.part_zero).length ? { ...emptyPartZero, ...data.part_zero } : emptyPartZero;
@@ -267,43 +275,41 @@ export default function PrintView() {
           ) : (
             <>
               {/* Two-column: Tool List + Part Zero */}
-              <div className="grid grid-cols-[1fr_180px] gap-4">
-                {/* Tool List */}
-                {tools.length > 0 && (
-                  <section>
-                    <h2 className="print-section-title">Tool List</h2>
-                    <table className="print-table w-full">
-                      <thead><tr>{TOOL_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                      <tbody>
-                        {tools.map((tool, i) => (
-                          <tr key={i}>{TOOL_KEYS.map((k) => <td key={k}>{tool[k]}</td>)}</tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </section>
-                )}
-
-                {/* Part Zero */}
+              {/* Tool List */}
+              {tools.length > 0 && (
                 <section>
-                  <h2 className="print-section-title">Part Zero</h2>
+                  <h2 className="print-section-title">Tool List</h2>
                   <table className="print-table w-full">
-                    <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
+                    <thead><tr>{millToolColumns.map(c => <th key={c.key}>{c.label}</th>)}</tr></thead>
                     <tbody>
-                      {[
-                        { axis: "X", max: partZero.x_max, min: partZero.x_min },
-                        { axis: "Y", max: partZero.y_max, min: partZero.y_min },
-                        { axis: "Z", max: partZero.z_max, min: partZero.z_min },
-                      ].map(({ axis, max, min }) => (
-                        <tr key={axis}>
-                          <td className="font-bold font-mono">{axis}</td>
-                          <td className="font-mono">{max}</td>
-                          <td className="font-mono">{min}</td>
-                        </tr>
+                      {tools.map((tool, i) => (
+                        <tr key={i}>{millToolColumns.map(c => <td key={c.key}>{tool[c.key]}</td>)}</tr>
                       ))}
                     </tbody>
                   </table>
                 </section>
-              </div>
+              )}
+
+              {/* Part Zero */}
+              <section>
+                <h2 className="print-section-title">Part Zero</h2>
+                <table className="print-table w-full" style={{ maxWidth: "220px" }}>
+                  <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
+                  <tbody>
+                    {[
+                      { axis: "X", max: partZero.x_max, min: partZero.x_min },
+                      { axis: "Y", max: partZero.y_max, min: partZero.y_min },
+                      { axis: "Z", max: partZero.z_max, min: partZero.z_min },
+                    ].map(({ axis, max, min }) => (
+                      <tr key={axis}>
+                        <td className="font-bold font-mono">{axis}</td>
+                        <td className="font-mono">{max}</td>
+                        <td className="font-mono">{min}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
 
               {/* Operations */}
               {operations.length > 0 && (

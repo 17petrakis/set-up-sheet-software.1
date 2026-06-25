@@ -55,13 +55,18 @@ export default function ToolList({ tools, onChange }) {
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List">
-          <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-            <Plus className="w-3 h-3" /> Add Tool
-          </Button>
+          {tools.length > 0 && (
+            <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+              <Plus className="w-3 h-3" /> Add Tool
+            </Button>
+          )}
         </SectionHeader>
 
         {tools.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-8">No tools added. Click "Add Tool" to start.</p>
+          <button onClick={addRow} className="w-full flex flex-col items-center justify-center py-12 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-lg border-2 border-dashed border-border/50 transition-colors group">
+            <Plus className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-medium">Click to add a tool</span>
+          </button>
         ) : (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="tool-list">
@@ -106,8 +111,9 @@ export default function ToolList({ tools, onChange }) {
                             {/* Dynamic fields */}
                             {TOOL_FIELDS.filter(f => visible[f.key]).map(f => {
                               const options = getFieldOptions(f.key, tool.tool_type);
+                              const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
-                                <div key={f.key} className="shrink-0 w-[100px]">
+                                <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
                                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
                                   {options ? (
                                     <ComboBox
@@ -151,11 +157,13 @@ export default function ToolList({ tools, onChange }) {
           </DragDropContext>
         )}
 
-        <div className="mt-3 flex justify-start">
-          <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-            <Plus className="w-3 h-3" /> Add Tool
-          </Button>
-        </div>
+        {tools.length > 0 && (
+          <div className="mt-3 flex justify-start">
+            <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+              <Plus className="w-3 h-3" /> Add Tool
+            </Button>
+          </div>
+        )}
 
         {editingIndex !== null && tools[editingIndex] && (
           <ToolEditModal

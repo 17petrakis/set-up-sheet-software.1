@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
+import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 
 export default function ToolListPrint() {
   const { id } = useParams();
@@ -165,29 +166,36 @@ export default function ToolListPrint() {
             )}
           </>
         ) : (
-          sheet.tools && sheet.tools.length > 0 ? (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b-2 border-border">
-                  {["Tool #", "Tool Type", "Diameter", "Flutes", "Cut Length", "Holder"].map((h) => (
-                    <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sheet.tools.map((tool, idx) => (
-                  <tr key={idx} className="border-b border-border">
-                    <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.tool_type || tool.description || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.diameter || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.flutes || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.cut_length || "-"}</td>
-                    <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
+          sheet.tools && sheet.tools.length > 0 ? (() => {
+            const alwaysCols = [{ key: "tool_number", label: "Tool #" }, { key: "tool_type", label: "Tool Type" }];
+            const visibleKeys = new Set();
+            sheet.tools.forEach(t => {
+              const vis = getEffectiveVisibleFields(t);
+              TOOL_FIELDS.forEach(f => { if (vis[f.key]) visibleKeys.add(f.key); });
+            });
+            const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
+            const cols = [...alwaysCols, ...dynamicCols];
+            return (
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-border">
+                    {cols.map((c) => (
+                      <th key={c.key} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{c.label}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
+                </thead>
+                <tbody>
+                  {sheet.tools.map((tool, idx) => (
+                    <tr key={idx} className="border-b border-border">
+                      {cols.map(c => (
+                        <td key={c.key} className="py-3 px-3 text-foreground">{tool[c.key] || "-"}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })() : (
             <p className="text-muted-foreground text-center py-12">No tools defined</p>
           )
         )}
