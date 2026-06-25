@@ -171,7 +171,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Input
               value={data.program_description || ""}
               onChange={(e) => update("program_description")(e.target.value)}
-              placeholder="Roughing"
+              placeholder="i.e. Roughing"
               className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
             />
           </div>

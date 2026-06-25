@@ -161,6 +161,20 @@ export default function PrintView() {
                 <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.work_holding_notes}</p>
               </div>
             )}
+            {!isTurning && (data.fixturing_notes?.fixture || data.fixturing_notes?.vise) && (
+              <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Fixturing</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                  <InfoRow label="Fixture" value={data.fixturing_notes?.fixture} />
+                  <InfoRow label="Vise" value={data.fixturing_notes?.vise} />
+                </div>
+              </div>
+            )}
+            {!isTurning && data.fixturing_notes?.photo && (
+              <div className="mt-2">
+                <img src={data.fixturing_notes.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
+              </div>
+            )}
           </section>
 
           {isTurning ? (
