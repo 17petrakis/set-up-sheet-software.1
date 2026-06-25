@@ -61,6 +61,7 @@ export const TOOL_FIELDS = [
   { key: "insert_type", label: "Insert Type" },
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
+  { key: "angle", label: "Angle" },
   { key: "name", label: "Name" },
 ];
 
@@ -82,6 +83,7 @@ export const TOOL_FIELD_SHORT = {
   insert_type: "Insert",
   blade_thickness: "Blade",
   arbor_size: "Arbor",
+  angle: "Angle",
 };
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
@@ -121,12 +123,14 @@ export function getDefaultVisibleFields(toolType) {
     v.thread_pitch = true;
     v.thread_form = true;
   }
+  if (toolType === "Chamfer Mill" || toolType === "Countersink") {
+    v.angle = true;
+  }
   if (toolType === "Boring Bar") {
     v.min_bore_diameter = true;
     v.max_bore_diameter = true;
   }
   if (FACE_MILL_TYPES.includes(toolType)) {
-    v.insert_count = true;
     v.insert_type = true;
   }
   if (toolType === "Slitting Saw") {
@@ -142,4 +146,30 @@ export function getEffectiveVisibleFields(tool) {
   const defaults = getDefaultVisibleFields(tool.tool_type);
   const overrides = tool.visible_fields || {};
   return { ...defaults, ...overrides };
+}
+
+// ── Field-specific dropdown options (returns null when no chips apply) ──────────
+export function getFieldOptions(fieldKey, toolType) {
+  if (fieldKey === "holder") {
+    return ["ER16", "ER20", "ER25", "ER32", "ER40", "Shrink Fit", "Hydraulic", "Weldon", "Milling Chuck"];
+  }
+  if (fieldKey === "flutes" && ENDMILL_TYPES.includes(toolType)) {
+    return ["2", "3", "4", "5", "6"];
+  }
+  if (fieldKey === "diameter" && (ENDMILL_TYPES.includes(toolType) || FACE_MILL_TYPES.includes(toolType))) {
+    return [
+      "1/8", "3/16", "1/4", "5/16", "3/8", "1/2", "5/8", "3/4", "1\"",
+      "3mm", "4mm", "6mm", "8mm", "10mm", "12mm", "16mm", "20mm"
+    ];
+  }
+  if (fieldKey === "angle" && (toolType === "Chamfer Mill" || toolType === "Countersink")) {
+    return ["60°", "82°", "90°", "100°", "120°"];
+  }
+  if (fieldKey === "thread_pitch" && toolType === "Tap") {
+    return [
+      "#4-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "1/4-28", "5/16-18", "3/8-16", "1/2-13",
+      "M3x0.5", "M4x0.7", "M5x0.8", "M6x1.0", "M8x1.25", "M10x1.5", "M12x1.75"
+    ];
+  }
+  return null;
 }

@@ -6,8 +6,9 @@ import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, Trash2, Pencil, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
-import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
+import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
 
 export default function ToolList({ tools, onChange }) {
@@ -103,16 +104,29 @@ export default function ToolList({ tools, onChange }) {
                             </div>
 
                             {/* Dynamic fields */}
-                            {TOOL_FIELDS.filter(f => visible[f.key]).map(f => (
-                              <div key={f.key} className="shrink-0 w-[100px]">
-                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
-                                <Input
-                                  value={tool[f.key] || ""}
-                                  onChange={(e) => updateCell(i, f.key, e.target.value)}
-                                  className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                />
-                              </div>
-                            ))}
+                            {TOOL_FIELDS.filter(f => visible[f.key]).map(f => {
+                              const options = getFieldOptions(f.key, tool.tool_type);
+                              return (
+                                <div key={f.key} className="shrink-0 w-[100px]">
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                  {options ? (
+                                    <ComboBox
+                                      value={tool[f.key] || ""}
+                                      onChange={(v) => updateCell(i, f.key, v)}
+                                      options={options}
+                                      placeholder="—"
+                                      className="h-8 text-xs px-2 py-1 w-full"
+                                    />
+                                  ) : (
+                                    <Input
+                                      value={tool[f.key] || ""}
+                                      onChange={(e) => updateCell(i, f.key, e.target.value)}
+                                      className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
 
                             {/* Actions */}
                             <div className="flex items-end gap-0.5 ml-auto">
