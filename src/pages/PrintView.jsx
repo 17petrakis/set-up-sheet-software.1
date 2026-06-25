@@ -102,15 +102,51 @@ export default function PrintView() {
           <section>
             <h2 className="print-section-title">General Information</h2>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-1.5 border border-gray-200 rounded p-3 bg-gray-50">
+              <InfoRow label="Customer" value={general.customer} />
+              <InfoRow label="Rev" value={general.revision} />
+              <InfoRow label="Part Name" value={general.part_name} />
               <InfoRow label="Machine" value={general.machine} />
-              <InfoRow label="Job #" value={general.job_number} />
-              <InfoRow label="Program" value={general.program} />
-              <InfoRow label="Quantity" value={general.quantity} />
+              <InfoRow label="Machinist" value={general.programmer} />
+              <InfoRow label="CAM" value={general.program_software} />
+              <InfoRow label="Automated" value={general.automation} />
               <InfoRow label="Material" value={general.material} />
-              <InfoRow label="Pre Machine Size" value={general.pre_machine_size} />
-              <InfoRow label="Units" value={general.units} />
-              <InfoRow label="Cycle Time" value={general.total_cycle_time} />
+              <InfoRow label="Stock" value={general.stock} />
+              <InfoRow label="Qty" value={general.quantity} />
+              <InfoRow label="Program #" value={general.program} />
+              <InfoRow label="Program Location" value={general.program_location} />
+              <InfoRow label="Program Desc" value={general.program_description} />
+              <InfoRow label="Cycle Time" value={general.cycle_time} />
+              <InfoRow label="Handling Time" value={general.handling_time} />
+              <InfoRow label="Total Cycle" value={general.total_cycle_time} />
             </div>
+            {!isTurning && (general.stops || []).filter(Boolean).length > 0 && (
+              <div className="mt-2 border border-gray-200 rounded p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Stops</p>
+                <ul className="text-xs text-gray-800 space-y-0.5">
+                  {(general.stops || []).filter(Boolean).map((s, i) => (
+                    <li key={i}>#{i + 1}: {s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {!isTurning && general.has_deburring && (
+              <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Additional Handling</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-1.5">
+                  <InfoRow label="Deburr Time" value={general.deburring_time} />
+                  <InfoRow label="Finish Time" value={general.finishing_time} />
+                  <InfoRow label="Wash Time" value={general.wash_time} />
+                  <InfoRow label="Total Add'l" value={general.total_additional_time} />
+                </div>
+                {(general.deburring_notes || general.finishing_notes || general.wash_notes) && (
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {general.deburring_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Deburring Notes:</span> <span className="text-xs text-gray-800">{general.deburring_notes}</span></div>}
+                    {general.finishing_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Finishing Notes:</span> <span className="text-xs text-gray-800">{general.finishing_notes}</span></div>}
+                    {general.wash_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Wash Notes:</span> <span className="text-xs text-gray-800">{general.wash_notes}</span></div>}
+                  </div>
+                )}
+              </div>
+            )}
             {general.operation_description && (
               <div className="mt-2 border border-gray-200 rounded p-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">
