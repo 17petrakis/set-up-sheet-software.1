@@ -23,6 +23,7 @@ export const emptyTool = {
   tool_number: "",
   tool_type: "",
   name: "",
+  angle: "",
   diameter: "",
   flutes: "",
   flute_length: "",
