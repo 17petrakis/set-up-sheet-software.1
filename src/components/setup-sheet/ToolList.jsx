@@ -99,6 +99,12 @@ export default function ToolList({ tools, onChange }) {
           </div>
         )}
 
+        <div className="mt-3 flex justify-center">
+          <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+            <Plus className="w-3 h-3" /> Add Tool
+          </Button>
+        </div>
+
         {editingIndex !== null && tools[editingIndex] && (
           <ToolEditModal
             tool={tools[editingIndex]}

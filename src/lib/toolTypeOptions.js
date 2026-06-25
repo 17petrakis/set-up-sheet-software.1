@@ -46,6 +46,7 @@ export const TOOL_TYPE_OPTIONS = [
 
 // ── Toggleable field definitions (tool_number & tool_type are always visible) ─
 export const TOOL_FIELDS = [
+  { key: "name", label: "Name" },
   { key: "diameter", label: "Diameter" },
   { key: "flutes", label: "Flutes" },
   { key: "flute_length", label: "Flute Length" },
@@ -65,6 +66,7 @@ export const TOOL_FIELDS = [
 
 // Short labels for compact row display
 export const TOOL_FIELD_SHORT = {
+  name: "Name",
   diameter: "Dia",
   flutes: "Flutes",
   flute_length: "Flute Len",
@@ -101,16 +103,14 @@ export function getDefaultVisibleFields(toolType) {
   const v = {};
   for (const f of TOOL_FIELDS) v[f.key] = false;
 
-  // All tools show diameter + holder
+  // All tools show diameter + holder + name
   v.diameter = true;
   v.holder = true;
+  v.name = true;
 
   if (ENDMILL_TYPES.includes(toolType)) {
     v.flutes = true;
-    v.flute_length = true;
     v.stickout_length = true;
-    v.exposed_length = true;
-    v.cut_length = true;
   }
   if (HOLE_MAKING_TYPES.includes(toolType)) {
     v.stickout_length = true;
