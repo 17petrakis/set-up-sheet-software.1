@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import ComboBox from "@/components/ui/ComboBox";
+import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
@@ -116,21 +117,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
-            <select
+            <CascadingDropdown
               value={data.machine || ""}
-              onChange={(e) => update("machine")(e.target.value)}
-              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="" disabled>Select…</option>
-              {MACHINES.map(({ group, models }) => (
-                <optgroup key={group} label={group}>
-                  {models.map(m => {
-                    const label = group === m ? group : `${group} ${m}`;
-                    return <option key={label} value={label}>{label}</option>;
-                  })}
-                </optgroup>
-              ))}
-            </select>
+              onChange={update("machine")}
+              options={MACHINES}
+              placeholder="Select…"
+              className="w-full"
+            />
           </div>
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
@@ -140,14 +133,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               CAM
             </Label>
-            <select
+            <CascadingDropdown
               value={data.program_software || ""}
-              onChange={(e) => update("program_software")(e.target.value)}
-              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="" disabled>Select…</option>
-              {PROGRAMS.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+              onChange={update("program_software")}
+              options={PROGRAMS}
+              placeholder="Select…"
+              className="w-full"
+            />
           </div>
 
           {/* Automated select */}
@@ -155,16 +147,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Automated
             </Label>
-            <select
+            <CascadingDropdown
               value={data.automation || ""}
-              onChange={(e) => update("automation")(e.target.value)}
-              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="" disabled>—</option>
-              <option value="Fully">Fully</option>
-              <option value="Semi">Semi</option>
-              <option value="No">No</option>
-            </select>
+              onChange={update("automation")}
+              options={["Fully", "Semi", "No"]}
+              placeholder="—"
+              className="w-full"
+            />
           </div>
         </div>
 

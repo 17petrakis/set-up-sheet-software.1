@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ComboBox from "@/components/ui/ComboBox";
+import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionHeader from "./SectionHeader";
@@ -82,15 +83,13 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Units
             </Label>
-            <select
+            <CascadingDropdown
               value={data.units || ""}
-              onChange={(e) => update("units")(e.target.value)}
-              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="" disabled>Select…</option>
-              <option value="Inch">Inch</option>
-              <option value="Metric">Metric</option>
-            </select>
+              onChange={update("units")}
+              options={["Inch", "Metric"]}
+              placeholder="Select…"
+              className="w-full"
+            />
           </div>
 
           <Field label="Total Cycle Time" value={data.total_cycle_time} onChange={update("total_cycle_time")} />
@@ -99,18 +98,13 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Status
             </Label>
-            <select
+            <CascadingDropdown
               value={data.status || "Active"}
-              onChange={(e) => update("status")(e.target.value)}
-              className="h-9 text-sm bg-background border border-border/60 rounded-md px-3 w-full focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="" disabled>Select…</option>
-              <option value="Active">Active</option>
-              <option value="Repeating">Repeating</option>
-              <option value="One Time">One Time</option>
-              <option value="Completed">Completed</option>
-              <option value="On Hold">On Hold</option>
-            </select>
+              onChange={update("status")}
+              options={["Active", "Repeating", "One Time", "Completed", "On Hold"]}
+              placeholder="Select…"
+              className="w-full"
+            />
           </div>
         </div>
 
