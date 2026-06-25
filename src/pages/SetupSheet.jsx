@@ -331,6 +331,7 @@ export default function SetupSheet() {
       part_zero: partZeroRef.current,
       operations: operationsRef.current,
       photos: photosRef.current,
+      fixturing_notes: fixturingNotesRef.current,
       turning_chuck: turningChuckRef.current,
     };
     await base44.entities.SheetRevision.create({
@@ -349,13 +350,14 @@ export default function SetupSheet() {
     await saveRevision("Auto-saved before restore");
     const snap = revision.snapshot;
     if (!snap) return;
-    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = snap;
+    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, fixturing_notes: fn, turning_chuck: tc, ...gen } = snap;
     setGeneral({ ...emptyGeneral, ...gen });
     setTools(t?.length ? t : [{ ...emptyTool }]);
     setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
     setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
     setOperations(ops?.length ? ops : [{ ...emptyOperation }]);
     setPhotos(ph || {});
+    setFixturingNotes(fn || {});
     setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
     // Persist the restored snapshot
     await base44.entities.SetupSheet.update(id, snap);

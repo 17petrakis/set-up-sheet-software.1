@@ -125,6 +125,10 @@
       "type": "string",
       "description": "Work holding notes (milling)"
     },
+    "fixturing_notes": {
+      "type": "object",
+      "description": "Fixturing notes for milling: {fixture, vise, work_holding_notes, photo}"
+    },
     "units": {
       "type": "string",
       "enum": [
