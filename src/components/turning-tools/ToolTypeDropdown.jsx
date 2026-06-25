@@ -1,5 +1,6 @@
 import React from "react";
 import ComboBox from "@/components/ui/ComboBox";
+import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 
 // ── Shared Hole Making sub-tree ────────────────────────────────────────────────
 const HOLE_MAKING_CHILDREN = [
@@ -95,14 +96,14 @@ export function ToolBlockSelect({ value, onChange }) {
 }
 
 export default function ToolTypeDropdown({ toolKind, value, onChange }) {
-  const options = toolKind === "Mill" ? FLAT_MILL : FLAT_TURN;
+  const options = toolKind === "Mill" ? MILL_OPTIONS : TURN_OPTIONS;
   return (
-    <ComboBox
+    <TreeCascadingDropdown
       value={value || ""}
       onChange={onChange}
       options={options}
       placeholder="Select type…"
-      className="h-8 text-xs px-2 w-full min-w-[160px]"
+      className="w-full min-w-[160px]"
     />
   );
 }
