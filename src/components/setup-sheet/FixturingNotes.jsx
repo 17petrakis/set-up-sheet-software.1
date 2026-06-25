@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Wrench, ImagePlus, X, Loader2 } from "lucide-react";
+import { Wrench, Plus, X, Loader2 } from "lucide-react";
 
 export default function FixturingNotes({ data, onChange }) {
   const update = (field) => (e) => onChange({ ...data, [field]: e.target.value });
@@ -74,19 +74,16 @@ export default function FixturingNotes({ data, onChange }) {
         </div>
 
         {/* Fixturing Photo */}
-        <div className="mt-4">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-            Fixturing Photo
-          </Label>
+        <div className="mt-3">
           {data.photo ? (
-            <div className="relative group rounded-lg overflow-hidden border border-border/60">
-              <img src={data.photo} alt="Fixturing" className="w-full max-h-72 object-contain bg-muted/20" />
+            <div className="relative inline-block rounded-lg overflow-hidden border border-border/60">
+              <img src={data.photo} alt="Fixturing" className="max-h-64 object-contain bg-muted/20" />
               <button
                 type="button"
                 onClick={removePhoto}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-background/90 hover:bg-background shadow-sm border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
+                className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-background/90 hover:bg-background shadow-sm border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
@@ -94,14 +91,10 @@ export default function FixturingNotes({ data, onChange }) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-border/60 hover:border-primary/40 hover:bg-muted/30 transition-colors text-muted-foreground"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md border border-border/60 hover:border-primary/40 hover:bg-muted/30 text-muted-foreground hover:text-primary transition-colors"
+              title="Add fixturing photo"
             >
-              {uploading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <ImagePlus className="w-5 h-5" />
-              )}
-              <span className="text-xs">{uploading ? "Uploading…" : "Click to upload photo"}</span>
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             </button>
           )}
           <input
