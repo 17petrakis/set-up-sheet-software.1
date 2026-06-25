@@ -61,7 +61,6 @@ export const TOOL_FIELDS = [
   { key: "insert_type", label: "Insert Type" },
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
-  { key: "angle", label: "Angle" },
   { key: "name", label: "Name" },
 ];
 
@@ -83,11 +82,10 @@ export const TOOL_FIELD_SHORT = {
   insert_type: "Insert",
   blade_thickness: "Blade",
   arbor_size: "Arbor",
-  angle: "Angle",
 };
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
-export const ENDMILL_TYPES = [
+const ENDMILL_TYPES = [
   "Square", "Corner Radius", "Ball", "Lollipop", "T-Slot",
   "Chamfer Mill", "Thread Mill", "Engraving", "Woodruff/Keyseat", "Roughing/Corncob",
 ];
@@ -98,7 +96,7 @@ const HOLE_MAKING_TYPES = [
 const DRILL_REAMER_TYPES = [
   "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore", "Reamer",
 ];
-export const FACE_MILL_TYPES = ["Face Mill", "Shell Mill"];
+const FACE_MILL_TYPES = ["Face Mill", "Shell Mill"];
 
 // ── Default visible fields based on tool_type ─────────────────────────────────
 export function getDefaultVisibleFields(toolType) {
@@ -128,10 +126,8 @@ export function getDefaultVisibleFields(toolType) {
     v.max_bore_diameter = true;
   }
   if (FACE_MILL_TYPES.includes(toolType)) {
+    v.insert_count = true;
     v.insert_type = true;
-  }
-  if (toolType === "Chamfer Mill" || toolType === "Countersink") {
-    v.angle = true;
   }
   if (toolType === "Slitting Saw") {
     v.blade_thickness = true;

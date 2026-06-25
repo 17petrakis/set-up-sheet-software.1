@@ -9,7 +9,6 @@ import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ToolEditModal from "./ToolEditModal";
-import FieldChips from "./FieldChips";
 
 export default function ToolList({ tools, onChange }) {
   const [editingIndex, setEditingIndex] = useState(null);
@@ -111,12 +110,6 @@ export default function ToolList({ tools, onChange }) {
                                   value={tool[f.key] || ""}
                                   onChange={(e) => updateCell(i, f.key, e.target.value)}
                                   className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                />
-                                <FieldChips
-                                  fieldKey={f.key}
-                                  toolType={tool.tool_type}
-                                  currentValue={tool[f.key]}
-                                  onSelect={(v) => updateCell(i, f.key, v)}
                                 />
                               </div>
                             ))}
