@@ -68,6 +68,8 @@ export const emptyHmcStation = {
   pocket_depth: "",
   parts_per_jaw_set: "",
   part_stickout: "",
+  work_coordinate_system: "",
+  work_stop: false,
   notes: "",
   photos: [],
 };
@@ -87,6 +89,8 @@ export const emptyVmcStation = {
   pocket_depth: "",
   parts_per_jaw_set: "",
   part_stickout: "",
+  work_coordinate_system: "",
+  work_stop: false,
   notes: "",
   photos: [],
 };
@@ -103,6 +107,8 @@ export const emptyDrillTapStation = {
   collet_size: "",
   grip_size: "",
   part_stickout: "",
+  work_coordinate_system: "",
+  work_stop: false,
   notes: "",
   photos: [],
 };

@@ -117,7 +117,6 @@ export default function PrintView() {
               <InfoRow label="Machine" value={general.machine} />
               <InfoRow label="Machinist" value={general.programmer} />
               <InfoRow label="CAM" value={general.program_software} />
-              <InfoRow label="Automated" value={general.automation} />
               <InfoRow label="Material" value={general.material} />
               <InfoRow label="Stock" value={general.stock} />
               <InfoRow label="Qty" value={general.quantity} />
@@ -246,7 +245,9 @@ export default function PrintView() {
                     rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
                   }
                 }
-                rows.push(["Stickout", s.part_stickout]);
+                if (s.work_coordinate_system) rows.push(["Work Coord Sys", s.work_coordinate_system]);
+                if (s.work_stop) rows.push(["Work Stop", "Yes"]);
+                if (fGroup !== "hmc" && s.fixture_type === "Collet Chuck") rows.push(["Stickout", s.part_stickout]);
                 return rows;
               };
 

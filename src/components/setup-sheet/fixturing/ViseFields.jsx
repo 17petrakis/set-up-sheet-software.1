@@ -2,15 +2,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
-import ChipGroup from "./ChipGroup";
-import { VISE_MODELS, JAW_TYPES, WORK_OFFSETS_FULL } from "@/lib/fixturingOptions";
+import { VISE_MODELS, JAW_TYPES } from "@/lib/fixturingOptions";
 
 /**
- * Shared vise sub-fields. Configurable via props:
+ * Shared vise sub-fields.
  *   numVisesOptions — array or null (null hides the "# Vises" field)
- *   workOffsetOptions — chip values for Work Offset
  */
-export default function ViseFields({ data, onChange, numVisesOptions = null, workOffsetOptions = WORK_OFFSETS_FULL }) {
+export default function ViseFields({ data, onChange, numVisesOptions = null }) {
   const update = (field, val) => onChange({ ...data, [field]: val });
 
   return (
@@ -25,7 +23,11 @@ export default function ViseFields({ data, onChange, numVisesOptions = null, wor
           />
         </FixturingField>
         <FixturingField label="Jaw Type">
-          <ChipGroup value={data.jaw_type || ""} onChange={(v) => update("jaw_type", v)} options={JAW_TYPES} />
+          <FixturingSelect
+            value={data.jaw_type || ""}
+            onChange={(v) => update("jaw_type", v)}
+            options={JAW_TYPES}
+          />
         </FixturingField>
         <FixturingField label="Parallels">
           <div className="flex items-center gap-2 h-9">
@@ -50,11 +52,20 @@ export default function ViseFields({ data, onChange, numVisesOptions = null, wor
       <div className={`grid grid-cols-1 gap-3 ${numVisesOptions ? "sm:grid-cols-2" : ""}`}>
         {numVisesOptions && (
           <FixturingField label="Number of Vises">
-            <ChipGroup value={data.num_vises || ""} onChange={(v) => update("num_vises", v)} options={numVisesOptions} />
+            <FixturingSelect
+              value={data.num_vises || ""}
+              onChange={(v) => update("num_vises", v)}
+              options={numVisesOptions}
+              allowEmpty={false}
+            />
           </FixturingField>
         )}
         <FixturingField label="Work Offset">
-          <ChipGroup value={data.work_offset || ""} onChange={(v) => update("work_offset", v)} options={workOffsetOptions} />
+          <Input
+            value={data.work_offset || ""}
+            onChange={(e) => update("work_offset", e.target.value)}
+            className="h-9 text-sm bg-background border-border/60"
+          />
         </FixturingField>
       </div>
     </div>

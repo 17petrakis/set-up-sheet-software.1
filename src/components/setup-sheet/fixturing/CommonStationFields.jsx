@@ -1,19 +1,43 @@
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import FixturingField from "./FixturingField";
 
-export default function CommonStationFields({ data, onChange, stickoutLabel = "Part Stick-out" }) {
+export default function CommonStationFields({ data, onChange, stickoutLabel = "Part Stick-out", showStickout = false }) {
   const update = (field, val) => onChange({ ...data, [field]: val });
 
   return (
     <div className="space-y-3">
-      <FixturingField label={stickoutLabel}>
-        <Input
-          value={data.part_stickout || ""}
-          onChange={(e) => update("part_stickout", e.target.value)}
-          className="h-9 text-sm bg-background border-border/60"
-        />
-      </FixturingField>
+      {showStickout && (
+        <FixturingField label={stickoutLabel}>
+          <Input
+            value={data.part_stickout || ""}
+            onChange={(e) => update("part_stickout", e.target.value)}
+            className="h-9 text-sm bg-background border-border/60"
+          />
+        </FixturingField>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FixturingField label="Work Coordinate System">
+          <Input
+            value={data.work_coordinate_system || ""}
+            onChange={(e) => update("work_coordinate_system", e.target.value)}
+            placeholder="i.e. Fixed jaw center of part"
+            className="h-9 text-sm bg-background border-border/60"
+          />
+        </FixturingField>
+        <FixturingField label="Work Stop">
+          <div className="flex items-center gap-2 h-9">
+            <Checkbox
+              checked={!!data.work_stop}
+              onCheckedChange={(v) => update("work_stop", !!v)}
+            />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {data.work_stop ? "Yes" : "No"}
+            </span>
+          </div>
+        </FixturingField>
+      </div>
       <FixturingField label="Station Notes">
         <AutoResizeTextarea
           value={data.notes || ""}

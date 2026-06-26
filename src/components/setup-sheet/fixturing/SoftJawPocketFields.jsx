@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import FixturingField from "./FixturingField";
 import ChipGroup from "./ChipGroup";
-import { JAW_MATERIALS, WORK_OFFSETS_FULL } from "@/lib/fixturingOptions";
+import { JAW_MATERIALS } from "@/lib/fixturingOptions";
 
 export default function SoftJawPocketFields({ data, onChange }) {
   const update = (field, val) => onChange({ ...data, [field]: val });
@@ -29,7 +29,11 @@ export default function SoftJawPocketFields({ data, onChange }) {
         </FixturingField>
       </div>
       <FixturingField label="Work Offset">
-        <ChipGroup value={data.work_offset || ""} onChange={(v) => update("work_offset", v)} options={WORK_OFFSETS_FULL} />
+        <Input
+          value={data.work_offset || ""}
+          onChange={(e) => update("work_offset", e.target.value)}
+          className="h-9 text-sm bg-background border-border/60"
+        />
       </FixturingField>
     </div>
   );

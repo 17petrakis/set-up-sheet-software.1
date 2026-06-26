@@ -8,7 +8,7 @@ import ViseFields from "./ViseFields";
 import FixturePlateFields from "./FixturePlateFields";
 import VacuumPlateFields from "./VacuumPlateFields";
 import CommonStationFields from "./CommonStationFields";
-import { VMC_FIXTURE_TYPES, WORK_OFFSETS_FULL } from "@/lib/fixturingOptions";
+import { VMC_FIXTURE_TYPES } from "@/lib/fixturingOptions";
 
 export default function VmcStationCard({ station, index, onChange, onRemove }) {
   const update = (field, val) => onChange({ ...station, [field]: val });
@@ -49,7 +49,7 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
       </FixturingField>
 
       {station.fixture_type === "Vise" && (
-        <ViseFields data={station} onChange={onChange} numVisesOptions={null} workOffsetOptions={WORK_OFFSETS_FULL} />
+        <ViseFields data={station} onChange={onChange} numVisesOptions={null} />
       )}
       {station.fixture_type === "Fixture Plate" && (
         <FixturePlateFields data={station} onChange={onChange} />
@@ -58,7 +58,7 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
         <VacuumPlateFields data={station} onChange={onChange} />
       )}
 
-      <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" />
+      <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" showStickout={false} />
       <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
     </div>
   );

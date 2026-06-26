@@ -98,8 +98,8 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
         </div>
 
-        {/* Row 2: Machine, Machinist, CAM, Automated */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
+        {/* Row 2: Machine, Machinist, CAM */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
@@ -124,19 +124,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               onChange={update("program_software")}
               options={PROGRAMS}
               placeholder="Select…"
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Automated
-            </Label>
-            <CascadingDropdown
-              value={data.automation || ""}
-              onChange={update("automation")}
-              options={["Fully", "Semi", "No"]}
-              placeholder="—"
               className="w-full"
             />
           </div>

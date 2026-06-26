@@ -8,7 +8,7 @@ import ViseFields from "./ViseFields";
 import ColletChuckFields from "./ColletChuckFields";
 import TallonGripFields from "./TallonGripFields";
 import CommonStationFields from "./CommonStationFields";
-import { DT_FIXTURE_TYPES, NUM_VISES_2, WORK_OFFSETS_4 } from "@/lib/fixturingOptions";
+import { DT_FIXTURE_TYPES, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
 export default function DrillTapStationCard({ station, index, onChange, onRemove }) {
   const update = (field, val) => onChange({ ...station, [field]: val });
@@ -49,7 +49,7 @@ export default function DrillTapStationCard({ station, index, onChange, onRemove
       </FixturingField>
 
       {station.fixture_type === "Vise" && (
-        <ViseFields data={station} onChange={onChange} numVisesOptions={NUM_VISES_2} workOffsetOptions={WORK_OFFSETS_4} />
+        <ViseFields data={station} onChange={onChange} numVisesOptions={NUM_VISES_3} />
       )}
       {station.fixture_type === "Collet Chuck" && (
         <ColletChuckFields data={station} onChange={onChange} />
@@ -58,7 +58,7 @@ export default function DrillTapStationCard({ station, index, onChange, onRemove
         <TallonGripFields data={station} onChange={onChange} />
       )}
 
-      <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" />
+      <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" showStickout={station.fixture_type === "Collet Chuck"} />
       <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
     </div>
   );

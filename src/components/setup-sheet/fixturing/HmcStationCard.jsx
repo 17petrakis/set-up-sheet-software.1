@@ -9,7 +9,7 @@ import ViseFields from "./ViseFields";
 import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
 import CommonStationFields from "./CommonStationFields";
-import { HMC_TOMBSTONE_TYPES, HMC_WORKHOLDING, NUM_VISES_3, WORK_OFFSETS_FULL } from "@/lib/fixturingOptions";
+import { HMC_TOMBSTONE_TYPES, HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
 export default function HmcStationCard({ station, index, onChange, onRemove }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -79,7 +79,6 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
               data={station}
               onChange={onChange}
               numVisesOptions={NUM_VISES_3}
-              workOffsetOptions={WORK_OFFSETS_FULL}
             />
           )}
           {station.workholding_type === "Custom Fixture Block" && (
@@ -89,7 +88,7 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
             <SoftJawPocketFields data={station} onChange={onChange} />
           )}
 
-          <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out / Orientation" />
+          <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out / Orientation" showStickout={false} />
           <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
         </div>
       )}
