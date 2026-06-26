@@ -1,7 +1,8 @@
 import { Input } from "@/components/ui/input";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
+import StationPhotos from "./StationPhotos";
 import { BANDSAW_STOCK_TYPES, BANDSAW_BLADE_TPI } from "@/lib/fixturingOptions";
 
 export default function BandsawSection({ data, onChange }) {
@@ -11,7 +12,7 @@ export default function BandsawSection({ data, onChange }) {
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FixturingField label="Stock Type">
-          <ChipGroup value={data.stock_type || ""} onChange={(v) => update("stock_type", v)} options={BANDSAW_STOCK_TYPES} />
+          <FixturingSelect value={data.stock_type || ""} onChange={(v) => update("stock_type", v)} options={BANDSAW_STOCK_TYPES} />
         </FixturingField>
         <FixturingField label="Stock Dimensions">
           <Input
@@ -39,7 +40,7 @@ export default function BandsawSection({ data, onChange }) {
           />
         </FixturingField>
         <FixturingField label="Blade TPI">
-          <ChipGroup value={data.blade_tpi || ""} onChange={(v) => update("blade_tpi", v)} options={BANDSAW_BLADE_TPI} />
+          <FixturingSelect value={data.blade_tpi || ""} onChange={(v) => update("blade_tpi", v)} options={BANDSAW_BLADE_TPI} />
         </FixturingField>
         <FixturingField label="Fence / Stop Reference">
           <Input
@@ -57,6 +58,7 @@ export default function BandsawSection({ data, onChange }) {
           className="min-h-[80px] text-sm bg-background border-border/60"
         />
       </FixturingField>
+      <StationPhotos photos={data.photos || []} onChange={(photos) => onChange({ ...data, photos })} />
     </div>
   );
 }

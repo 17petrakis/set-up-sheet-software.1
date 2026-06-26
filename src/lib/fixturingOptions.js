@@ -69,6 +69,7 @@ export const emptyHmcStation = {
   parts_per_jaw_set: "",
   part_stickout: "",
   notes: "",
+  photos: [],
 };
 
 export const emptyVmcStation = {
@@ -87,6 +88,7 @@ export const emptyVmcStation = {
   parts_per_jaw_set: "",
   part_stickout: "",
   notes: "",
+  photos: [],
 };
 
 export const emptyDrillTapStation = {
@@ -102,4 +104,5 @@ export const emptyDrillTapStation = {
   grip_size: "",
   part_stickout: "",
   notes: "",
+  photos: [],
 };

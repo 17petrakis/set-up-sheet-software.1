@@ -185,7 +185,7 @@ export default function PrintView() {
                   ["Fence / Stop", fix.fence_stop_ref],
                 ];
                 const hasData = rows.some(([, v]) => v);
-                if (!hasData && !fix.notes) return null;
+                if (!hasData && !fix.notes && !fix.photos?.length) return null;
                 return (
                   <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Saw Setup</p>
@@ -195,12 +195,22 @@ export default function PrintView() {
                       </div>
                     )}
                     {fix.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{fix.notes}</p>}
+                    {fix.photos?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1.5">
+                        {fix.photos.map((p, pi) => (
+                          <div key={pi}>
+                            <img src={p.url} alt="" className="w-24 h-24 object-cover rounded border border-gray-200" />
+                            {p.note && <p className="text-[9px] text-gray-600 mt-0.5 max-w-[6rem]">{p.note}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               }
 
               const stations = fix.stations || [];
-              if (stations.length === 0 && !fix.photo) return null;
+              if (stations.length === 0) return null;
 
               const renderStationRows = (s, isHmc) => {
                 const rows = [];
@@ -258,15 +268,20 @@ export default function PrintView() {
                                 {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                               </div>
                               {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
+                              {s.photos?.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-1.5">
+                                  {s.photos.map((p, pi) => (
+                                    <div key={pi}>
+                                      <img src={p.url} alt="" className="w-24 h-24 object-cover rounded border border-gray-200" />
+                                      {p.note && <p className="text-[9px] text-gray-600 mt-0.5 max-w-[6rem]">{p.note}</p>}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
-                    </div>
-                  )}
-                  {fix.photo && (
-                    <div className="mt-2">
-                      <img src={fix.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
                     </div>
                   )}
                 </>

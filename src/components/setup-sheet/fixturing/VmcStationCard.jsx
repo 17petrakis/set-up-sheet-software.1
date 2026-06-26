@@ -2,7 +2,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
+import StationPhotos from "./StationPhotos";
 import ViseFields from "./ViseFields";
 import FixturePlateFields from "./FixturePlateFields";
 import VacuumPlateFields from "./VacuumPlateFields";
@@ -40,7 +41,7 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
       </div>
 
       <FixturingField label="Fixture Type">
-        <ChipGroup
+        <FixturingSelect
           value={station.fixture_type || ""}
           onChange={(v) => update("fixture_type", v)}
           options={VMC_FIXTURE_TYPES}
@@ -58,6 +59,7 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
       )}
 
       <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" />
+      <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
     </div>
   );
 }

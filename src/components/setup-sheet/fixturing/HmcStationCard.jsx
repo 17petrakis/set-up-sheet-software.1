@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
-import ChipGroup from "./ChipGroup";
+import StationPhotos from "./StationPhotos";
 import ViseFields from "./ViseFields";
 import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
@@ -67,7 +67,7 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
           </div>
 
           <FixturingField label="Workholding Type">
-            <ChipGroup
+            <FixturingSelect
               value={station.workholding_type || ""}
               onChange={(v) => update("workholding_type", v)}
               options={HMC_WORKHOLDING}
@@ -90,6 +90,7 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
           )}
 
           <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out / Orientation" />
+          <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
         </div>
       )}
     </div>
