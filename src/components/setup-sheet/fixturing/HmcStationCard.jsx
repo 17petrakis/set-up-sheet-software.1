@@ -2,9 +2,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
-import ComboBox from "@/components/ui/ComboBox";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
 import ViseFields from "./ViseFields";
 import { TOMBSTONE_TYPES, HMC_WORKHOLDING } from "@/lib/fixturingOptions";
 
@@ -37,13 +36,10 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
           />
         </FixturingField>
         <FixturingField label="Tombstone / Fixture Type">
-          <ComboBox
+          <FixturingSelect
             value={station.tombstone_type || ""}
             onChange={(v) => update("tombstone_type", v)}
             options={TOMBSTONE_TYPES}
-            placeholder="Select…"
-            allowFreeText={false}
-            className="h-9 text-sm px-3 w-full"
           />
         </FixturingField>
         <FixturingField label="Bolt Pattern Ref">
@@ -64,7 +60,7 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
       </div>
 
       <FixturingField label="Workholding Type">
-        <ChipGroup
+        <FixturingSelect
           value={station.workholding_type || ""}
           onChange={(v) => update("workholding_type", v)}
           options={HMC_WORKHOLDING}

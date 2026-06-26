@@ -1,8 +1,7 @@
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import ComboBox from "@/components/ui/ComboBox";
+import { Checkbox } from "@/components/ui/checkbox";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
 import { VISE_MODELS, JAW_TYPES } from "@/lib/fixturingOptions";
 
 /**
@@ -17,23 +16,31 @@ export default function ViseFields({ data, onChange, showViseModel = true }) {
       <div className={`grid grid-cols-1 ${showViseModel ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3`}>
         {showViseModel && (
           <FixturingField label="Vise Model">
-            <ComboBox
+            <FixturingSelect
               value={data.vise_model || ""}
               onChange={(v) => update("vise_model", v)}
               options={VISE_MODELS}
-              placeholder="Select…"
-              allowFreeText={false}
-              className="h-9 text-sm px-3 w-full"
+              allowEmpty={false}
             />
           </FixturingField>
         )}
         <FixturingField label="Jaw Type">
-          <ChipGroup value={data.jaw_type || ""} onChange={(v) => update("jaw_type", v)} options={JAW_TYPES} />
+          <FixturingSelect
+            value={data.jaw_type || ""}
+            onChange={(v) => update("jaw_type", v)}
+            options={JAW_TYPES}
+          />
         </FixturingField>
         <FixturingField label="Parallels">
           <div className="flex items-center gap-2 h-9">
-            <Switch checked={!!data.parallels} onCheckedChange={(v) => update("parallels", v)} />
-            <span className="text-xs text-muted-foreground">{data.parallels ? "Yes" : "No"}</span>
+            <Checkbox
+              id={`parallels-${showViseModel ? "full" : "mini"}`}
+              checked={!!data.parallels}
+              onCheckedChange={(v) => update("parallels", !!v)}
+            />
+            <label htmlFor={`parallels-${showViseModel ? "full" : "mini"}`} className="text-xs text-muted-foreground cursor-pointer">
+              {data.parallels ? "Yes" : "No"}
+            </label>
           </div>
         </FixturingField>
       </div>
