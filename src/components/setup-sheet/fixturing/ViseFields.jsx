@@ -32,28 +32,26 @@ export default function ViseFields({ data, onChange, showViseModel = true }) {
           />
         </FixturingField>
         <FixturingField label="Parallels">
-          <div className="flex items-center gap-2 h-9">
+          <div className="flex items-center gap-3 h-9">
             <Checkbox
               id={`parallels-${showViseModel ? "full" : "mini"}`}
               checked={!!data.parallels}
               onCheckedChange={(v) => update("parallels", !!v)}
             />
-            <label htmlFor={`parallels-${showViseModel ? "full" : "mini"}`} className="text-xs text-muted-foreground cursor-pointer">
+            <label htmlFor={`parallels-${showViseModel ? "full" : "mini"}`} className="text-xs text-muted-foreground cursor-pointer whitespace-nowrap">
               {data.parallels ? "Yes" : "No"}
             </label>
+            {data.parallels && (
+              <Input
+                value={data.parallel_height || ""}
+                onChange={(e) => update("parallel_height", e.target.value)}
+                placeholder='Height e.g. 1.000"'
+                className="h-8 text-sm bg-background border-border/60 flex-1 min-w-[100px]"
+              />
+            )}
           </div>
         </FixturingField>
       </div>
-      {data.parallels && (
-        <FixturingField label="Parallel Height" className="sm:max-w-[200px]">
-          <Input
-            value={data.parallel_height || ""}
-            onChange={(e) => update("parallel_height", e.target.value)}
-            placeholder='e.g. 1.000"'
-            className="h-9 text-sm bg-background border-border/60"
-          />
-        </FixturingField>
-      )}
     </div>
   );
 }

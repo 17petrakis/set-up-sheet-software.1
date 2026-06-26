@@ -42,12 +42,11 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
             options={TOMBSTONE_TYPES}
           />
         </FixturingField>
-        <FixturingField label="Bolt Pattern Ref">
-          <Input
-            value={station.bolt_pattern || ""}
-            onChange={(e) => update("bolt_pattern", e.target.value)}
-            placeholder="e.g. E9, E13"
-            className="h-9 text-sm bg-background border-border/60"
+        <FixturingField label="Workholding Type">
+          <FixturingSelect
+            value={station.workholding_type || ""}
+            onChange={(v) => update("workholding_type", v)}
+            options={HMC_WORKHOLDING}
           />
         </FixturingField>
         <FixturingField label="Part Stick-out / Orientation">
@@ -58,14 +57,6 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
           />
         </FixturingField>
       </div>
-
-      <FixturingField label="Workholding Type">
-        <FixturingSelect
-          value={station.workholding_type || ""}
-          onChange={(v) => update("workholding_type", v)}
-          options={HMC_WORKHOLDING}
-        />
-      </FixturingField>
 
       {station.workholding_type === "Vise" && (
         <ViseFields data={station} onChange={onChange} showViseModel />
