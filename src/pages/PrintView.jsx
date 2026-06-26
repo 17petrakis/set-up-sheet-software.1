@@ -175,74 +175,93 @@ export default function PrintView() {
               const fGroup = getMachineGroup(general.machine);
               if (!fGroup) return null;
 
-              if (fGroup === "hmc") {
-                const stations = fix.stations || [];
-                if (stations.length === 0 && !fix.photo) return null;
+              if (fGroup === "bandsaw") {
+                const rows = [
+                  ["Stock Type", fix.stock_type],
+                  ["Stock Dimensions", fix.stock_dimensions],
+                  ["Cut Length", fix.cut_length],
+                  ["Quantity", fix.quantity],
+                  ["Blade TPI", fix.blade_tpi],
+                  ["Fence / Stop", fix.fence_stop_ref],
+                ];
+                const hasData = rows.some(([, v]) => v);
+                if (!hasData && !fix.notes) return null;
                 return (
-                  <>
-                    {stations.length > 0 && (
-                      <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing Stations</p>
-                        <div className="space-y-3">
-                          {stations.map((s, i) => (
-                            <div key={i} className="border border-gray-200 rounded p-2 bg-white">
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">Station {i + 1}</p>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
-                                <InfoRow label="Pallet" value={s.pallet_id} />
-                                <InfoRow label="Tombstone" value={s.tombstone_type} />
-                                <InfoRow label="Bolt Pattern" value={s.bolt_pattern} />
-                                <InfoRow label="Workholding" value={s.workholding_type} />
-                                {s.workholding_type === "Vise" && (
-                                  <>
-                                    <InfoRow label="Vise Model" value={s.vise_model} />
-                                    <InfoRow label="Jaw Type" value={s.jaw_type} />
-                                    <InfoRow label="Parallels" value={s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"} />
-                                  </>
-                                )}
-                                <InfoRow label="Stickout" value={s.part_stickout} />
-                              </div>
-                              {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
-                            </div>
-                          ))}
-                        </div>
+                  <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Saw Setup</p>
+                    {hasData && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1">
+                        {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                       </div>
                     )}
-                    {fix.photo && (
-                      <div className="mt-2">
-                        <img src={fix.photo} alt="Fixturing" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "400px" }} />
-                      </div>
-                    )}
-                  </>
+                    {fix.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{fix.notes}</p>}
+                  </div>
                 );
               }
 
-              // VMC or Drill-Tap
-              const rows = [];
-              rows.push(["Fixture Type", fix.fixture_type]);
-              if (fGroup === "drill_tap" && fix.fixture_type === "Collet Chuck") rows.push(["Collet Size", fix.collet_size]);
-              if (fix.fixture_type === "Vise") {
-                if (fGroup === "vmc") rows.push(["Vise Model", fix.vise_model]);
-                rows.push(["Jaw Type", fix.jaw_type]);
-                rows.push(["Parallels", fix.parallels ? `Yes${fix.parallel_height ? ` (${fix.parallel_height})` : ""}` : "No"]);
-              }
-              rows.push(["Work Offset", fix.work_offset]);
-              rows.push(["Part Stickout", fix.part_stickout]);
-              const hasData = rows.some(([, v]) => v);
+              const stations = fix.stations || [];
+              if (stations.length === 0 && !fix.photo) return null;
 
-              if (!hasData && !fix.notes && !fix.photo) return null;
+              const renderStationRows = (s, isHmc) => {
+                const rows = [];
+                if (isHmc) {
+                  rows.push(["Pallet", s.pallet_id], ["Face", s.face_label], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
+                  if (s.workholding_type === "Vise") {
+                    rows.push(["Vise Model", s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.workholding_type === "Custom Fixture Block") {
+                    rows.push(["Block ID", s.fixture_block_id], ["Clamp Type", s.clamp_type], ["Parts/Face", s.parts_per_face], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.workholding_type === "Soft Jaw Pocket") {
+                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
+                  }
+                } else {
+                  rows.push(["Station", s.station_label], ["Fixture Type", s.fixture_type]);
+                  if (s.fixture_type === "Vise") {
+                    rows.push(["Vise Model", s.vise_model], ["Jaw Type", s.jaw_type], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["# Vises", s.num_vises], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.fixture_type === "Fixture Plate") {
+                    rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.fixture_type === "Vacuum Plate") {
+                    rows.push(["Plate ID/Size", s.plate_id], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.fixture_type === "Collet Chuck") {
+                    rows.push(["Collet Size", s.collet_size], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.fixture_type === "Tallon Grip") {
+                    rows.push(["Grip Size", s.grip_size], ["Work Offset", s.work_offset]);
+                  }
+                  if (s.fixture_type === "Soft Jaw Pocket") {
+                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
+                  }
+                }
+                rows.push(["Stickout", s.part_stickout]);
+                return rows;
+              };
+
               return (
                 <>
-                  {(hasData || fix.notes) && (
+                  {stations.length > 0 && (
                     <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing</p>
-                      {hasData && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
-                          {rows.filter(([, v]) => v).map(([label, value]) => (
-                            <InfoRow key={label} label={label} value={value} />
-                          ))}
-                        </div>
-                      )}
-                      {fix.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{fix.notes}</p>}
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing Stations</p>
+                      <div className="space-y-3">
+                        {stations.map((s, i) => {
+                          const rows = renderStationRows(s, fGroup === "hmc");
+                          const header = fGroup === "hmc"
+                            ? `Station ${i + 1}${s.face_label ? ` — ${s.face_label}` : s.pallet_id ? ` — ${s.pallet_id}` : ""}`
+                            : (s.station_label || `Station ${i + 1}`);
+                          return (
+                            <div key={i} className="border border-gray-200 rounded p-2 bg-white">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                                {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
+                              </div>
+                              {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                   {fix.photo && (

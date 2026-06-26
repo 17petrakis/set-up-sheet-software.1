@@ -7,11 +7,14 @@ import { getMachineGroup } from "@/lib/machineGroups";
 import HmcFixturing from "./fixturing/HmcFixturing";
 import VmcSection from "./fixturing/VmcSection";
 import DrillTapSection from "./fixturing/DrillTapSection";
+import BandsawSection from "./fixturing/BandsawSection";
 
 export default function FixturingNotes({ data, onChange, machine }) {
   const group = getMachineGroup(machine);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+
+  const showPhoto = group && group !== "bandsaw";
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -43,12 +46,13 @@ export default function FixturingNotes({ data, onChange, machine }) {
           <HmcFixturing data={data} onChange={onChange} />
         ) : group === "vmc" ? (
           <VmcSection data={data} onChange={onChange} />
-        ) : (
+        ) : group === "drill_tap" ? (
           <DrillTapSection data={data} onChange={onChange} />
-        )}
+        ) : group === "bandsaw" ? (
+          <BandsawSection data={data} onChange={onChange} />
+        ) : null}
 
-        {/* Fixturing Photo */}
-        {group && (
+        {showPhoto && (
           <div className="mt-3">
             {data.photo ? (
               <div className="relative inline-block rounded-lg overflow-hidden border border-border/60">

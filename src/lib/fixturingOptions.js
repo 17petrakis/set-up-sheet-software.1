@@ -1,44 +1,105 @@
-// Shared option lists and defaults for the fixturing section.
+// Shared option lists and empty-station defaults for the fixturing section.
 
-export const TOMBSTONE_TYPES = [
+// ── HMC ──
+export const HMC_TOMBSTONE_TYPES = [
   "4-Face Tombstone",
   "2-Face Tombstone",
   "Angle Plate",
-  "Pallet Fixture",
-  "Custom Fixture",
+  "Pallet Fixture Plate",
+  "Custom Fixture Block",
   "None",
 ];
 
 export const HMC_WORKHOLDING = [
   "Vise",
+  "Custom Fixture Block",
+  "Mitee-Bite / Edge Clamp",
+  "Soft Jaw Pocket",
   "Direct Clamp",
-  "Soft Jaws",
-  "Step Jaws",
-  "Custom Fixture",
+  "Dovetail Fixture",
+  "Collet / Chuck",
   "None",
 ];
 
+// ── VMC ──
+export const VMC_FIXTURE_TYPES = ["Vise", "Fixture Plate", "Direct Clamp", "Vacuum Plate", "Soft Jaw Pocket", "Custom"];
+
+// ── Drill-Tap ──
+export const DT_FIXTURE_TYPES = ["Vise", "Collet Chuck", "Tallon Grip", "Vacuum Plate", "Fixture Plate", "Custom"];
+
+// ── Shared ──
 export const VISE_MODELS = ['Kurt 5"', 'Kurt 6"', "Lang Makro", "Chick", "Custom"];
-
 export const JAW_TYPES = ["Hard Jaws", "Soft Jaws", "Step Jaws", "Tallon Grip", "Versa-Grip"];
+export const NUM_VISES_3 = ["1", "2", "3"];
+export const NUM_VISES_2 = ["1", "2"];
+export const WORK_OFFSETS_FULL = ["G54", "G55", "G56", "G57", "G58", "G59"];
+export const WORK_OFFSETS_4 = ["G54", "G55", "G56", "G57"];
+export const WORK_OFFSETS_2 = ["G54", "G55"];
 
-export const VMC_FIXTURE_TYPES = ["Vise", "Fixture Plate", "Direct Clamp", "Vacuum Plate", "Custom"];
+// ── HMC Custom Fixture Block ──
+export const CLAMP_TYPES_HMC = ["Mitee-Bite", "Edge Clamp", "Strap Clamp", "Socket Head Cap Screw", "Custom"];
 
-export const VMC_WORK_OFFSETS = ["G54", "G55", "G56", "G57", "G58", "G59"];
+// ── HMC / VMC Soft Jaw Pocket ──
+export const JAW_MATERIALS = ["Aluminum", "Steel", "Delrin"];
 
-export const DT_FIXTURE_TYPES = ["Collet Chuck", "Vise", "Tallon Grip", "Vacuum Plate", "Fixture Plate", "Custom"];
+// ── VMC Fixture Plate ──
+export const CLAMP_TYPES_VMC = ["Mitee-Bite", "Strap Clamp", "SHCS", "Custom"];
 
-export const DT_WORK_OFFSETS = ["G54", "G55", "G56", "G57"];
+// ── Bandsaw ──
+export const BANDSAW_STOCK_TYPES = ["Bar Round", "Bar Square", "Bar Rectangular", "Plate", "Tube", "Structural"];
+export const BANDSAW_BLADE_TPI = ["3/4", "6/10", "8/12", "10/14", "14"];
 
-export const emptyStation = {
+// ── Empty station defaults ──
+export const emptyHmcStation = {
   pallet_id: "",
-  tombstone_type: "",
-  bolt_pattern: "",
+  face_label: "",
+  tombstone_structure: "",
   workholding_type: "",
+  vise_model: "",
+  jaw_type: "",
+  num_vises: "",
+  parallels: false,
+  parallel_height: "",
+  work_offset: "",
+  fixture_block_id: "",
+  clamp_type: "",
+  parts_per_face: "",
+  jaw_material: "",
+  pocket_depth: "",
+  parts_per_jaw_set: "",
+  part_stickout: "",
+  notes: "",
+};
+
+export const emptyVmcStation = {
+  station_label: "",
+  fixture_type: "",
   vise_model: "",
   jaw_type: "",
   parallels: false,
   parallel_height: "",
+  work_offset: "",
+  fixture_plate_id: "",
+  clamp_type: "",
+  plate_id: "",
+  jaw_material: "",
+  pocket_depth: "",
+  parts_per_jaw_set: "",
+  part_stickout: "",
+  notes: "",
+};
+
+export const emptyDrillTapStation = {
+  station_label: "",
+  fixture_type: "",
+  vise_model: "",
+  jaw_type: "",
+  parallels: false,
+  parallel_height: "",
+  num_vises: "",
+  work_offset: "",
+  collet_size: "",
+  grip_size: "",
   part_stickout: "",
   notes: "",
 };
