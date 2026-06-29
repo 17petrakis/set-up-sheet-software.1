@@ -139,17 +139,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         {/* Row 5: Cycle Time, Program Desc. */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
           <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} />
-          <div className="sm:col-span-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Program Desc.
-            </Label>
-            <Input
-              value={data.program_description || ""}
-              onChange={(e) => update("program_description")(e.target.value)}
-              placeholder="i.e. Roughing"
-              className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-            />
-          </div>
+          <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
         </div>
 
         {/* Stops */}

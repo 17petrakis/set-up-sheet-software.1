@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
 import { CLAMP_TYPES_HMC } from "@/lib/fixturingOptions";
 
 export default function CustomFixtureFields({ data, onChange }) {
@@ -26,7 +26,7 @@ export default function CustomFixtureFields({ data, onChange }) {
         </FixturingField>
       </div>
       <FixturingField label="Clamp Type">
-        <ChipGroup value={data.clamp_type || ""} onChange={(v) => update("clamp_type", v)} options={CLAMP_TYPES_HMC} />
+        <FixturingSelect value={data.clamp_type || ""} onChange={(v) => update("clamp_type", v)} options={CLAMP_TYPES_HMC} />
       </FixturingField>
       <FixturingField label="Work Offset">
         <Input

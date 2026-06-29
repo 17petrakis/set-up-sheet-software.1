@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import FixturingField from "./FixturingField";
-import ChipGroup from "./ChipGroup";
+import FixturingSelect from "./FixturingSelect";
 import { JAW_MATERIALS } from "@/lib/fixturingOptions";
 
 export default function SoftJawPocketFields({ data, onChange }) {
@@ -10,7 +10,7 @@ export default function SoftJawPocketFields({ data, onChange }) {
     <div className="space-y-3 pl-3 border-l-2 border-primary/20">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FixturingField label="Jaw Material">
-          <ChipGroup value={data.jaw_material || ""} onChange={(v) => update("jaw_material", v)} options={JAW_MATERIALS} />
+          <FixturingSelect value={data.jaw_material || ""} onChange={(v) => update("jaw_material", v)} options={JAW_MATERIALS} />
         </FixturingField>
         <FixturingField label="Pocket Depth">
           <Input
