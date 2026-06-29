@@ -18,22 +18,22 @@ export default function TimeInput({ value, onChange }) {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Minutes</span>
+    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-background">
+      <span className="text-xs text-muted-foreground whitespace-nowrap">Min</span>
       <Input
         type="number"
         min="0"
         value={minutes || ""}
         onChange={(e) => handleChange(e.target.value, seconds)}
-        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors w-16 text-center"
+        className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-14 text-center px-1"
       />
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Seconds</span>
+      <span className="text-xs text-muted-foreground whitespace-nowrap">Sec</span>
       <Input
         type="number"
         min="0"
         value={seconds || ""}
         onChange={(e) => handleChange(minutes, e.target.value)}
-        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors w-14 text-center"
+        className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-12 text-center px-1"
       />
     </div>
   );
