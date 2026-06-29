@@ -18,23 +18,28 @@ export default function TimeInput({ value, onChange }) {
   };
 
   return (
-    <div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-background">
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Min</span>
-      <Input
-        type="number"
-        min="0"
-        value={minutes || ""}
-        onChange={(e) => handleChange(e.target.value, seconds)}
-        className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-14 text-center px-1"
-      />
-      <span className="text-xs text-muted-foreground whitespace-nowrap">Sec</span>
-      <Input
-        type="number"
-        min="0"
-        value={seconds || ""}
-        onChange={(e) => handleChange(minutes, e.target.value)}
-        className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-12 text-center px-1"
-      />
+    <div className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-border/60 bg-background">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">Min</span>
+        <Input
+          type="number"
+          min="0"
+          value={minutes || ""}
+          onChange={(e) => handleChange(e.target.value, seconds)}
+          className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-14 text-center px-1"
+        />
+      </div>
+      <div className="w-px h-5 bg-border/50 mx-0.5" />
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">Sec</span>
+        <Input
+          type="number"
+          min="0"
+          value={seconds || ""}
+          onChange={(e) => handleChange(minutes, e.target.value)}
+          className="h-7 text-sm border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 transition-colors w-12 text-center px-1"
+        />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import ComboBox from "@/components/ui/ComboBox";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 
 // ── Shared Hole Making sub-tree ────────────────────────────────────────────────
@@ -85,13 +85,14 @@ export function isHoleMaking(typeValue) {
 
 export function ToolBlockSelect({ value, onChange }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={["Turn OD", "Bore OD", "Part off OD", "Axial Face"]}
-      placeholder="Tool Block…"
-      className="h-8 text-xs px-2 w-36 shrink-0"
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-8 text-xs px-2 w-36 shrink-0 bg-background border-border/60">
+        <SelectValue placeholder="Tool Block…" />
+      </SelectTrigger>
+      <SelectContent>
+        {["Turn OD", "Bore OD", "Part off OD", "Axial Face"].map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
-import ComboBox from "@/components/ui/ComboBox";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import SectionHeader from "./SectionHeader";
 import { Wrench, X, Plus } from "lucide-react";
 
@@ -27,13 +27,14 @@ const MACHINE_CHUCK_MAP = {
 
 function ChuckTypeDropdown({ value, onChange }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={CHUCK_OPTIONS}
-      placeholder="Select or type…"
-      className="h-9 text-sm px-3 w-full"
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+        <SelectValue placeholder="Select…" />
+      </SelectTrigger>
+      <SelectContent>
+        {CHUCK_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -53,13 +54,14 @@ function getAccessoryOptions(spindleKey) {
 
 function AccessoriesDropdown({ value, onChange, spindleKey }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={getAccessoryOptions(spindleKey)}
-      placeholder="Select…"
-      className="h-9 text-sm px-3 w-full"
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+        <SelectValue placeholder="Select…" />
+      </SelectTrigger>
+      <SelectContent>
+        {getAccessoryOptions(spindleKey).map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -68,13 +70,14 @@ const JAW_TYPES = ['Hard Jaw', 'Soft Jaw', 'Mounted Fixture'];
 
 function JawTypeDropdown({ value, onChange }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={JAW_TYPES}
-      placeholder="Select or type…"
-      className="h-9 text-sm px-3 w-full"
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+        <SelectValue placeholder="Select…" />
+      </SelectTrigger>
+      <SelectContent>
+        {JAW_TYPES.map(j => <SelectItem key={j} value={j}>{j}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 

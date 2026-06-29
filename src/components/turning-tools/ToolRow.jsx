@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, ChevronDown, ChevronRight, Plus, X } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, Plus, X, Pencil } from "lucide-react";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
-import ComboBox from "@/components/ui/ComboBox";
+import TurningToolEditModal from "./TurningToolEditModal";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
@@ -59,13 +59,18 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
 
 function SmallSelect({ value, onChange, options, placeholder = "—", className = "w-20" }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={options}
-      placeholder={placeholder}
-      className={`h-7 text-xs px-1.5 ${className}`}
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className={`h-7 text-xs px-1.5 ${className}`}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map(opt => {
+          const val = typeof opt === "string" ? opt : opt.value;
+          const label = typeof opt === "string" ? opt : opt.label;
+          return <SelectItem key={val} value={val} className="text-xs">{label}</SelectItem>;
+        })}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -92,19 +97,6 @@ function StackableExtension({ value, onChange, options }) {
   );
 }
 
-// ── Removable field wrapper ────────────────────────────────────────────────────
-function RemovableField({ fieldKey, onRemove, children }) {
-  return (
-    <div className="relative group">
-      {children}
-      <button type="button" onClick={() => onRemove(fieldKey)}
-        className="absolute -top-1.5 -right-1.5 hidden group-hover:flex items-center justify-center w-4 h-4 bg-destructive text-destructive-foreground rounded-full z-10">
-        <X className="w-2.5 h-2.5" />
-      </button>
-    </div>
-  );
-}
-
 // ── Field label + content wrapper ─────────────────────────────────────────────
 function F({ label, children, className = "" }) {
   return (
@@ -115,38 +107,10 @@ function F({ label, children, className = "" }) {
   );
 }
 
-// ── Add Field Menu ─────────────────────────────────────────────────────────────
-function AddFieldMenu({ availableFields, onAdd, onAddCustom }) {
-  const [open, setOpen] = useState(false);
-  if (availableFields.length === 0 && !onAddCustom) return null;
-  return (
-    <div className="relative" tabIndex={-1} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
-      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(o => !o)} className="h-7 text-xs gap-1">
-        <Plus className="w-3 h-3" /> Add Field
-      </Button>
-      {open && (
-        <div className="absolute z-[500] bottom-full left-0 mb-1 w-44 bg-popover border border-border rounded-md shadow-xl py-1 max-h-64 overflow-y-auto">
-          {availableFields.map(f => (
-            <div key={f.key} onClick={() => { onAdd(f.key); setOpen(false); }}
-              className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1">
-              {f.label}
-            </div>
-          ))}
-          {availableFields.length > 0 && <div className="my-1 border-t border-border/40" />}
-          <div onClick={() => { onAddCustom(); setOpen(false); }}
-            className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-primary-foreground rounded-sm mx-1 italic text-muted-foreground">
-            + Custom field…
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── General Info panel (expanded body) ────────────────────────────────────────
 // Fixed fields: shown by default, removable (tracked in _removed_fields)
 // Extra fields: hidden by default, addable (tracked in _added_fields)
-function GeneralInfo({ tool, onUpdate, typeValue }) {
+function GeneralInfo({ tool, onUpdate, typeValue, onEditFields }) {
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
   const isMill = tool.tool_kind === "Mill";
   const isHoleMakingType = isHoleMakingOrTap(typeValue);
@@ -154,14 +118,10 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
   // _removed_fields: fixed fields the user has hidden
   const removed = tool._removed_fields || [];
   const isFixedVisible = (k) => !removed.includes(k);
-  const removeFixed = (k) => onUpdate({ ...tool, _removed_fields: [...removed, k] });
-  const restoreFixed = (k) => onUpdate({ ...tool, _removed_fields: removed.filter(x => x !== k) });
 
   // _added_fields: extra fields the user has explicitly added
   const added = tool._added_fields || [];
   const isExtraVisible = (k) => added.includes(k);
-  const addExtra = (k) => onUpdate({ ...tool, _added_fields: [...added, k] });
-  const removeExtra = (k) => onUpdate({ ...tool, _added_fields: added.filter(x => x !== k) });
 
   // Fixed fields (shown by default, removable)
   const fixedFields = [
@@ -207,30 +167,16 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
     ...(isTap(typeValue) ? [{ key: "chamfer_x_p", label: "Chamfer x P" }] : []),
   ];
 
-  // Build add-field menu options
-  const availableToAdd = [
-    ...fixedFields.filter(f => !isFixedVisible(f.key)).map(f => ({ key: f.key, label: f.label, isFixed: true })),
-    ...extraFieldDefs.filter(f => !isExtraVisible(f.key)).map(f => ({ key: f.key, label: f.label, isFixed: false })),
-  ];
-
   const customFields = tool.custom_fields || [];
-  const addCustomField = () => onUpdate({ ...tool, custom_fields: [...customFields, { key: "", value: "" }] });
-  const removeCustomField = (i) => onUpdate({ ...tool, custom_fields: customFields.filter((_, idx) => idx !== i) });
   const updateCustomField = (i, k, v) => {
     const updated = [...customFields];
     updated[i] = { ...updated[i], [k]: v };
     onUpdate({ ...tool, custom_fields: updated });
   };
 
-  const handleAdd = (k, isFixed) => {
-    if (isFixed) restoreFixed(k);
-    else addExtra(k);
-  };
-
   function renderExtraField(f) {
     return (
-      <RemovableField key={f.key} fieldKey={f.key} onRemove={removeExtra}>
-        <F label={f.label}>
+      <F key={f.key} label={f.label}>
           {f.key === "tap_type" && <SmallSelect value={tool.tap_type} onChange={set("tap_type")} options={TAP_TYPE_OPTIONS} className="w-24" />}
           {f.key === "material" && <SmallInput value={tool.material} onChange={set("material")} className="w-24" />}
           {f.key === "name" && <SmallInput value={tool.name} onChange={set("name")} className="w-32" />}
@@ -245,7 +191,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           {f.key === "flute_length" && <SmallInput value={tool.flute_length} onChange={set("flute_length")} className="w-24" />}
           {f.key === "neck_dia" && <SmallInput value={tool.neck_dia} onChange={set("neck_dia")} className="w-20" />}
           {f.key === "max_depth" && <SmallInput value={tool.max_depth} onChange={set("max_depth")} className="w-24" />}
-          {f.key === "holder_collet" && <SmallSelect value={tool.holder_collet} onChange={set("holder_collet")} options={HOLDER_COLLET_OPTIONS} allowOther className="w-32" />}
+          {f.key === "holder_collet" && <SmallSelect value={tool.holder_collet} onChange={set("holder_collet")} options={HOLDER_COLLET_OPTIONS} className="w-32" />}
           {f.key === "oal" && <SmallInput value={tool.oal} onChange={set("oal")} className="w-20" />}
           {f.key === "shank_dia" && <SmallInput value={tool.shank_dia} onChange={set("shank_dia")} className="w-20" />}
           {f.key === "tip_dia" && <SmallInput value={tool.tip_dia} onChange={set("tip_dia")} className="w-20" />}
@@ -259,7 +205,7 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
           {f.key === "extension" && (
             isMill
               ? <StackableExtension value={tool.extensions} onChange={set("extensions")} options={EXTENSION_MILL_OPTIONS} />
-              : <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} allowOther className="w-36" />
+              : <SmallSelect value={tool.extension} onChange={set("extension")} options={EXTENSION_OPTIONS} className="w-36" />
           )}
           {f.key === "insert" && <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />}
           {f.key === "chamfer_x_p" && <SmallInput value={tool.chamfer_x_p} onChange={set("chamfer_x_p")} className="w-24" />}
@@ -273,65 +219,56 @@ function GeneralInfo({ tool, onUpdate, typeValue }) {
             />
           )}
         </F>
-      </RemovableField>
     );
   }
 
   return (
     <div className="px-4 py-3 bg-background border-t border-border/30">
-      <div className="flex flex-wrap gap-x-3 gap-y-2 mb-3">
-        {/* Fixed removable fields */}
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        {/* Fixed fields */}
         {fixedFields.map(f => {
           if (!isFixedVisible(f.key)) return null;
           return (
-            <RemovableField key={f.key} fieldKey={f.key} onRemove={removeFixed}>
-              <F label={f.label}>
-                {f.key === "insert" && <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />}
-                {f.key === "holder" && (
-                  isMill
-                    ? <SmallInput value={tool.holder} onChange={set("holder")} className="w-32" />
-                    : <SmallSelect value={tool.holder} onChange={set("holder")} options={HOLDER_TURN_OPTIONS} allowOther className="w-48" placeholder="Select…" />
-                )}
-                {f.key === "direction" && (
-                  isMill
-                    ? <SmallSelect value={tool.direction} onChange={set("direction")} options={ENDMILL_DIR_OPTIONS} className="w-20" />
-                    : <SmallSelect value={tool.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
-                )}
-                {f.key === "orientation" && (
-                  <SmallSelect value={tool.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
-                )}
-                {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className={isHoleMakingType || isMill ? "w-36" : "w-24"} />}
-              </F>
-            </RemovableField>
+            <F key={f.key} label={f.label}>
+              {f.key === "insert" && <SmallInput value={tool.insert} onChange={set("insert")} className="w-28" />}
+              {f.key === "holder" && (
+                isMill
+                  ? <SmallInput value={tool.holder} onChange={set("holder")} className="w-32" />
+                  : <SmallSelect value={tool.holder} onChange={set("holder")} options={HOLDER_TURN_OPTIONS} className="w-48" placeholder="Select…" />
+              )}
+              {f.key === "direction" && (
+                isMill
+                  ? <SmallSelect value={tool.direction} onChange={set("direction")} options={ENDMILL_DIR_OPTIONS} className="w-20" />
+                  : <SmallSelect value={tool.spindle} onChange={set("spindle")} options={DIRECTION_OPTIONS} className="w-28" />
+              )}
+              {f.key === "orientation" && (
+                <SmallSelect value={tool.rotation} onChange={set("rotation")} options={ORIENTATION_OPTIONS} className="w-28" />
+              )}
+              {f.key === "stickout" && <SmallInput value={tool.stickout} onChange={set("stickout")} className={isHoleMakingType || isMill ? "w-36" : "w-24"} />}
+            </F>
           );
         })}
 
-        {/* Extra added fields */}
+        {/* Extra fields */}
         {extraFieldDefs.filter(f => isExtraVisible(f.key)).map(f => renderExtraField(f))}
 
         {/* Custom fields */}
         {customFields.map((cf, i) => (
-          <div key={i} className="relative group flex flex-col">
+          <div key={i} className="flex flex-col">
             <Input value={cf.key} onChange={(e) => updateCustomField(i, "key", e.target.value)}
               placeholder="Field name" className="h-6 text-[10px] bg-background border-border/60 w-28 mb-0.5 uppercase tracking-wide" />
             <Input value={cf.value} onChange={(e) => updateCustomField(i, "value", e.target.value)}
               placeholder="Value" className="h-7 text-xs bg-background border-border/60 w-28" />
-            <button type="button" onClick={() => removeCustomField(i)}
-              className="absolute -top-1.5 -right-1.5 hidden group-hover:flex items-center justify-center w-4 h-4 bg-destructive text-destructive-foreground rounded-full z-10">
-              <X className="w-2.5 h-2.5" />
-            </button>
           </div>
         ))}
-      </div>
 
-      <AddFieldMenu
-        availableFields={availableToAdd}
-        onAdd={(k) => {
-          const def = availableToAdd.find(f => f.key === k);
-          handleAdd(k, def?.isFixed ?? false);
-        }}
-        onAddCustom={addCustomField}
-      />
+        {/* Edit fields (pencil) */}
+        <button type="button" onClick={onEditFields}
+          className="mt-5 p-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          title="Add/Remove fields">
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -355,6 +292,7 @@ export { AddToolButton };
 // ── Main ToolRow ──────────────────────────────────────────────────────────────
 export default function ToolRow({ tool, onUpdate, onRemove }) {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
   const typeValue = tool.tool_type || "";
@@ -430,7 +368,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showRad && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Rad</span>
-            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} allowOther className="w-14" />
+            <SmallSelect value={tool.rad} onChange={set("rad")} options={RAD_OPTIONS} className="w-14" />
           </div>
         )}
 
@@ -446,7 +384,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showWidth && (
           <div className="shrink-0 flex items-center gap-1 ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Width</span>
-            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} allowOther className="w-24" />
+            <SmallSelect value={tool.width} onChange={set("width")} options={WIDTH_OPTIONS} className="w-24" />
           </div>
         )}
 
@@ -454,7 +392,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {showDeg && (
           <div className={`shrink-0 flex items-center gap-1 ${!showRad && !showWidth && !showDia ? "ml-4" : ""}`}>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Deg</span>
-            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} allowOther className="w-14" />
+            <SmallSelect value={tool.deg} onChange={set("deg")} options={DEG_TURN_OPTIONS} className="w-14" />
           </div>
         )}
 
@@ -528,7 +466,16 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
       {/* ── Expanded: General Information ── */}
       {expanded && typeValue && (
-        <GeneralInfo tool={tool} onUpdate={onUpdate} typeValue={typeValue} />
+        <GeneralInfo tool={tool} onUpdate={onUpdate} typeValue={typeValue} onEditFields={() => setEditing(true)} />
+      )}
+
+      {editing && (
+        <TurningToolEditModal
+          tool={tool}
+          onUpdate={onUpdate}
+          onClose={() => setEditing(false)}
+          typeValue={tool.tool_type || ""}
+        />
       )}
     </div>
   );

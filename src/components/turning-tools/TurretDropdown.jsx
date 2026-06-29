@@ -1,5 +1,5 @@
 import React from "react";
-import ComboBox from "@/components/ui/ComboBox";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
 const FLAT_TURRET_OPTIONS = [
   { label: "Lower (Turn)", value: "Lower (Turn)" },
@@ -10,12 +10,13 @@ const FLAT_TURRET_OPTIONS = [
 
 export default function TurretDropdown({ value, onChange }) {
   return (
-    <ComboBox
-      value={value || ""}
-      onChange={onChange}
-      options={FLAT_TURRET_OPTIONS}
-      placeholder="Select turret type…"
-      className="h-9 text-sm px-3 w-full"
-    />
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+        <SelectValue placeholder="Select turret type…" />
+      </SelectTrigger>
+      <SelectContent>
+        {FLAT_TURRET_OPTIONS.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
