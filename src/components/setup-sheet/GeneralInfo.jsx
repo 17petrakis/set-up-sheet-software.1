@@ -73,6 +73,9 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
     onChange("has_deburring", next);
   };
 
+  const extrasCount = (data.material_color_enabled ? 1 : 0) + (data.material_condition_enabled ? 1 : 0);
+  const stockQtySpan = extrasCount === 0 ? "sm:col-span-4" : extrasCount === 1 ? "sm:col-span-3" : "sm:col-span-2";
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
@@ -130,10 +133,10 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         </div>
 
         {/* Row 3: Material, Stock, Qty */}
-        <div className={`grid grid-cols-1 ${data.material_color_enabled || data.material_condition_enabled ? "sm:grid-cols-6" : "sm:grid-cols-3"} gap-x-4 gap-y-3 mb-3`}>
-          <MaterialField data={data} onChange={onChange} className={data.material_color_enabled || data.material_condition_enabled ? "sm:col-span-4" : ""} />
-          <Field label="Stock" value={data.stock} onChange={update("stock")} />
-          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          <MaterialField data={data} onChange={onChange} />
+          <Field label="Stock" value={data.stock} onChange={update("stock")} className={stockQtySpan} />
+          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={stockQtySpan} />
         </div>
 
         {/* Row 4: Program #, Program Location, Program Desc */}
