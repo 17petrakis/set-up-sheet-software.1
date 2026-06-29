@@ -13,7 +13,7 @@ const DEFAULT_SLOTS = [
   { key: "final_part_2", label: "Final Part 2" },
 ];
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, large }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
@@ -58,74 +58,86 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
         )}
       </div>
 
-      {/* Photo area */}
-      <div
-        className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10"
-        style={{ minHeight: "420px" }}
-      >
-        {url ? (
-          <>
-            {isPdf ? (
-              <iframe
-                src={url}
-                title={label}
-                className="absolute inset-0 w-full h-full border-0"
-                style={{ minHeight: "420px" }}
+      {/* Photo + note */}
+      <div className={large ? "flex flex-col sm:flex-row gap-3" : "contents"}>
+        <div
+          className={`relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 ${large ? "flex-1" : ""}`}
+          style={{ minHeight: large ? "380px" : "420px" }}
+        >
+          {url ? (
+            <>
+              {isPdf ? (
+                <iframe
+                  src={url}
+                  title={label}
+                  className="absolute inset-0 w-full h-full border-0"
+                  style={{ minHeight: large ? "380px" : "420px" }}
+                />
+              ) : (
+                <img
+                  src={url}
+                  alt={label}
+                  className={`w-full h-full absolute inset-0 cursor-pointer ${large ? "object-contain" : "object-cover"}`}
+                  style={{ minHeight: large ? "380px" : "420px" }}
+                  onClick={() => setLightbox(true)}
+                />
+              )}
+              <div className="absolute top-2 right-2 flex gap-1.5 no-print">
+                <label
+                  htmlFor={replaceId}
+                  className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 transition-colors cursor-pointer"
+                  title="Replace photo"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                </label>
+                <input id={replaceId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
+                <button
+                  onClick={onRemove}
+                  className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
+                  title="Remove photo"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <label
+              htmlFor={inputId}
+              className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
+            >
+              <input id={inputId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
+              {uploading ? (
+                <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Image className="w-14 h-14 opacity-20" />
+                  <span className="text-sm font-medium opacity-50">Click to upload</span>
+                </>
+              )}
+            </label>
+          )}
+        </div>
+
+        {(showNote || note) && (
+          large ? (
+            <div className="sm:w-64 shrink-0">
+              <Textarea
+                value={note || ""}
+                onChange={(e) => onNoteChange(e.target.value)}
+                placeholder="Add a note for this photo..."
+                className="h-full min-h-[380px] text-sm bg-background border-border/60 resize-none"
               />
-            ) : (
-              <img
-                src={url}
-                alt={label}
-                className="w-full h-full object-cover absolute inset-0 cursor-pointer"
-                style={{ minHeight: "420px" }}
-                onClick={() => setLightbox(true)}
-              />
-            )}
-            <div className="absolute top-2 right-2 flex gap-1.5 no-print">
-              <label
-                htmlFor={replaceId}
-                className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 transition-colors cursor-pointer"
-                title="Replace photo"
-              >
-                <Upload className="w-3.5 h-3.5" />
-              </label>
-              <input id={replaceId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
-              <button
-                onClick={onRemove}
-                className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
-                title="Remove photo"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
             </div>
-          </>
-        ) : (
-          <label
-            htmlFor={inputId}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
-          >
-            <input id={inputId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
-            {uploading ? (
-              <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
-            ) : (
-              <>
-                <Image className="w-14 h-14 opacity-20" />
-                <span className="text-sm font-medium opacity-50">Click to upload</span>
-              </>
-            )}
-          </label>
+          ) : (
+            <Textarea
+              value={note || ""}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Add a note for this photo..."
+              className="h-16 text-sm bg-background border-border/60 resize-none"
+            />
+          )
         )}
       </div>
-
-      {/* Note field */}
-      {(showNote || note) && (
-        <Textarea
-          value={note || ""}
-          onChange={(e) => onNoteChange(e.target.value)}
-          placeholder="Add a note for this photo..."
-          className="h-16 text-sm bg-background border-border/60 resize-none"
-        />
-      )}
     </div>
   );
 }
@@ -195,6 +207,7 @@ export default function PhotoSection({ photos = {}, onChange }) {
               onUpload={(url) => handleUpload(key, url)}
               onRemove={() => (isExtra ? removeExtraSlot(key) : handleRemove(key))}
               onNoteChange={(note) => handleNoteChange(key, note)}
+              large={key === "work_holding"}
             />
           );
         })}

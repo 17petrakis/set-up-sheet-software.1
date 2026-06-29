@@ -314,11 +314,42 @@ export default function Home() {
                 </Button>
               </div>
 
-              {/* Recents — 8 most recent setup sheets */}
+              {/* Recents — recent setup sheets + part search */}
               <section className="mb-8">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-widest mb-3">Recents</h2>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search part"
+                    className="pl-9 h-10 text-sm bg-card border-border"
+                  />
+                </div>
                 {loading ? (
                   <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">Loading…</div>
+                ) : search.trim() ? (
+                  (() => {
+                    const q = search.trim().toLowerCase();
+                    const matches = allFolders.filter(f =>
+                      f.partNumber.toLowerCase().includes(q) || f.customer.toLowerCase().includes(q)
+                    );
+                    if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {matches.map(folder => (
+                          <PartFolderCard
+                            key={folder.key}
+                            partNumber={folder.partNumber}
+                            customer={folder.customer}
+                            sheets={folder.sheets}
+                            onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                            onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })()
                 ) : recentSheets.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No setup sheets yet.</p>
                 ) : (
@@ -346,42 +377,6 @@ export default function Home() {
                   </div>
                 )}
               </section>
-
-              {/* Part search */}
-              <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search part"
-                  className="pl-9 h-10 text-sm bg-card border-border"
-                />
-              </div>
-              {search.trim() && (
-                <section className="mb-8">
-                  {(() => {
-                    const q = search.trim().toLowerCase();
-                    const matches = allFolders.filter(f =>
-                      f.partNumber.toLowerCase().includes(q) || f.customer.toLowerCase().includes(q)
-                    );
-                    if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
-                    return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {matches.map(folder => (
-                          <PartFolderCard
-                            key={folder.key}
-                            partNumber={folder.partNumber}
-                            customer={folder.customer}
-                            sheets={folder.sheets}
-                            onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
-                            onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
-                          />
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </section>
-              )}
 
               {/* Customers — list of customer files */}
               <section>

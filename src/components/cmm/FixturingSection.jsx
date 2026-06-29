@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wrench, Plus, X, ExternalLink } from "lucide-react";
@@ -33,11 +34,41 @@ export default function FixturingSection({ items = [], onChange }) {
   const [customVariant, setCustomVariant] = useState("");
   const [customType, setCustomType] = useState("");
   const [note, setNote] = useState("");
+  const [savedSizeRecords, setSavedSizeRecords] = useState([]);
+
+  useEffect(() => {
+    base44.entities.FixturingSize.list().then(setSavedSizeRecords).catch(() => {});
+  }, []);
 
   const selectedOption = FIXTURING_OPTIONS.find(o => o.label && o.label === selectedType);
 
   const isSizeField = selectedOption?.sizeField;
   const fieldOptions = isSizeField ? selectedOption?.sizes : selectedOption?.variants;
+  const savedSizesForType = isSizeField
+    ? savedSizeRecords.filter(r => r.label === selectedType).map(r => r.size)
+    : [];
+
+  const handleSaveSize = async () => {
+    const size = customVariant.trim();
+    if (!size || !selectedType) return;
+    try {
+      const rec = await base44.entities.FixturingSize.create({ label: selectedType, size });
+      setSavedSizeRecords(prev => [...prev, rec]);
+      setSelectedVariant(size);
+      setCustomVariant("");
+    } catch {
+      alert("Could not save size");
+    }
+  };
+
+  const handleRemoveSize = async (size) => {
+    const rec = savedSizeRecords.find(r => r.label === selectedType && r.size === size);
+    if (rec) {
+      try { await base44.entities.FixturingSize.delete(rec.id); } catch {}
+    }
+    setSavedSizeRecords(prev => prev.filter(r => !(r.label === selectedType && r.size === size)));
+    setSelectedVariant("");
+  };
 
   const canAdd = () => {
     if (!selectedType) return false;
@@ -140,23 +171,30 @@ export default function FixturingSection({ items = [], onChange }) {
           {selectedOption && fieldOptions && fieldOptions.length > 0 && (
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">{isSizeField ? "Size" : "Variant"}</label>
-              {isSizeField && selectedVariant === "Other" ? (
-                <div className="flex gap-2">
-                  <Input value={customVariant} onChange={e => setCustomVariant(e.target.value)} placeholder="Enter size" className="h-9 text-sm flex-1" autoFocus />
-                  <Button type="button" size="sm" variant="outline" onClick={() => { setSelectedVariant(""); setCustomVariant(""); }} className="h-9 text-xs shrink-0">Preset</Button>
-                </div>
-              ) : (
-                <select
-                  value={selectedVariant}
-                  onChange={e => { setSelectedVariant(e.target.value); setCustomVariant(""); }}
-                  className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">— Select —</option>
-                  {fieldOptions.map(v => <option key={v} value={v}>{v}</option>)}
-                  <option value="Other">Other</option>
-                </select>
-              )}
+              <select
+                value={selectedVariant}
+                onChange={e => { setSelectedVariant(e.target.value); setCustomVariant(""); }}
+                className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">— Select —</option>
+                {fieldOptions.map(v => <option key={v} value={v}>{v}</option>)}
+                {isSizeField && savedSizesForType.map(v => <option key={`saved-${v}`} value={v}>{v}</option>)}
+                <option value="Other">Other</option>
+              </select>
             </div>
+          )}
+
+          {isSizeField && selectedVariant === "Other" && (
+            <div className="flex gap-2">
+              <Input value={customVariant} onChange={e => setCustomVariant(e.target.value)} placeholder="Enter size" className="h-9 text-sm flex-1" autoFocus />
+              <Button type="button" size="sm" variant="secondary" onClick={handleSaveSize} disabled={!customVariant.trim()} className="h-9 text-xs shrink-0">Save size</Button>
+            </div>
+          )}
+
+          {isSizeField && selectedVariant && selectedVariant !== "Other" && savedSizesForType.includes(selectedVariant) && (
+            <Button type="button" size="sm" variant="outline" onClick={() => handleRemoveSize(selectedVariant)} className="h-8 text-xs gap-1.5">
+              <X className="w-3.5 h-3.5" /> Remove size
+            </Button>
           )}
 
           {!isSizeField && selectedVariant === "Other" && (
