@@ -3,14 +3,6 @@ import { FileText, ChevronRight, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const statusColors = {
-  Active: "bg-green-100 text-green-700",
-  Repeating: "bg-blue-100 text-blue-700",
-  "One Time": "bg-amber-100 text-amber-700",
-  Completed: "bg-gray-100 text-gray-700",
-  "On Hold": "bg-red-100 text-red-700"
-};
-
 export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
@@ -48,11 +40,6 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
       </div>
 
       <div className="flex items-center gap-2 mb-3">
-        {primarySheet?.status && (
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[primarySheet.status] || statusColors.Active}`}>
-            {primarySheet.status}
-          </span>
-        )}
         <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide bg-slate-100 text-slate-600">
           {opCount} {opCount === 1 ? "Operation" : "Operations"}
         </span>

@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, FilePlus, ClipboardList, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { Search, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
 import NewCMMSheetDialog from "./NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import CMMFolderCard from "./CMMFolderCard";
@@ -65,7 +64,10 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   );
   const allCustomerNames = sortedCustomers.filter(c => c !== "No Customer");
 
-  const recentSheets = sheets.slice(0, 8);
+  const recentFolders = allFolders
+    .map(f => ({ ...f, _last: Math.max(...f.sheets.map(s => new Date(s.updated_date || s.created_date || 0).getTime())) }))
+    .sort((a, b) => b._last - a._last)
+    .slice(0, 8);
 
   const handleCreated = (sheet) => {
     navigate(`/cmm-sheet/${sheet.id}`);
@@ -218,28 +220,17 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
               </div>
             );
           })()
-        ) : recentSheets.length === 0 ? (
+        ) : recentFolders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No CMM setup sheets yet.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {recentSheets.map(s => (
-              <button
-                key={s.id}
-                onClick={() => navigate(`/cmm-sheet/${s.id}`)}
-                className="text-left bg-card border border-border rounded-xl p-3 hover:shadow-md hover:border-emerald-400/40 transition-all"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <ClipboardList className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span className="font-semibold text-sm text-foreground truncate">{s.part_number || "Unnamed"}</span>
-                </div>
-                <p className="text-xs text-muted-foreground truncate">{s.customer || "No customer"}</p>
-                <div className="flex items-center gap-2 mt-1.5">
-                  {s.machine && <span className="text-[10px] text-muted-foreground truncate">{s.machine}</span>}
-                  {s.updated_date && (
-                    <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(s.updated_date), "MMM d")}</span>
-                  )}
-                </div>
-              </button>
+            {recentFolders.map(folder => (
+              <CMMFolderCard
+                key={folder.key}
+                folder={folder}
+                onOpen={handleOpenFolder}
+                onDelete={f => setDeleteFolderTarget(f)}
+              />
             ))}
           </div>
         )}

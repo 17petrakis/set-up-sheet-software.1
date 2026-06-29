@@ -13,14 +13,6 @@ import {
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 
-const statusColors = {
-  Active: "bg-green-100 text-green-700",
-  Repeating: "bg-blue-100 text-blue-700",
-  "One Time": "bg-amber-100 text-amber-700",
-  Completed: "bg-gray-100 text-gray-700",
-  "On Hold": "bg-red-100 text-red-700"
-};
-
 export default function PartFolderView({ partNumber, customer, sheets, onBack, onSheetsChange }) {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -149,14 +141,6 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                 <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
               </div>
             </div>
-
-            {sheet.status && (
-              <div className="mb-3">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide ${statusColors[sheet.status] || statusColors.Active}`}>
-                  {sheet.status}
-                </span>
-              </div>
-            )}
 
             <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
               {sheet.machine && (

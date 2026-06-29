@@ -3,8 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FileText, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle } from "lucide-react";
-import { format } from "date-fns";
+import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import MobileNav from "@/components/home/MobileNav";
@@ -111,8 +110,11 @@ export default function Home() {
   );
   const allCustomerNames = sortedCustomers.filter(c => c !== "No Customer");
 
-  // Most recent 8 setup sheets (sheets already sorted by -updated_date)
-  const recentSheets = sheets.slice(0, 8);
+  // Most recent 8 part folders (by latest updated sheet in each folder)
+  const recentFolders = allFolders
+    .map(f => ({ ...f, _last: Math.max(...f.sheets.map(s => new Date(s.updated_date || s.created_date || 0).getTime())) }))
+    .sort((a, b) => b._last - a._last)
+    .slice(0, 8);
 
   const handleDeleteCustomer = async () => {
     if (!deleteCustomerTarget) return;
@@ -350,29 +352,19 @@ export default function Home() {
                       </div>
                     );
                   })()
-                ) : recentSheets.length === 0 ? (
+                ) : recentFolders.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No setup sheets yet.</p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {recentSheets.map(s => (
-                      <button
-                        key={s.id}
-                        onClick={() => navigate(`/sheet/${s.id}`)}
-                        className="text-left bg-card border border-border rounded-xl p-3 hover:shadow-md hover:border-primary/30 transition-all"
-                      >
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
-                          <span className="font-semibold text-sm text-foreground truncate">{s.part_number || "Unnamed"}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{s.customer || "No customer"}</p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[10px] text-muted-foreground">Op {s.operation_number || 1}</span>
-                          {s.machine && <span className="text-[10px] text-muted-foreground truncate">{s.machine}</span>}
-                          {s.updated_date && (
-                            <span className="text-[10px] text-muted-foreground ml-auto">{format(new Date(s.updated_date), "MMM d")}</span>
-                          )}
-                        </div>
-                      </button>
+                    {recentFolders.map(folder => (
+                      <PartFolderCard
+                        key={folder.key}
+                        partNumber={folder.partNumber}
+                        customer={folder.customer}
+                        sheets={folder.sheets}
+                        onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                        onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
+                      />
                     ))}
                   </div>
                 )}

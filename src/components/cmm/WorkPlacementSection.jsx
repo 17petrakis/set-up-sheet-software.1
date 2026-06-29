@@ -108,7 +108,7 @@ export default function WorkPlacementSection({ items = [], onChange }) {
           <div className="hidden sm:block mb-4">
             <div className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
               <span>#</span>
-              <span>Post Sizes</span>
+              <span>Stacked Posts</span>
               <span>X</span>
               <span>Y</span>
               <span></span>
@@ -186,7 +186,7 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                   </button>
                 </div>
                 <div className="mb-2">
-                  <label className="text-xs text-muted-foreground block mb-1">Post Sizes</label>
+                  <label className="text-xs text-muted-foreground block mb-1">Stacked Posts</label>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <select
                       value={post.size || ""}

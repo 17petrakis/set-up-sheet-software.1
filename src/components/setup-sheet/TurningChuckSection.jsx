@@ -6,7 +6,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import SectionHeader from "./SectionHeader";
 import { Wrench, X, Plus } from "lucide-react";
-import InlinePhotoField from "./InlinePhotoField";
+import StationPhotos from "./fixturing/StationPhotos";
 
 // ── Chuck Type ComboBox ────────────────────────────────────────────────────────
 const CHUCK_OPTIONS = [
@@ -161,7 +161,7 @@ const OPTIONAL_SPINDLE_FIELDS = [
   { key: "concentricity", label: "Concentricity", type: "input", placeholder: "" },
   { key: "surface_finish", label: "Surface Finish", type: "input", placeholder: "" },
   { key: "parts_catcher", label: "Parts Catcher", type: "input", placeholder: "" },
-  { key: "photo", label: "Photo", type: "photo" },
+  { key: "photos", label: "Photos", type: "multiphoto" },
   { key: "notes", label: "Notes", type: "textarea" },
 ];
 
@@ -202,14 +202,29 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
 
   // Track which optional fields are visible (added). A field is visible if it has a value saved OR was added this session.
   const [addedFields, setAddedFields] = useState(() =>
-    OPTIONAL_SPINDLE_FIELDS.filter(f => !!s[f.key]).map(f => f.key)
+    OPTIONAL_SPINDLE_FIELDS.filter(f => {
+      if (f.type === "multiphoto") {
+        return (Array.isArray(s[f.key]) && s[f.key].length > 0) || !!s.photo;
+      }
+      return !!s[f.key];
+    }).map(f => f.key)
   );
 
-  const isFieldVisible = (key) => addedFields.includes(key) || !!s[key];
+  const isFieldVisible = (key) => {
+    const f = OPTIONAL_SPINDLE_FIELDS.find(o => o.key === key);
+    if (f && f.type === "multiphoto") {
+      return addedFields.includes(key) || (Array.isArray(s[key]) && s[key].length > 0) || !!s.photo;
+    }
+    return addedFields.includes(key) || !!s[key];
+  };
   const addField = (key) => setAddedFields(prev => [...prev, key]);
   const removeField = (key) => {
     setAddedFields(prev => prev.filter(k => k !== key));
-    set(key, "");
+    if (key === "photos") {
+      onChange({ ...data, [spindleKey]: { ...s, photos: [], photo: "", photo__note: "" } });
+    } else {
+      set(key, "");
+    }
   };
 
   const hiddenFields = OPTIONAL_SPINDLE_FIELDS.filter(f => !isFieldVisible(f.key));
@@ -324,13 +339,12 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {OPTIONAL_SPINDLE_FIELDS.filter(f => isFieldVisible(f.key)).map(f => (
           <div key={f.key} className="flex items-start gap-2">
             <div className="flex-1">
-              {f.type === "photo" ? (
-                <InlinePhotoField
-                  value={s[f.key] || ""}
-                  note={s[`${f.key}__note`] || ""}
-                  onUpload={(url) => set(f.key, url)}
-                  onRemove={() => { set(f.key, ""); set(`${f.key}__note`, ""); }}
-                  onNoteChange={(n) => set(`${f.key}__note`, n)}
+              {f.type === "multiphoto" ? (
+                <StationPhotos
+                  photos={Array.isArray(s.photos) && s.photos.length > 0
+                    ? s.photos
+                    : (s.photo ? [{ url: s.photo, note: s.photo__note || "" }] : [])}
+                  onChange={(arr) => onChange({ ...data, [spindleKey]: { ...s, photos: arr, photo: "", photo__note: "" } })}
                 />
               ) : (
                 <FieldWrap label={f.label}>
@@ -354,7 +368,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             <button
               type="button"
               onClick={() => removeField(f.key)}
-              className={`p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0 ${f.type === "photo" ? "mt-2" : "mt-5"}`}
+              className={`p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0 ${f.type === "multiphoto" ? "mt-2" : "mt-5"}`}
               title={`Remove ${f.label}`}
             >
               <X className="w-3.5 h-3.5" />
