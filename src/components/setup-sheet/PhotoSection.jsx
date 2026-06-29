@@ -62,7 +62,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
       <div className={large ? "flex flex-col sm:flex-row gap-3" : "contents"}>
         <div
           className={`relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 ${large ? "flex-1" : ""}`}
-          style={{ minHeight: large ? "380px" : "420px" }}
+          style={{ minHeight: large ? "500px" : "420px" }}
         >
           {url ? (
             <>
@@ -71,14 +71,14 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
                   src={url}
                   title={label}
                   className="absolute inset-0 w-full h-full border-0"
-                  style={{ minHeight: large ? "380px" : "420px" }}
+                  style={{ minHeight: large ? "500px" : "420px" }}
                 />
               ) : (
                 <img
                   src={url}
                   alt={label}
                   className={`w-full h-full absolute inset-0 cursor-pointer ${large ? "object-contain" : "object-cover"}`}
-                  style={{ minHeight: large ? "380px" : "420px" }}
+                  style={{ minHeight: large ? "500px" : "420px" }}
                   onClick={() => setLightbox(true)}
                 />
               )}
@@ -125,7 +125,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
                 value={note || ""}
                 onChange={(e) => onNoteChange(e.target.value)}
                 placeholder="Add a note for this photo..."
-                className="h-full min-h-[380px] text-sm bg-background border-border/60 resize-none"
+                className="h-full min-h-[500px] text-sm bg-background border-border/60 resize-none"
               />
             </div>
           ) : (

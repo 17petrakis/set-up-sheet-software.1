@@ -19,6 +19,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   const [sheets, setSheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [partSearch, setPartSearch] = useState("");
   const [openFolder, setOpenFolder] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -183,11 +184,40 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
         </Button>
       </div>
 
-      {/* Recents — 8 most recent CMM sheets */}
+      {/* Recents — 8 most recent CMM sheets + part search */}
       <section className="mb-8">
         <h2 className="text-sm font-bold text-foreground uppercase tracking-widest mb-3">Recents</h2>
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={partSearch}
+            onChange={e => setPartSearch(e.target.value)}
+            placeholder="Search part"
+            className="pl-9 h-10 text-sm bg-card border-border"
+          />
+        </div>
         {loading ? (
           <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">Loading…</div>
+        ) : partSearch.trim() ? (
+          (() => {
+            const q = partSearch.trim().toLowerCase();
+            const matches = allFolders.filter(f =>
+              f.partNumber.toLowerCase().includes(q) || f.customer.toLowerCase().includes(q)
+            );
+            if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {matches.map(folder => (
+                  <CMMFolderCard
+                    key={folder.key}
+                    folder={folder}
+                    onOpen={handleOpenFolder}
+                    onDelete={f => setDeleteFolderTarget(f)}
+                  />
+                ))}
+              </div>
+            );
+          })()
         ) : recentSheets.length === 0 ? (
           <p className="text-sm text-muted-foreground">No CMM setup sheets yet.</p>
         ) : (

@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Plus, X, LayoutGrid } from "lucide-react";
 
-const POST_SIZES = ["Small", "Medium", "Large"];
+const POST_SIZES = ["1.5 in.", "1.75 in.", "2.75 in.", "3.5 in."];
+const DEFAULT_STACKED_SIZE = "1.5 in.";
 
 const STANDARD_POSTS = [
-  { size: "Small", x: "18", y: "4" },
-  { size: "Small", x: "14", y: "6" },
-  { size: "Small", x: "14", y: "12" },
+  { size: "1.5 in.", x: "18", y: "4" },
+  { size: "1.5 in.", x: "14", y: "6" },
+  { size: "1.5 in.", x: "14", y: "12" },
 ];
 
 function isStandardConfig(items) {
@@ -53,6 +54,28 @@ export default function WorkPlacementSection({ items = [], onChange }) {
 
   const removePost = (idx) => onChange(items.filter((_, i) => i !== idx));
 
+  const getStacked = (post) => post.stacked || [];
+  const toggleStacked = (idx, slotIdx) => {
+    onChange(items.map((p, i) => {
+      if (i !== idx) return p;
+      const stacked = [...getStacked(p)];
+      if (slotIdx < stacked.length) {
+        stacked.splice(slotIdx, 1);
+      } else if (slotIdx === stacked.length && stacked.length < 3) {
+        stacked.push(DEFAULT_STACKED_SIZE);
+      }
+      return { ...p, stacked };
+    }));
+  };
+  const updateStacked = (idx, slotIdx, size) => {
+    onChange(items.map((p, i) => {
+      if (i !== idx) return p;
+      const stacked = [...getStacked(p)];
+      stacked[slotIdx] = size;
+      return { ...p, stacked };
+    }));
+  };
+
   const reset = () => {
     setAdding(false);
     setSize("");
@@ -83,18 +106,21 @@ export default function WorkPlacementSection({ items = [], onChange }) {
         <>
           {/* Desktop: table-like layout */}
           <div className="hidden sm:block mb-4">
-            <div className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
+            <div className="grid grid-cols-[2rem_1fr_1.75fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
               <span>#</span>
               <span>Post Size</span>
+              <span>Stacked Post</span>
               <span>X</span>
               <span>Y</span>
               <span></span>
             </div>
             <div className="space-y-1">
-              {items.map((post, idx) => (
+              {items.map((post, idx) => {
+                const stacked = getStacked(post);
+                return (
                 <div
                   key={post._id || idx}
-                  className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
+                  className="grid grid-cols-[2rem_1fr_1.75fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
                 >
                   <span className="text-xs text-muted-foreground">{idx + 1}</span>
                   <select
@@ -105,13 +131,43 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                     <option value="">—</option>
                     {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  <div className="flex flex-col gap-1">
+                    {[0, 1, 2].map(slotIdx => {
+                      const active = slotIdx < stacked.length;
+                      const canToggle = slotIdx <= stacked.length;
+                      return (
+                        <div key={slotIdx} className="flex items-center gap-2">
+                          <label className={`flex items-center gap-1.5 text-xs ${canToggle ? "cursor-pointer" : "opacity-40 cursor-not-allowed"}`}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              disabled={!canToggle}
+                              onChange={() => toggleStacked(idx, slotIdx)}
+                              className="w-3.5 h-3.5 rounded border-input accent-primary"
+                            />
+                            <span className="text-muted-foreground">add</span>
+                          </label>
+                          {active && (
+                            <select
+                              value={stacked[slotIdx]}
+                              onChange={e => updateStacked(idx, slotIdx, e.target.value)}
+                              className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring flex-1 min-w-0"
+                            >
+                              {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                   <Input value={post.x || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "x", e.target.value); }} className="h-8 text-sm" />
                   <Input value={post.y || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "y", e.target.value); }} className="h-8 text-sm" />
                   <button onClick={() => removePost(idx)} className="text-muted-foreground hover:text-destructive transition-colors justify-self-start">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -135,6 +191,39 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                     <option value="">— Select —</option>
                     {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
+                </div>
+                <div className="mb-2">
+                  <label className="text-xs text-muted-foreground block mb-1">Stacked Post</label>
+                  <div className="flex flex-col gap-1.5">
+                    {[0, 1, 2].map(slotIdx => {
+                      const stacked = getStacked(post);
+                      const active = slotIdx < stacked.length;
+                      const canToggle = slotIdx <= stacked.length;
+                      return (
+                        <div key={slotIdx} className="flex items-center gap-2">
+                          <label className={`flex items-center gap-1.5 text-xs ${canToggle ? "cursor-pointer" : "opacity-40 cursor-not-allowed"}`}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              disabled={!canToggle}
+                              onChange={() => toggleStacked(idx, slotIdx)}
+                              className="w-4 h-4 rounded border-input accent-primary"
+                            />
+                            <span className="text-muted-foreground">add</span>
+                          </label>
+                          {active && (
+                            <select
+                              value={stacked[slotIdx]}
+                              onChange={e => updateStacked(idx, slotIdx, e.target.value)}
+                              className="flex-1 h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                            >
+                              {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>

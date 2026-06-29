@@ -45,14 +45,14 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 flex-1" style={{ minHeight: "340px" }}>
+        <div className="relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 flex-1" style={{ minHeight: "480px" }}>
           {value ? (
             <>
               <img
                 src={value}
                 alt={label}
                 className="w-full h-full object-contain absolute inset-0 cursor-pointer"
-                style={{ minHeight: "340px" }}
+                style={{ minHeight: "480px" }}
                 onClick={() => setLightbox(true)}
               />
               <div className="absolute top-2 right-2 flex gap-1.5">
@@ -86,7 +86,7 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
               value={note || ""}
               onChange={(e) => onNoteChange(e.target.value)}
               placeholder="Add a note for this photo..."
-              className="h-full min-h-[340px] text-sm bg-background border-border/60 resize-none"
+              className="h-full min-h-[480px] text-sm bg-background border-border/60 resize-none"
             />
           </div>
         )}
