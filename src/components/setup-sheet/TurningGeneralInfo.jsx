@@ -8,7 +8,9 @@ import ComboBox from "@/components/ui/ComboBox";
 import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
-import MaterialField, { MaterialExtras } from "./MaterialField";
+import MaterialField from "./MaterialField";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { MATERIAL_CONDITIONS } from "@/lib/materialOptions";
 import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
@@ -91,10 +93,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
     // Data is preserved when hiding — only the UI collapses
   };
 
-  const extrasCount = (data.material_color_enabled ? 1 : 0) + (data.material_condition_enabled ? 1 : 0);
-  const materialSpan = extrasCount === 0 ? "sm:col-span-3" : "sm:col-span-4";
-  const fieldSpan = extrasCount === 0 ? "sm:col-span-3" : "sm:col-span-4";
-  const showExtrasRow = extrasCount > 0;
+  const showExtrasRow = data.material_color_enabled || data.material_condition_enabled;
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -169,37 +168,87 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
         </div>
 
-        {/* Row 3: Material, Stock, Qty., Length/1pc */}
+        {/* Row 3: Material, Stock, Qty., Length/1pc (always 4 fields) */}
         <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
-          <MaterialField data={data} onChange={onChange} materialSpan={materialSpan} hideExtras />
-          <Field label="Stock" value={data.stock} onChange={update("stock")} className={fieldSpan} />
-          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={fieldSpan} />
-          <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className={fieldSpan} />
+          <MaterialField data={data} onChange={onChange} materialSpan="sm:col-span-3" hideExtras />
+          <Field label="Stock" value={data.stock} onChange={update("stock")} className="sm:col-span-3" />
+          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className="sm:col-span-3" />
+          <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className="sm:col-span-3" />
         </div>
 
-        {/* Row 4: Color, Condition (same width as material) */}
-        {showExtrasRow && (
+        {/* Row 4: [Color+Condition] (material width), Program #, Program Location, Program Desc. */}
+        {showExtrasRow ? (
           <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
-            <MaterialExtras data={data} onChange={onChange} span={materialSpan} />
+            <div className="sm:col-span-3">
+              <div className="grid grid-cols-2 gap-x-2">
+                {data.material_color_enabled && (
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                      Color
+                    </Label>
+                    <Input
+                      value={data.material_color || ""}
+                      onChange={(e) => onChange("material_color", e.target.value)}
+                      placeholder="e.g. Black…"
+                      className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+                    />
+                  </div>
+                )}
+                {data.material_condition_enabled && (
+                  <div>
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                      Condition
+                    </Label>
+                    <Select
+                      value={data.material_condition || ""}
+                      onValueChange={(v) => onChange("material_condition", v)}
+                    >
+                      <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                        <span className={data.material_condition ? "" : "text-muted-foreground"}>
+                          {data.material_condition || "Select…"}
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MATERIAL_CONDITIONS.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+            <Field label="Program #" value={data.program} onChange={update("program")} className="sm:col-span-3" />
+            <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
+            <div className="sm:col-span-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Program Desc.
+              </Label>
+              <Input
+                value={data.program_description || ""}
+                onChange={(e) => update("program_description")(e.target.value)}
+                placeholder="i.e. Roughing"
+                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+            <Field label="Program #" value={data.program} onChange={update("program")} />
+            <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
+            <div>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Program Desc.
+              </Label>
+              <Input
+                value={data.program_description || ""}
+                onChange={(e) => update("program_description")(e.target.value)}
+                placeholder="i.e. Roughing"
+                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+              />
+            </div>
           </div>
         )}
-
-        {/* Row 4: Program #, Program Location, Program Desc. */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          <Field label="Program #" value={data.program} onChange={update("program")} />
-          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Program Desc.
-            </Label>
-            <Input
-              value={data.program_description || ""}
-              onChange={(e) => update("program_description")(e.target.value)}
-              placeholder="i.e. Roughing"
-              className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-            />
-          </div>
-        </div>
 
         {/* Row 5: Cycle Time, Handling Time, Total Combined */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
