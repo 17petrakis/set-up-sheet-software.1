@@ -50,7 +50,7 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
             <img
               src={value}
               alt={label}
-              className="w-full h-full object-cover absolute inset-0 cursor-pointer"
+              className="w-full h-full object-contain absolute inset-0 cursor-pointer"
               style={{ minHeight: "260px" }}
               onClick={() => setLightbox(true)}
             />

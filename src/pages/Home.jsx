@@ -347,6 +347,42 @@ export default function Home() {
                 )}
               </section>
 
+              {/* Part search */}
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search part"
+                  className="pl-9 h-10 text-sm bg-card border-border"
+                />
+              </div>
+              {search.trim() && (
+                <section className="mb-8">
+                  {(() => {
+                    const q = search.trim().toLowerCase();
+                    const matches = allFolders.filter(f =>
+                      f.partNumber.toLowerCase().includes(q) || f.customer.toLowerCase().includes(q)
+                    );
+                    if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {matches.map(folder => (
+                          <PartFolderCard
+                            key={folder.key}
+                            partNumber={folder.partNumber}
+                            customer={folder.customer}
+                            sheets={folder.sheets}
+                            onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                            onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
+                          />
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </section>
+              )}
+
               {/* Customers — list of customer files */}
               <section>
                 <div className="flex items-center justify-between mb-3">
