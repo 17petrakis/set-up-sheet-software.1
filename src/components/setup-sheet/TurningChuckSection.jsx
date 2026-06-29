@@ -6,6 +6,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import SectionHeader from "./SectionHeader";
 import { Wrench, X, Plus } from "lucide-react";
+import InlinePhotoField from "./InlinePhotoField";
 
 // ── Chuck Type ComboBox ────────────────────────────────────────────────────────
 const CHUCK_OPTIONS = [
@@ -160,6 +161,7 @@ const OPTIONAL_SPINDLE_FIELDS = [
   { key: "concentricity", label: "Concentricity", type: "input", placeholder: "" },
   { key: "surface_finish", label: "Surface Finish", type: "input", placeholder: "" },
   { key: "parts_catcher", label: "Parts Catcher", type: "input", placeholder: "" },
+  { key: "photo", label: "Photo", type: "photo" },
   { key: "notes", label: "Notes", type: "textarea" },
 ];
 
@@ -322,27 +324,37 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
         {OPTIONAL_SPINDLE_FIELDS.filter(f => isFieldVisible(f.key)).map(f => (
           <div key={f.key} className="flex items-start gap-2">
             <div className="flex-1">
-              <FieldWrap label={f.label}>
-                {f.type === "textarea" ? (
-                  <AutoResizeTextarea
-                    value={s[f.key] || ""}
-                    onChange={(e) => set(f.key, e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
-                  />
-                ) : (
-                  <Input
-                    value={s[f.key] || ""}
-                    onChange={(e) => set(f.key, e.target.value)}
-                    placeholder={f.placeholder || ""}
-                    className="h-9 text-sm bg-background border-border/60"
-                  />
-                )}
-              </FieldWrap>
+              {f.type === "photo" ? (
+                <InlinePhotoField
+                  value={s[f.key] || ""}
+                  note={s[`${f.key}__note`] || ""}
+                  onUpload={(url) => set(f.key, url)}
+                  onRemove={() => { set(f.key, ""); set(`${f.key}__note`, ""); }}
+                  onNoteChange={(n) => set(`${f.key}__note`, n)}
+                />
+              ) : (
+                <FieldWrap label={f.label}>
+                  {f.type === "textarea" ? (
+                    <AutoResizeTextarea
+                      value={s[f.key] || ""}
+                      onChange={(e) => set(f.key, e.target.value)}
+                      className="min-h-[64px] text-sm bg-background border-border/60"
+                    />
+                  ) : (
+                    <Input
+                      value={s[f.key] || ""}
+                      onChange={(e) => set(f.key, e.target.value)}
+                      placeholder={f.placeholder || ""}
+                      className="h-9 text-sm bg-background border-border/60"
+                    />
+                  )}
+                </FieldWrap>
+              )}
             </div>
             <button
               type="button"
               onClick={() => removeField(f.key)}
-              className="mt-5 p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+              className={`p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0 ${f.type === "photo" ? "mt-2" : "mt-5"}`}
               title={`Remove ${f.label}`}
             >
               <X className="w-3.5 h-3.5" />

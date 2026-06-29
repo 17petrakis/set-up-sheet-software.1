@@ -3,6 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, ChevronDown, ChevronRight, Plus, X, Pencil, RotateCcw } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
 import TurningToolEditModal from "./TurningToolEditModal";
@@ -333,6 +338,7 @@ export { AddToolButton };
 export default function ToolRow({ tool, onUpdate, onRemove }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
   const typeValue = tool.tool_type || "";
@@ -495,7 +501,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
             />
           </div>
         )}
-        <Button type="button" size="icon" variant="ghost" onClick={onRemove}
+        <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className={`h-7 w-7 text-destructive hover:text-destructive shrink-0 ${showOdIdBox ? "" : "ml-auto"}`}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
@@ -514,6 +520,23 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           typeValue={tool.tool_type || ""}
         />
       )}
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Tool?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this tool? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setConfirmDelete(false); onRemove(); }} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

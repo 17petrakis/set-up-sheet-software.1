@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function TurretBlock({ turret, onChange, onRemove, index }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const setField = (k, v) => onChange({ ...turret, [k]: v });
 
@@ -58,7 +64,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
           <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} />
         </div>
         {turret.turret_type && <AddToolButton onAdd={addTool} />}
-        <Button type="button" size="icon" variant="ghost" onClick={onRemove}
+        <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className="h-8 w-8 ml-auto text-destructive hover:text-destructive shrink-0">
           <Trash2 className="w-4 h-4" />
         </Button>
@@ -104,6 +110,23 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
           </DragDropContext>
         </div>
       )}
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Turret?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete Turret {index + 1} and all its tools? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setConfirmDelete(false); onRemove(); }} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

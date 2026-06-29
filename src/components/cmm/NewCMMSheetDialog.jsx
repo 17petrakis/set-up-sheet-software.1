@@ -4,23 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
+import ComboBox from "@/components/ui/ComboBox";
 
 export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
-  const [customerMode, setCustomerMode] = useState(existingCustomers.length > 0 ? "select" : "new");
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [newCustomer, setNewCustomer] = useState("");
+  const [customer, setCustomer] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const customerValue = customerMode === "new" ? newCustomer.trim() : selectedCustomer;
 
   const handleCreate = async () => {
     if (!partNumber.trim()) return;
     setSaving(true);
+    if (customer.trim()) {
+      const alreadyExists = existingCustomers.some(
+        c => c.toLowerCase() === customer.trim().toLowerCase()
+      );
+      if (!alreadyExists) {
+        await base44.entities.Customer.create({ name: customer.trim() });
+      }
+    }
     const folderId = `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const sheet = await base44.entities.CMMSheet.create({
       part_number: partNumber.trim(),
-      customer: customerValue,
+      customer: customer.trim(),
       folder_id: folderId,
       units: "in",
       fixturing: [],
@@ -61,30 +66,13 @@ export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers
               Customer <span className="text-xs text-muted-foreground font-normal normal-case">(optional)</span>
             </Label>
 
-            {existingCustomers.length > 0 && (
-              <div className="flex gap-2 mb-2">
-                <button onClick={() => setCustomerMode("select")}
-                  className={`text-xs px-3 py-1 rounded-md border transition-colors ${customerMode === "select" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-                  Existing
-                </button>
-                <button onClick={() => setCustomerMode("new")}
-                  className={`text-xs px-3 py-1 rounded-md border transition-colors ${customerMode === "new" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
-                  New Customer
-                </button>
-              </div>
-            )}
-
-            {customerMode === "select" && existingCustomers.length > 0 ? (
-              <select value={selectedCustomer} onChange={e => setSelectedCustomer(e.target.value)}
-                className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
-                <option value="">— No Customer —</option>
-                {existingCustomers.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            ) : (
-              <Input value={newCustomer} onChange={e => setNewCustomer(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleCreate()}
-                placeholder="e.g. Acme Corp" className="h-9 text-sm" />
-            )}
+            <ComboBox
+              value={customer}
+              onChange={setCustomer}
+              options={existingCustomers}
+              placeholder="Select or type…"
+              className="h-9 text-sm px-3 w-full"
+            />
           </div>
         </div>
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
