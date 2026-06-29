@@ -180,7 +180,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
         {showExtrasRow ? (
           <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
             <div className="sm:col-span-3">
-              <div className="grid grid-cols-2 gap-x-2">
+              <div className={`grid gap-x-2 ${data.material_color_enabled && data.material_condition_enabled ? "grid-cols-2" : "grid-cols-1"}`}>
                 {data.material_color_enabled && (
                   <div>
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -328,28 +328,27 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
           {showDeburring && (
             <div className="px-4 py-4 space-y-3">
-              {/* Times */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
-                <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                    Total Additional Time
-                  </Label>
-                  <Input
-                    value={data.total_additional_time || ""}
-                    readOnly
-                    className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-                    placeholder="Auto-calculated"
-                  />
-                </div>
-                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} time />
-                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} time />
-                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} time />
+              {/* Row 1: Total Additional Time */}
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  Total Additional Time
+                </Label>
+                <Input
+                  value={data.total_additional_time || ""}
+                  readOnly
+                  className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+                  placeholder="Auto-calculated"
+                />
               </div>
 
-              {/* Notes */}
+              {/* Row 2: Individual times, Row 3: notes directly below each */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Deburring Time
+                  </Label>
+                  <TimeInput value={data.deburring_time} onChange={update("deburring_time")} />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
                     Deburring Notes
                   </Label>
                   <AutoResizeTextarea
@@ -360,6 +359,10 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Finishing Time
+                  </Label>
+                  <TimeInput value={data.finishing_time} onChange={update("finishing_time")} />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
                     Finishing Notes
                   </Label>
                   <AutoResizeTextarea
@@ -370,6 +373,10 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 </div>
                 <div>
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                    Wash Time
+                  </Label>
+                  <TimeInput value={data.wash_time} onChange={update("wash_time")} />
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
                     Wash Notes
                   </Label>
                   <AutoResizeTextarea
