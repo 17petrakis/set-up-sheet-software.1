@@ -9,6 +9,7 @@ import ComboBox from "@/components/ui/ComboBox";
 export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
   const [partNumber, setPartNumber] = useState("");
   const [customer, setCustomer] = useState("");
+  const [opName, setOpName] = useState("Op 1");
   const [saving, setSaving] = useState(false);
 
   const handleCreate = async () => {
@@ -27,6 +28,7 @@ export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers
       part_number: partNumber.trim(),
       customer: customer.trim(),
       folder_id: folderId,
+      description: opName.trim() || "",
       units: "in",
       fixturing: [],
       work_holding: [{ _id: "first", note: "", photo_url: "" }],
@@ -72,6 +74,19 @@ export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers
               options={existingCustomers}
               placeholder="Select or type…"
               className="h-9 text-sm px-3 w-full"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Operation Name
+            </Label>
+            <Input
+              value={opName}
+              onChange={e => setOpName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleCreate()}
+              placeholder="e.g. Op 1, Inspection…"
+              className="h-9 text-sm"
             />
           </div>
         </div>

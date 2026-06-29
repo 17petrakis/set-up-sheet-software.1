@@ -64,9 +64,9 @@ export default function PhotoMarkupEditor({ photoUrl, onSave, onClose }) {
   const [current, setCurrent] = useState(null);
   const [saving, setSaving] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [lineWidth, setLineWidth] = useState(3);
 
   const COLOR = "#ef4444";
-  const LINE_WIDTH = 3;
 
   const redraw = useCallback((extraShape = null) => {
     const canvas = canvasRef.current;
@@ -95,9 +95,9 @@ export default function PhotoMarkupEditor({ photoUrl, onSave, onClose }) {
     const pos = getPos(e);
     setDrawing(true);
     if (tool === "freehand") {
-      setCurrent({ type: "freehand", color: COLOR, lineWidth: LINE_WIDTH, points: [pos] });
+      setCurrent({ type: "freehand", color: COLOR, lineWidth: lineWidth, points: [pos] });
     } else {
-      setCurrent({ type: tool, color: COLOR, lineWidth: LINE_WIDTH, x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y });
+      setCurrent({ type: tool, color: COLOR, lineWidth: lineWidth, x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y });
     }
   };
 
@@ -156,6 +156,19 @@ export default function PhotoMarkupEditor({ photoUrl, onSave, onClose }) {
               <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2.5 py-1">
+          <span className="text-white/50 text-[10px] font-medium uppercase tracking-wider">Width</span>
+          <input
+            type="range"
+            min={1}
+            max={20}
+            value={lineWidth}
+            onChange={e => setLineWidth(Number(e.target.value))}
+            className="w-24 accent-red-500"
+          />
+          <span className="text-white/70 text-xs w-5 text-right tabular-nums">{lineWidth}</span>
         </div>
 
         <div className="flex items-center gap-1 ml-auto">

@@ -15,6 +15,12 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
+  const sorted = [...(folder.sheets || [])].sort((a, b) => {
+    const ad = a.created_date ? new Date(a.created_date).getTime() : 0;
+    const bd = b.created_date ? new Date(b.created_date).getTime() : 0;
+    return ad - bd;
+  });
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     await base44.entities.CMMSheet.delete(deleteTarget.id);
@@ -63,13 +69,13 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {folder.sheets.map(sheet => (
+        {sorted.map(sheet => (
           <div
             key={sheet.id}
             className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-emerald-400/40 transition-all group"
             onClick={() => navigate(`/cmm-sheet/${sheet.id}`)}
           >
-            {folder.sheets.length > 1 && (
+            {sorted.length > 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"

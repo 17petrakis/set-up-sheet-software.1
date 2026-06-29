@@ -18,7 +18,12 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
-  const sorted = [...sheets].sort((a, b) => (a.operation_number || 1) - (b.operation_number || 1));
+  const sorted = [...sheets].sort((a, b) => {
+    const ad = a.created_date ? new Date(a.created_date).getTime() : 0;
+    const bd = b.created_date ? new Date(b.created_date).getTime() : 0;
+    if (ad !== bd) return ad - bd;
+    return (a.operation_number || 1) - (b.operation_number || 1);
+  });
   const folderId = sorted[0]?.folder_id;
   const nextOpNumber = sorted.length > 0 ? Math.max(...sorted.map(s => s.operation_number || 1)) + 1 : 2;
 

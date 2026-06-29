@@ -106,8 +106,9 @@ export default function WorkPlacementSection({ items = [], onChange }) {
         <>
           {/* Desktop: table-like layout */}
           <div className="hidden sm:block mb-4">
-            <div className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
+            <div className="grid grid-cols-[2rem_7rem_1fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
               <span>#</span>
+              <span>Post Size</span>
               <span>Stacked Posts</span>
               <span>X</span>
               <span>Y</span>
@@ -119,18 +120,18 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                 return (
                 <div
                   key={post._id || idx}
-                  className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
+                  className="grid grid-cols-[2rem_7rem_1fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
                 >
                   <span className="text-xs text-muted-foreground">{idx + 1}</span>
+                  <select
+                    value={post.size || ""}
+                    onChange={e => updatePost(idx, "size", e.target.value)}
+                    className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">—</option>
+                    {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <select
-                      value={post.size || ""}
-                      onChange={e => updatePost(idx, "size", e.target.value)}
-                      className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
-                    >
-                      <option value="">—</option>
-                      {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
                     {stacked.map((sz, sIdx) => (
                       <div key={sIdx} className="flex items-center gap-0.5 shrink-0">
                         <select
@@ -186,16 +187,19 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                   </button>
                 </div>
                 <div className="mb-2">
+                  <label className="text-xs text-muted-foreground block mb-1">Post Size</label>
+                  <select
+                    value={post.size || ""}
+                    onChange={e => updatePost(idx, "size", e.target.value)}
+                    className="w-full h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">— Select —</option>
+                    {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="mb-2">
                   <label className="text-xs text-muted-foreground block mb-1">Stacked Posts</label>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <select
-                      value={post.size || ""}
-                      onChange={e => updatePost(idx, "size", e.target.value)}
-                      className="h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
-                    >
-                      <option value="">— Select —</option>
-                      {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
                     {stacked.map((sz, sIdx) => (
                       <div key={sIdx} className="flex items-center gap-0.5 shrink-0">
                         <select
