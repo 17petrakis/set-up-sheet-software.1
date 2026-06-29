@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, X, Loader2 } from "lucide-react";
 
 /**
- * Per-station photo manager. Each photo has a URL and a correlating note.
+ * Per-station photo manager. Each photo renders large (~half width) with the
+ * correlating note beside it.
  * photos: [{ url, note }]
  */
 export default function StationPhotos({ photos, onChange }) {
@@ -39,7 +40,7 @@ export default function StationPhotos({ photos, onChange }) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Photos</span>
         <button
@@ -54,22 +55,23 @@ export default function StationPhotos({ photos, onChange }) {
         <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       </div>
       {photosArr.map((p, i) => (
-        <div key={i} className="flex gap-2 items-start">
-          <div className="relative shrink-0">
-            <img src={p.url} alt="" className="w-16 h-16 object-cover rounded-md border border-border/60" />
+        <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch">
+          <div className="relative flex-1 rounded-lg overflow-hidden border border-border/60 bg-muted/10" style={{ minHeight: "320px" }}>
+            <img src={p.url} alt="" className="w-full h-full object-contain absolute inset-0" style={{ minHeight: "320px" }} />
             <button
               type="button"
               onClick={() => removePhoto(i)}
-              className="absolute -top-1 -right-1 p-0.5 rounded-full bg-background border border-border/60 text-muted-foreground hover:text-destructive transition-colors"
+              className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
+              title="Remove photo"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          <Input
+          <Textarea
             value={p.note || ""}
             onChange={(e) => updateNote(i, e.target.value)}
             placeholder="Photo note…"
-            className="h-9 text-sm bg-background border-border/60"
+            className="sm:w-56 shrink-0 h-full min-h-[320px] text-sm bg-background border-border/60 resize-none"
           />
         </div>
       ))}

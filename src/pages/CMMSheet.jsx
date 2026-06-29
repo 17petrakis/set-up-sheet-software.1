@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, FileSpreadsheet, Settings2, Printer } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Settings2, Printer, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import FixturingSection from "@/components/cmm/FixturingSection";
 import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
@@ -11,6 +11,7 @@ import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
 import CMMNotesSection from "@/components/cmm/CMMNotesSection";
 import CMMPrintView from "@/pages/CMMPrintView";
 import TimeInput from "@/components/ui/TimeInput";
+import AddCMMOperationDialog from "@/components/cmm/AddCMMOperationDialog";
 
 function FieldGroup({ label, children }) {
   return (
@@ -28,6 +29,7 @@ export default function CMMSheet() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [showAddOp, setShowAddOp] = useState(false);
   const saveTimer = useRef(null);
   const isFirstLoad = useRef(true);
 
@@ -82,13 +84,18 @@ export default function CMMSheet() {
           </div>
           <div>
             <h1 className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none">
-              {sheet.part_number} — CMM Setup Sheet
+              {sheet.part_number}{sheet.description ? ` — ${sheet.description}` : " — CMM Setup Sheet"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : sheet.customer || "Quality Control"}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="ml-auto gap-1.5 text-xs no-print">
+          {sheet.folder_id && (
+            <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="ml-auto gap-1.5 text-xs no-print">
+              <Plus className="w-4 h-4" /> Add Operation
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-1.5 text-xs no-print">
             <Printer className="w-4 h-4" /> Print
           </Button>
         </div>
@@ -175,6 +182,33 @@ export default function CMMSheet() {
           />
         </motion.div>
       </main>
+
+      {showAddOp && (
+        <AddCMMOperationDialog
+          onClose={() => setShowAddOp(false)}
+          onAdd={async (opName) => {
+            const newSheet = await base44.entities.CMMSheet.create({
+              part_number: sheet.part_number,
+              customer: sheet.customer,
+              folder_id: sheet.folder_id,
+              description: opName,
+              machine: sheet.machine,
+              material: sheet.material,
+              units: sheet.units,
+              program_number: sheet.program_number,
+              program_location: sheet.program_location,
+              cycle_time: sheet.cycle_time,
+              fixturing: [],
+              work_placement: [],
+              work_holding: [{ _id: "first", note: "", photo_url: "" }],
+              important_notes: [],
+              program_notes: "",
+            });
+            setShowAddOp(false);
+            navigate(`/cmm-sheet/${newSheet.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

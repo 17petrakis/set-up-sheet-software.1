@@ -106,10 +106,9 @@ export default function WorkPlacementSection({ items = [], onChange }) {
         <>
           {/* Desktop: table-like layout */}
           <div className="hidden sm:block mb-4">
-            <div className="grid grid-cols-[2rem_1fr_1.75fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
+            <div className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40">
               <span>#</span>
-              <span>Post Size</span>
-              <span>Stacked Post</span>
+              <span>Post Sizes</span>
               <span>X</span>
               <span>Y</span>
               <span></span>
@@ -120,45 +119,48 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                 return (
                 <div
                   key={post._id || idx}
-                  className="grid grid-cols-[2rem_1fr_1.75fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
+                  className="grid grid-cols-[2rem_1fr_5rem_5rem_2rem] gap-2 items-center bg-muted/30 border border-border/40 rounded-lg px-3 py-1.5"
                 >
                   <span className="text-xs text-muted-foreground">{idx + 1}</span>
-                  <select
-                    value={post.size || ""}
-                    onChange={e => updatePost(idx, "size", e.target.value)}
-                    className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring w-full max-w-[10rem]"
-                  >
-                    <option value="">—</option>
-                    {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <div className="flex flex-col gap-1">
-                    {[0, 1, 2].map(slotIdx => {
-                      const active = slotIdx < stacked.length;
-                      const canToggle = slotIdx <= stacked.length;
-                      return (
-                        <div key={slotIdx} className="flex items-center gap-2">
-                          <label className={`flex items-center gap-1.5 text-xs ${canToggle ? "cursor-pointer" : "opacity-40 cursor-not-allowed"}`}>
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              disabled={!canToggle}
-                              onChange={() => toggleStacked(idx, slotIdx)}
-                              className="w-3.5 h-3.5 rounded border-input accent-primary"
-                            />
-                            <span className="text-muted-foreground">add</span>
-                          </label>
-                          {active && (
-                            <select
-                              value={stacked[slotIdx]}
-                              onChange={e => updateStacked(idx, slotIdx, e.target.value)}
-                              className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring flex-1 min-w-0"
-                            >
-                              {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <select
+                      value={post.size || ""}
+                      onChange={e => updatePost(idx, "size", e.target.value)}
+                      className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
+                    >
+                      <option value="">—</option>
+                      {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {stacked.map((sz, sIdx) => (
+                      <div key={sIdx} className="flex items-center gap-0.5 shrink-0">
+                        <select
+                          value={sz}
+                          onChange={e => updateStacked(idx, sIdx, e.target.value)}
+                          className="h-8 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                        >
+                          {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => toggleStacked(idx, sIdx)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          title="Remove stacked post"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {stacked.length < 3 && (
+                      <label className="flex items-center gap-1 text-xs cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={false}
+                          onChange={() => toggleStacked(idx, stacked.length)}
+                          className="w-3.5 h-3.5 rounded border-input accent-primary"
+                        />
+                        <span className="text-muted-foreground">add</span>
+                      </label>
+                    )}
                   </div>
                   <Input value={post.x || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "x", e.target.value); }} className="h-8 text-sm" />
                   <Input value={post.y || ""} onChange={e => { if (/^-?\d*$/.test(e.target.value)) updatePost(idx, "y", e.target.value); }} className="h-8 text-sm" />
@@ -182,47 +184,46 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                   </button>
                 </div>
                 <div className="mb-2">
-                  <label className="text-xs text-muted-foreground block mb-1">Size</label>
-                  <select
-                    value={post.size || ""}
-                    onChange={e => updatePost(idx, "size", e.target.value)}
-                    className="w-full h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">— Select —</option>
-                    {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="mb-2">
-                  <label className="text-xs text-muted-foreground block mb-1">Stacked Post</label>
-                  <div className="flex flex-col gap-1.5">
-                    {[0, 1, 2].map(slotIdx => {
-                      const stacked = getStacked(post);
-                      const active = slotIdx < stacked.length;
-                      const canToggle = slotIdx <= stacked.length;
-                      return (
-                        <div key={slotIdx} className="flex items-center gap-2">
-                          <label className={`flex items-center gap-1.5 text-xs ${canToggle ? "cursor-pointer" : "opacity-40 cursor-not-allowed"}`}>
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              disabled={!canToggle}
-                              onChange={() => toggleStacked(idx, slotIdx)}
-                              className="w-4 h-4 rounded border-input accent-primary"
-                            />
-                            <span className="text-muted-foreground">add</span>
-                          </label>
-                          {active && (
-                            <select
-                              value={stacked[slotIdx]}
-                              onChange={e => updateStacked(idx, slotIdx, e.target.value)}
-                              className="flex-1 h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                            >
-                              {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <label className="text-xs text-muted-foreground block mb-1">Post Sizes</label>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <select
+                      value={post.size || ""}
+                      onChange={e => updatePost(idx, "size", e.target.value)}
+                      className="h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring shrink-0"
+                    >
+                      <option value="">— Select —</option>
+                      {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {stacked.map((sz, sIdx) => (
+                      <div key={sIdx} className="flex items-center gap-0.5 shrink-0">
+                        <select
+                          value={sz}
+                          onChange={e => updateStacked(idx, sIdx, e.target.value)}
+                          className="h-9 px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                        >
+                          {POST_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => toggleStacked(idx, sIdx)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          title="Remove stacked post"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    {stacked.length < 3 && (
+                      <label className="flex items-center gap-1 text-xs cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={false}
+                          onChange={() => toggleStacked(idx, stacked.length)}
+                          className="w-4 h-4 rounded border-input accent-primary"
+                        />
+                        <span className="text-muted-foreground">add</span>
+                      </label>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">

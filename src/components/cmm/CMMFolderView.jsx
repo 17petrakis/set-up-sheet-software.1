@@ -8,10 +8,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import AddCMMOperationDialog from "./AddCMMOperationDialog";
 
 export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showAddOp, setShowAddOp] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -21,14 +23,22 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
     setDeleteTarget(null);
   };
 
-  const handleAddSheet = async () => {
-    const folderId = folder.sheets[0]?.folder_id || `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const handleAddOperation = async (opName) => {
+    const base = folder.sheets[0] || {};
+    const folderId = base.folder_id || `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const sheet = await base44.entities.CMMSheet.create({
       part_number: folder.partNumber,
       customer: folder.customer,
       folder_id: folderId,
-      units: "in",
+      description: opName,
+      machine: base.machine,
+      material: base.material,
+      units: base.units || "in",
+      program_number: base.program_number,
+      program_location: base.program_location,
+      cycle_time: base.cycle_time,
       fixturing: [],
+      work_placement: [],
       work_holding: [{ _id: "first", note: "", photo_url: "" }],
       important_notes: [],
       program_notes: "",
@@ -47,8 +57,8 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
           <h2 className="text-2xl font-bold text-foreground">{folder.partNumber}</h2>
           {folder.customer && <p className="text-sm text-muted-foreground mt-0.5">{folder.customer}</p>}
         </div>
-        <Button onClick={handleAddSheet} size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> Add CMM Sheet
+        <Button onClick={() => setShowAddOp(true)} size="sm" className="gap-2">
+          <Plus className="w-4 h-4" /> Add Operation
         </Button>
       </div>
 
@@ -95,6 +105,10 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showAddOp && (
+        <AddCMMOperationDialog onClose={() => setShowAddOp(false)} onAdd={handleAddOperation} />
+      )}
     </div>
   );
 }
