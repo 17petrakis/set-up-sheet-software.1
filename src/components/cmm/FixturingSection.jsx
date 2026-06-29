@@ -11,11 +11,9 @@ const FIXTURING_OPTIONS = [
   { label: "Angle Block", variants: ["Regular", "V-Angle"] },
   { label: "Vice", variants: ["Regular", "Finger", "Mini", "Max's"] },
   { group: "Gauges" },
-  { label: "Parallel Bars", variants: ["⅞"] },
-  { label: "Gauge Block .700", variants: [] },
-  { label: "Gauge Block .900", variants: [] },
-  { label: "Gauge Block .950", variants: [] },
-  { label: "Gauge Pin", variants: [".1"] },
+  { label: "Parallel Bars", sizes: ["⅞"], sizeField: true },
+  { label: "Gauge Block", sizes: ["0.900", "0.700", "0.950"], sizeField: true },
+  { label: "Gauge Pin", sizes: [".1"], sizeField: true },
   { group: "Other" },
   { label: "Weight", variants: ["Round Bar"] },
   { label: "Flat Piece", variants: [] },
@@ -38,10 +36,13 @@ export default function FixturingSection({ items = [], onChange }) {
 
   const selectedOption = FIXTURING_OPTIONS.find(o => o.label && o.label === selectedType);
 
+  const isSizeField = selectedOption?.sizeField;
+  const fieldOptions = isSizeField ? selectedOption?.sizes : selectedOption?.variants;
+
   const canAdd = () => {
     if (!selectedType) return false;
     if (selectedType === "__other__") return customType.trim() !== "";
-    if (selectedOption?.variants.length > 0 && !selectedVariant) return false;
+    if (fieldOptions && fieldOptions.length > 0 && !selectedVariant) return false;
     if (selectedVariant === "Other" && !customVariant.trim()) return false;
     return true;
   };
@@ -136,22 +137,29 @@ export default function FixturingSection({ items = [], onChange }) {
             </div>
           )}
 
-          {selectedOption && selectedOption.variants.length > 0 && (
+          {selectedOption && fieldOptions && fieldOptions.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Variant</label>
-              <select
-                value={selectedVariant}
-                onChange={e => { setSelectedVariant(e.target.value); setCustomVariant(""); }}
-                className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="">— Select —</option>
-                {selectedOption.variants.map(v => <option key={v} value={v}>{v}</option>)}
-                <option value="Other">Other (enter name)</option>
-              </select>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">{isSizeField ? "Size" : "Variant"}</label>
+              {isSizeField && selectedVariant === "Other" ? (
+                <div className="flex gap-2">
+                  <Input value={customVariant} onChange={e => setCustomVariant(e.target.value)} placeholder="Enter size" className="h-9 text-sm flex-1" autoFocus />
+                  <Button type="button" size="sm" variant="outline" onClick={() => { setSelectedVariant(""); setCustomVariant(""); }} className="h-9 text-xs shrink-0">Preset</Button>
+                </div>
+              ) : (
+                <select
+                  value={selectedVariant}
+                  onChange={e => { setSelectedVariant(e.target.value); setCustomVariant(""); }}
+                  className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">— Select —</option>
+                  {fieldOptions.map(v => <option key={v} value={v}>{v}</option>)}
+                  <option value="Other">Other</option>
+                </select>
+              )}
             </div>
           )}
 
-          {selectedVariant === "Other" && (
+          {!isSizeField && selectedVariant === "Other" && (
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Custom Variant</label>
               <Input value={customVariant} onChange={e => setCustomVariant(e.target.value)} placeholder="Enter variant name" className="h-9 text-sm" />

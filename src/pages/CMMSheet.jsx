@@ -10,6 +10,7 @@ import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
 import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
 import CMMNotesSection from "@/components/cmm/CMMNotesSection";
 import CMMPrintView from "@/pages/CMMPrintView";
+import TimeInput from "@/components/ui/TimeInput";
 
 function FieldGroup({ label, children }) {
   return (
@@ -127,7 +128,7 @@ export default function CMMSheet() {
                 <Input value={sheet.material || ""} onChange={e => update("material", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
               <FieldGroup label="Cycle Time">
-                <Input value={sheet.cycle_time || ""} onChange={e => update("cycle_time", e.target.value)} className="h-9 text-sm" />
+                <TimeInput value={sheet.cycle_time || ""} onChange={v => update("cycle_time", v)} />
               </FieldGroup>
               <FieldGroup label="Program #">
                 <Input value={sheet.program_number || ""} onChange={e => update("program_number", e.target.value)} className="h-9 text-sm" />
