@@ -9,6 +9,7 @@ import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
+import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
@@ -21,19 +22,23 @@ const MACHINES = [
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
 
-const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "" }) => (
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false }) => (
   <div className={className}>
     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
       {label}
       {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
     </Label>
-    <Input
-      type={type}
-      value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-    />
+    {time ? (
+      <TimeInput value={value} onChange={onChange} />
+    ) : (
+      <Input
+        type={type}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+      />
+    )}
   </div>
 );
 
@@ -140,7 +145,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         {/* Row 5: Cycle Time, Program Desc. */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} placeholder="MM:SS" />
+          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} time />
           <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
         </div>
 
@@ -212,9 +217,9 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
                     placeholder="Auto-calculated"
                   />
                 </div>
-                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} placeholder="MM:SS" />
-                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} placeholder="MM:SS" />
-                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} placeholder="MM:SS" />
+                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} time />
+                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} time />
+                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} time />
               </div>
 
               {/* Notes */}

@@ -11,8 +11,9 @@ export function parseTimeToSeconds(val) {
     const sec = parseFloat(parts[1]) || 0;
     return min * 60 + sec;
   }
+  // Plain number → treated as minutes (backward compat with old data)
   const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
+  return isNaN(n) ? 0 : n * 60;
 }
 
 // Format total seconds as "MM:SS"

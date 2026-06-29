@@ -9,6 +9,7 @@ import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
+import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
@@ -29,19 +30,23 @@ const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
   })
 );
 
-const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "" }) => (
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false }) => (
   <div className={className}>
     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
       {label}
       {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
     </Label>
-    <Input
-      type={type}
-      value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-    />
+    {time ? (
+      <TimeInput value={value} onChange={onChange} />
+    ) : (
+      <Input
+        type={type}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+      />
+    )}
   </div>
 );
 
@@ -190,13 +195,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 5: Cycle Time, Handling Time, Total Combined */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} placeholder="MM:SS" />
+          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time />
           <Field
             label="Handling Time"
             note="(Includes Stops)"
             value={data.handling_time}
             onChange={update("handling_time")}
-            placeholder="MM:SS"
+            time
           />
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -279,9 +284,9 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                     placeholder="Auto-calculated"
                   />
                 </div>
-                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} placeholder="MM:SS" />
-                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} placeholder="MM:SS" />
-                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} placeholder="MM:SS" />
+                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} time />
+                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} time />
+                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} time />
               </div>
 
               {/* Notes */}
