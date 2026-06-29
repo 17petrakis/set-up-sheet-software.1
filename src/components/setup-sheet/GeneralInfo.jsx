@@ -130,7 +130,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         </div>
 
         {/* Row 3: Material, Stock, Qty */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_80px] gap-x-4 gap-y-3 mb-3">
           <MaterialField data={data} onChange={onChange} />
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
