@@ -53,7 +53,8 @@ function Label({ children }) {
 function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   return (
     <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`} />
+      className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`}
+      style={{ fieldSizing: "content", minWidth: "3rem" }} />
   );
 }
 
@@ -65,12 +66,13 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
 
   if (showCustom) {
     return (
-      <div className={`flex items-center gap-1 ${className}`}>
+      <div className={`flex items-center gap-1 ${className}`} style={{ width: "fit-content", minWidth: "6rem" }}>
         <Input
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Custom…"
-          className="h-7 text-xs px-1.5 flex-1 min-w-0"
+          className="h-7 text-xs px-1.5"
+          style={{ fieldSizing: "content", minWidth: "5rem" }}
         />
         <button
           type="button"
@@ -93,7 +95,8 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
         onChange(v);
       }
     }}>
-      <SelectTrigger className={`h-7 text-xs px-1.5 ${className}`}>
+      <SelectTrigger className={`h-7 text-xs px-1.5 [&>span]:line-clamp-none ${className}`}
+        style={{ width: "fit-content", minWidth: "3rem" }}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -284,9 +287,11 @@ function GeneralInfo({ tool, onUpdate, typeValue, onEditFields }) {
         {customFields.map((cf, i) => (
           <div key={i} className="flex flex-col">
             <Input value={cf.key} onChange={(e) => updateCustomField(i, "key", e.target.value)}
-              placeholder="Field name" className="h-6 text-[10px] bg-background border-border/60 w-28 mb-0.5 uppercase tracking-wide" />
+              placeholder="Field name" className="h-6 text-[10px] bg-background border-border/60 w-28 mb-0.5 uppercase tracking-wide"
+              style={{ fieldSizing: "content", minWidth: "5rem" }} />
             <Input value={cf.value} onChange={(e) => updateCustomField(i, "value", e.target.value)}
-              placeholder="Value" className="h-7 text-xs bg-background border-border/60 w-28" />
+              placeholder="Value" className="h-7 text-xs bg-background border-border/60 w-28"
+              style={{ fieldSizing: "content", minWidth: "5rem" }} />
           </div>
         ))}
 
