@@ -175,7 +175,9 @@ export default function WorkPlacementSection({ items = [], onChange }) {
 
           {/* Mobile: card layout */}
           <div className="sm:hidden space-y-2 mb-4">
-            {items.map((post, idx) => (
+            {items.map((post, idx) => {
+              const stacked = getStacked(post);
+              return (
               <div key={post._id || idx} className="bg-muted/30 border border-border/40 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Post #{idx + 1}</span>
@@ -237,7 +239,8 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
