@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, ChevronDown, ChevronRight, Plus, X, Pencil } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, Plus, X, Pencil, RotateCcw } from "lucide-react";
 
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
 import TurningToolEditModal from "./TurningToolEditModal";
@@ -57,18 +57,50 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   );
 }
 
-function SmallSelect({ value, onChange, options, placeholder = "—", className = "w-20" }) {
+function SmallSelect({ value, onChange, options, placeholder = "—", className = "w-20", allowOther = true }) {
+  const [forcedOther, setForcedOther] = useState(false);
+  const normalizedOptions = options.map(opt => (typeof opt === "string" ? { value: opt, label: opt } : opt));
+  const isInOptions = normalizedOptions.some(o => o.value === value);
+  const showCustom = allowOther && (forcedOther || (!!value && !isInOptions));
+
+  if (showCustom) {
+    return (
+      <div className={`flex items-center gap-1 ${className}`}>
+        <Input
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Custom…"
+          className="h-7 text-xs px-1.5 flex-1 min-w-0"
+        />
+        <button
+          type="button"
+          onClick={() => { setForcedOther(false); onChange(""); }}
+          className="text-muted-foreground hover:text-foreground p-0.5 shrink-0"
+          title="Back to list"
+        >
+          <RotateCcw className="w-3 h-3" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <Select value={value || undefined} onValueChange={onChange}>
+    <Select value={value || undefined} onValueChange={(v) => {
+      if (v === "__other__") {
+        setForcedOther(true);
+        onChange("");
+      } else {
+        onChange(v);
+      }
+    }}>
       <SelectTrigger className={`h-7 text-xs px-1.5 ${className}`}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {options.map(opt => {
-          const val = typeof opt === "string" ? opt : opt.value;
-          const label = typeof opt === "string" ? opt : opt.label;
-          return <SelectItem key={val} value={val} className="text-xs">{label}</SelectItem>;
-        })}
+        {normalizedOptions.map(opt => (
+          <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
+        ))}
+        {allowOther && <SelectItem value="__other__" className="text-xs italic text-muted-foreground">Other…</SelectItem>}
       </SelectContent>
     </Select>
   );
@@ -196,11 +228,7 @@ function GeneralInfo({ tool, onUpdate, typeValue, onEditFields }) {
           {f.key === "shank_dia" && <SmallInput value={tool.shank_dia} onChange={set("shank_dia")} className="w-20" />}
           {f.key === "tip_dia" && <SmallInput value={tool.tip_dia} onChange={set("tip_dia")} className="w-20" />}
           {f.key === "coolant" && (
-            <select value={tool.coolant || ""} onChange={(e) => set("coolant")(e.target.value)}
-              className="h-7 text-xs bg-background border border-border/60 rounded-md px-1.5 w-28">
-              <option value="" disabled>—</option>
-              {COOLANT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
+            <SmallSelect value={tool.coolant} onChange={set("coolant")} options={COOLANT_OPTIONS} className="w-28" />
           )}
           {f.key === "extension" && (
             isMill
@@ -446,16 +474,13 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {showOdIdBox && (
           <div className="ml-auto shrink-0">
-            <select
-              value={tool.od_id || ""}
-              onChange={(e) => set("od_id")(e.target.value)}
-              className="h-7 text-xs bg-background border border-border/60 rounded-md px-1.5 w-20"
-            >
-              <option value="" disabled>{tool.tool_kind === "Mill" ? "Axl/Rad" : "OD/ID"}</option>
-              {odIdOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <SmallSelect
+              value={tool.od_id}
+              onChange={set("od_id")}
+              options={odIdOptions}
+              placeholder={tool.tool_kind === "Mill" ? "Axl/Rad" : "OD/ID"}
+              className="w-20"
+            />
           </div>
         )}
         <Button type="button" size="icon" variant="ghost" onClick={onRemove}
