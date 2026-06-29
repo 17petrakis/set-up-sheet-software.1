@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { MATERIAL_OPTIONS, MATERIAL_CONDITIONS } from "@/lib/materialOptions";
 
-export default function MaterialField({ data, onChange, materialSpan = "sm:col-span-4" }) {
+export default function MaterialField({ data, onChange, materialSpan = "sm:col-span-4", hideExtras = false }) {
   const update = (field) => (value) => onChange(field, value);
 
   return (
@@ -43,7 +43,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
           className="h-9 text-sm px-3 w-full"
         />
       </div>
-      {data.material_color_enabled && (
+      {!hideExtras && data.material_color_enabled && (
         <div className="sm:col-span-2">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
             Color
@@ -56,8 +56,52 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
           />
         </div>
       )}
-      {data.material_condition_enabled && (
+      {!hideExtras && data.material_condition_enabled && (
         <div className="sm:col-span-2">
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            Condition
+          </Label>
+          <Select
+            value={data.material_condition || ""}
+            onValueChange={(v) => onChange("material_condition", v)}
+          >
+            <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+              <span className={data.material_condition ? "" : "text-muted-foreground"}>
+                {data.material_condition || "Select…"}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              {MATERIAL_CONDITIONS.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function MaterialExtras({ data, onChange, span = "sm:col-span-4" }) {
+  const update = (field) => (value) => onChange(field, value);
+
+  return (
+    <>
+      {data.material_color_enabled && (
+        <div className={span}>
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            Color
+          </Label>
+          <Input
+            value={data.material_color || ""}
+            onChange={(e) => update("material_color")(e.target.value)}
+            placeholder="e.g. Black…"
+            className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+          />
+        </div>
+      )}
+      {data.material_condition_enabled && (
+        <div className={span}>
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
             Condition
           </Label>

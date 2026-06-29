@@ -273,7 +273,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             />
           </FieldWrap>
           {showFixtureDesc && (
-            <FieldWrap label="Fixture Description *">
+            <FieldWrap label="Fixture Description">
               <Input
                 value={s.fixture_description || ""}
                 onChange={(e) => set("fixture_description", e.target.value)}
