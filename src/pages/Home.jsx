@@ -45,6 +45,17 @@ export default function Home() {
       setActiveNav("quality_control");
       window.history.replaceState({}, "", "/");
     }
+    // Open the part folder immediately when returning from a setup sheet,
+    // so the dashboard doesn't flash before the folder loads.
+    const folderId = params.get("folder");
+    if (folderId) {
+      setOpenFolder({
+        partNumber: params.get("pn") || "Unnamed",
+        customer: params.get("cu") || "",
+        folderId,
+      });
+      window.history.replaceState({}, "", "/");
+    }
   }, []);
 
   const load = async () => {
@@ -56,16 +67,6 @@ export default function Home() {
     setSheets(data);
     setCustomers(customerData);
     setLoading(false);
-    // Auto-open folder if ?folder= param present
-    const params = new URLSearchParams(window.location.search);
-    const folderId = params.get("folder");
-    if (folderId) {
-      const match = data.find(s => s.folder_id === folderId);
-      if (match) {
-        setOpenFolder({ partNumber: match.part_number || "Unnamed", customer: match.customer || "" });
-        window.history.replaceState({}, "", "/");
-      }
-    }
   };
 
   useEffect(() => { load(); }, []);
@@ -150,12 +151,11 @@ export default function Home() {
   };
 
   // Get sheets for the open folder
-  const openFolderKey = openFolder
-    ? allFolders.find(f => f.partNumber === openFolder.partNumber && f.customer === openFolder.customer)?.key
-    : null;
-
-  const openFolderSheetsResolved = openFolderKey
-    ? (allFolders.find(f => f.key === openFolderKey)?.sheets || [])
+  const openFolderSheetsResolved = openFolder
+    ? (allFolders.find(f =>
+        (openFolder.folderId && f.key === openFolder.folderId) ||
+        (f.partNumber === openFolder.partNumber && f.customer === openFolder.customer)
+      )?.sheets || [])
     : [];
 
   return (
@@ -324,7 +324,7 @@ export default function Home() {
                   <Input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Search part"
+                    placeholder="Search parts..."
                     className="pl-9 h-10 text-sm bg-card border-border"
                   />
                 </div>

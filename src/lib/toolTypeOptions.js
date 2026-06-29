@@ -50,7 +50,6 @@ export const TOOL_FIELDS = [
   { key: "flutes", label: "Flutes" },
   { key: "flute_length", label: "Flute Length" },
   { key: "stickout_length", label: "Stickout Length" },
-  { key: "exposed_length", label: "Exposed Length" },
   { key: "cut_length", label: "Cut Length" },
   { key: "holder", label: "Holder" },
   { key: "thread_pitch", label: "Thread Pitch" },
@@ -72,7 +71,6 @@ export const TOOL_FIELD_SHORT = {
   flutes: "Flutes",
   flute_length: "Flute Len",
   stickout_length: "Stickout",
-  exposed_length: "Exposed",
   cut_length: "Cut Len",
   holder: "Holder",
   thread_pitch: "Pitch",
@@ -116,7 +114,6 @@ export function getDefaultVisibleFields(toolType) {
   }
   if (HOLE_MAKING_TYPES.includes(toolType)) {
     v.stickout_length = true;
-    v.exposed_length = true;
     if (DRILL_REAMER_TYPES.includes(toolType)) v.flutes = true;
   }
   if (toolType === "Tap") {

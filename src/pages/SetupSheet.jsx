@@ -388,7 +388,7 @@ export default function SetupSheet() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
               if (general.folder_id) {
-                navigate(`/?folder=${general.folder_id}`);
+                navigate(`/?folder=${general.folder_id}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
               } else {
                 navigate("/");
               }
