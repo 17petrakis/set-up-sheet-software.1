@@ -48,14 +48,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
     });
   }, []);
 
-  // Auto-calculate total combined cycle time
-  useEffect(() => {
-    const c = parseFloat(data.cycle_time) || 0;
-    const h = parseFloat(data.handling_time) || 0;
-    const total = c + h;
-    onChange("total_cycle_time", total > 0 ? String(total) : "");
-  }, [data.cycle_time, data.handling_time]);
-
   // Auto-calculate total additional time
   useEffect(() => {
     const d = parseFloat(data.deburring_time) || 0;
@@ -156,26 +148,9 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
         </div>
 
-        {/* Row 5: Cycle Time, Handling Time, Total Combined */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} />
-          <Field
-            label="Handling Time"
-            note="(Includes Stops)"
-            value={data.handling_time}
-            onChange={update("handling_time")}
-          />
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Total Combined Cycle Time
-            </Label>
-            <Input
-              value={data.total_cycle_time || ""}
-              readOnly
-              className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-              placeholder="Auto-calculated"
-            />
-          </div>
+        {/* Row 5: Cycle Time (Includes Handling) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
+          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} />
         </div>
 
         {/* Stops */}
