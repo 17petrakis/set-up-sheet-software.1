@@ -73,8 +73,8 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Settings2} title="General Information" />
 
-        {/* Row 1: Customer, Part Number, Rev, Part Name */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
+        {/* Row 1: Customer, Part Number, Rev */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Customer
@@ -90,10 +90,9 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
           <Field label="Part Number" value={data.part_number} onChange={update("part_number")} />
           <Field label="Rev" value={data.revision} onChange={(v) => update("revision")(v.slice(0, 5))} />
-          <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
         </div>
 
-        {/* Row 2: Machine, Machinist, CAM */}
+        {/* Row 2: Machine, Machinist, Part Name */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -109,7 +108,20 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
+          <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
+        </div>
 
+        {/* Row 3: Material, Stock, Qty */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          <MaterialField data={data} onChange={onChange} />
+          <Field label="Stock" value={data.stock} onChange={update("stock")} className={stockQtySpan} />
+          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={stockQtySpan} />
+        </div>
+
+        {/* Row 4: Program #, Program Location, CAM */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+          <Field label="Program #" value={data.program} onChange={update("program")} />
+          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               CAM
@@ -124,18 +136,10 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
         </div>
 
-        {/* Row 3: Material, Stock, Qty */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
-          <MaterialField data={data} onChange={onChange} />
-          <Field label="Stock" value={data.stock} onChange={update("stock")} className={stockQtySpan} />
-          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={stockQtySpan} />
-        </div>
-
-        {/* Row 4: Program #, Program Location, Program Desc */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          <Field label="Program #" value={data.program} onChange={update("program")} />
-          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
-          <div>
+        {/* Row 5: Cycle Time, Program Desc. */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
+          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} />
+          <div className="sm:col-span-2">
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Program Desc.
             </Label>
@@ -146,11 +150,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
             />
           </div>
-        </div>
-
-        {/* Row 5: Cycle Time (Includes Handling) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} />
         </div>
 
         {/* Stops */}
