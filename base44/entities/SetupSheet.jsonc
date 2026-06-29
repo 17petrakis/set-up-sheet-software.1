@@ -46,6 +46,24 @@
     "material": {
       "type": "string"
     },
+    "material_color": {
+      "type": "string",
+      "description": "Material color (milling)"
+    },
+    "material_condition": {
+      "type": "string",
+      "description": "Material condition / heat treatment (milling)"
+    },
+    "material_color_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether material color field is shown"
+    },
+    "material_condition_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether material condition field is shown"
+    },
     "stock": {
       "type": "string",
       "description": "Stock size / description (turning)"

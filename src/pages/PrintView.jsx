@@ -118,6 +118,8 @@ export default function PrintView() {
               <InfoRow label="Machinist" value={general.programmer} />
               <InfoRow label="CAM" value={general.program_software} />
               <InfoRow label="Material" value={general.material} />
+              {general.material_color_enabled && general.material_color && <InfoRow label="Material Color" value={general.material_color} />}
+              {general.material_condition_enabled && general.material_condition && <InfoRow label="Material Condition" value={general.material_condition} />}
               <InfoRow label="Stock" value={general.stock} />
               <InfoRow label="Qty" value={general.quantity} />
               <InfoRow label="Program #" value={general.program} />

@@ -8,7 +8,7 @@ import ComboBox from "@/components/ui/ComboBox";
 import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
-import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
+import MaterialField from "./MaterialField";
 
 const MACHINES = [
   { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
@@ -131,18 +131,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         {/* Row 3: Material, Stock, Qty */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Material
-            </Label>
-            <ComboBox
-              value={data.material || ""}
-              onChange={update("material")}
-              options={MATERIAL_OPTIONS}
-              placeholder="Select or type…"
-              className="h-9 text-sm px-3 w-full"
-            />
-          </div>
+          <MaterialField data={data} onChange={onChange} />
           <Field label="Stock" value={data.stock} onChange={update("stock")} />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
         </div>
