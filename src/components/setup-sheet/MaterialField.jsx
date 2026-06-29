@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/select";
 import { MATERIAL_OPTIONS, MATERIAL_CONDITIONS } from "@/lib/materialOptions";
 
-export default function MaterialField({ data, onChange }) {
+export default function MaterialField({ data, onChange, materialSpan = "sm:col-span-4" }) {
   const update = (field) => (value) => onChange(field, value);
 
   return (
     <>
-      <div className="sm:col-span-4 space-y-1.5">
+      <div className={`${materialSpan} space-y-1.5`}>
         <div className="flex items-center gap-3 mb-1.5">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Material

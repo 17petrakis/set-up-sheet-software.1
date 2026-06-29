@@ -8,7 +8,8 @@ import ComboBox from "@/components/ui/ComboBox";
 import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
-import { MATERIAL_OPTIONS } from "@/lib/materialOptions";
+import MaterialField from "./MaterialField";
+import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
   { group: "Doosan", models: ["Puma 2100 YII", "Puma SMX 2100 ST"] },
@@ -28,7 +29,7 @@ const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
   })
 );
 
-const Field = ({ label, note, value, onChange, type = "text", className = "" }) => (
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "" }) => (
   <div className={className}>
     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
       {label}
@@ -38,6 +39,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "" }) 
       type={type}
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
       className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
     />
   </div>
@@ -60,20 +62,20 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
   // Auto-calculate total combined cycle time
   useEffect(() => {
-    const c = parseFloat(data.cycle_time) || 0;
-    const h = parseFloat(data.handling_time) || 0;
+    const c = parseTimeToSeconds(data.cycle_time);
+    const h = parseTimeToSeconds(data.handling_time);
     const total = c + h;
-    onChange("total_cycle_time", total > 0 ? String(total) : "");
+    onChange("total_cycle_time", total > 0 ? formatSecondsToTime(total) : "");
   }, [data.cycle_time, data.handling_time]);
 
   // Auto-calculate total additional time
   useEffect(() => {
-    const d = parseFloat(data.deburring_time) || 0;
-    const f = parseFloat(data.finishing_time) || 0;
-    const w = parseFloat(data.wash_time) || 0;
+    const d = parseTimeToSeconds(data.deburring_time);
+    const f = parseTimeToSeconds(data.finishing_time);
+    const w = parseTimeToSeconds(data.wash_time);
     const total = d + f + w;
     if (total > 0 || data.total_additional_time !== undefined) {
-      onChange("total_additional_time", total > 0 ? String(total) : "");
+      onChange("total_additional_time", total > 0 ? formatSecondsToTime(total) : "");
     }
   }, [data.deburring_time, data.finishing_time, data.wash_time]);
 
@@ -83,6 +85,10 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
     onChange("has_deburring", next);
     // Data is preserved when hiding — only the UI collapses
   };
+
+  const extrasCount = (data.material_color_enabled ? 1 : 0) + (data.material_condition_enabled ? 1 : 0);
+  const materialSpan = extrasCount === 0 ? "sm:col-span-3" : "sm:col-span-4";
+  const fieldSpan = extrasCount === 0 ? "sm:col-span-3" : "sm:col-span-2";
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -157,23 +163,12 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
         </div>
 
-        {/* Row 3: Material, Stock, Qty., Length/1pc */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Material
-            </Label>
-            <ComboBox
-              value={data.material || ""}
-              onChange={update("material")}
-              options={MATERIAL_OPTIONS}
-              placeholder="Select or type…"
-              className="h-9 text-sm px-3 w-full"
-            />
-          </div>
-          <Field label="Stock" value={data.stock} onChange={update("stock")} />
-          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} />
-          <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} />
+        {/* Row 3: Material (with color/condition), Stock, Qty., Length/1pc */}
+        <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          <MaterialField data={data} onChange={onChange} materialSpan={materialSpan} />
+          <Field label="Stock" value={data.stock} onChange={update("stock")} className={fieldSpan} />
+          <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={fieldSpan} />
+          <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className={fieldSpan} />
         </div>
 
         {/* Row 4: Program #, Program Location, Program Desc. */}
@@ -195,12 +190,13 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 5: Cycle Time, Handling Time, Total Combined */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} />
+          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} placeholder="MM:SS" />
           <Field
             label="Handling Time"
             note="(Includes Stops)"
             value={data.handling_time}
             onChange={update("handling_time")}
+            placeholder="MM:SS"
           />
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -283,9 +279,9 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                     placeholder="Auto-calculated"
                   />
                 </div>
-                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} />
-                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} />
-                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} />
+                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} placeholder="MM:SS" />
+                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} placeholder="MM:SS" />
+                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} placeholder="MM:SS" />
               </div>
 
               {/* Notes */}

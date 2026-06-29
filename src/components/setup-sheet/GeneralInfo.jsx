@@ -9,6 +9,7 @@ import CascadingDropdown from "@/components/ui/CascadingDropdown";
 import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
+import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
   { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
@@ -20,7 +21,7 @@ const MACHINES = [
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
 
-const Field = ({ label, note, value, onChange, type = "text", className = "" }) => (
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "" }) => (
   <div className={className}>
     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
       {label}
@@ -30,6 +31,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "" }) 
       type={type}
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
       className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
     />
   </div>
@@ -50,12 +52,12 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
   // Auto-calculate total additional time
   useEffect(() => {
-    const d = parseFloat(data.deburring_time) || 0;
-    const f = parseFloat(data.finishing_time) || 0;
-    const w = parseFloat(data.wash_time) || 0;
+    const d = parseTimeToSeconds(data.deburring_time);
+    const f = parseTimeToSeconds(data.finishing_time);
+    const w = parseTimeToSeconds(data.wash_time);
     const total = d + f + w;
     if (total > 0 || data.total_additional_time !== undefined) {
-      onChange("total_additional_time", total > 0 ? String(total) : "");
+      onChange("total_additional_time", total > 0 ? formatSecondsToTime(total) : "");
     }
   }, [data.deburring_time, data.finishing_time, data.wash_time]);
 
@@ -138,7 +140,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         {/* Row 5: Cycle Time, Program Desc. */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} />
+          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} placeholder="MM:SS" />
           <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
         </div>
 
@@ -210,9 +212,9 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
                     placeholder="Auto-calculated"
                   />
                 </div>
-                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} />
-                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} />
-                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} />
+                <Field label="Deburring Time" value={data.deburring_time} onChange={update("deburring_time")} placeholder="MM:SS" />
+                <Field label="Finishing Time" value={data.finishing_time} onChange={update("finishing_time")} placeholder="MM:SS" />
+                <Field label="Wash Time" value={data.wash_time} onChange={update("wash_time")} placeholder="MM:SS" />
               </div>
 
               {/* Notes */}
