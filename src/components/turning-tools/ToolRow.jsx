@@ -7,6 +7,7 @@ import { Trash2, ChevronDown, ChevronRight, Plus, X, Pencil, RotateCcw } from "l
 import ToolTypeDropdown, { isHoleMaking } from "./ToolTypeDropdown";
 import TurningToolEditModal from "./TurningToolEditModal";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
+import AutoSizeInput from "./AutoSizeInput";
 
 // ── Inline options ─────────────────────────────────────────────────────────────
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
@@ -51,10 +52,17 @@ function Label({ children }) {
 }
 
 function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
+  // Fields that fill available space (flex-1) keep their fill behavior;
+  // fixed-width fields auto-size to fit their text.
+  if (className.includes("flex-1")) {
+    return (
+      <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`} />
+    );
+  }
   return (
-    <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`}
-      style={{ fieldSizing: "content", minWidth: "3rem" }} />
+    <AutoSizeInput value={value} onChange={onChange} placeholder={placeholder}
+      inputClass="h-7 text-xs bg-background border-border/60 px-1.5" minWidth="3rem" />
   );
 }
 
@@ -67,12 +75,12 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
   if (showCustom) {
     return (
       <div className={`flex items-center gap-1 ${className}`} style={{ width: "fit-content", minWidth: "6rem" }}>
-        <Input
+        <AutoSizeInput
           value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={onChange}
           placeholder="Custom…"
-          className="h-7 text-xs px-1.5"
-          style={{ fieldSizing: "content", minWidth: "5rem" }}
+          inputClass="h-7 text-xs px-1.5"
+          minWidth="4rem"
         />
         <button
           type="button"
@@ -286,12 +294,11 @@ function GeneralInfo({ tool, onUpdate, typeValue, onEditFields }) {
         {/* Custom fields */}
         {customFields.map((cf, i) => (
           <div key={i} className="flex flex-col">
-            <Input value={cf.key} onChange={(e) => updateCustomField(i, "key", e.target.value)}
-              placeholder="Field name" className="h-6 text-[10px] bg-background border-border/60 w-28 mb-0.5 uppercase tracking-wide"
-              style={{ fieldSizing: "content", minWidth: "5rem" }} />
-            <Input value={cf.value} onChange={(e) => updateCustomField(i, "value", e.target.value)}
-              placeholder="Value" className="h-7 text-xs bg-background border-border/60 w-28"
-              style={{ fieldSizing: "content", minWidth: "5rem" }} />
+            <AutoSizeInput value={cf.key} onChange={(v) => updateCustomField(i, "key", v)}
+              placeholder="Field name" className="mb-0.5"
+              inputClass="h-6 text-[10px] bg-background border-border/60 px-3 uppercase tracking-wide" minWidth="5rem" />
+            <AutoSizeInput value={cf.value} onChange={(v) => updateCustomField(i, "value", v)}
+              placeholder="Value" inputClass="h-7 text-xs bg-background border-border/60 px-3" minWidth="5rem" />
           </div>
         ))}
 
