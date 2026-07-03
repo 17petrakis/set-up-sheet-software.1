@@ -269,6 +269,7 @@ export function parseExcel(file) {
           processedRows.add(headerIdx);
 
           // Read data rows
+          const toolFieldCols = ["tool_type", "diameter", "flutes", "stickout_length", "name"];
           for (let j = headerIdx + 1; j < rows.length; j++) {
             if (processedRows.has(j)) break;
             const dataRow = rows[j];
@@ -276,9 +277,29 @@ export function parseExcel(file) {
             if (isSectionMarkerRow(dataRow)) break;
 
             const toolNum = dataRow[colMap.tool_number];
-            if (toolNum == null || String(toolNum).trim() === "") break;
+            const toolNumStr = toolNum != null ? String(toolNum).trim() : "";
 
-            const toolNumStr = String(toolNum).trim();
+            // Check if row has any data in non-number columns
+            const hasOtherData = toolFieldCols.some(f =>
+              colMap[f] !== undefined && dataRow[colMap[f]] != null && String(dataRow[colMap[f]]).trim() !== ""
+            );
+
+            if (toolNumStr === "") {
+              if (!hasOtherData) break; // completely empty row — end of section
+              // Continuation row — append text to previous tool
+              processedRows.add(j);
+              if (tools.length > 0) {
+                const lastTool = tools[tools.length - 1];
+                for (const f of toolFieldCols) {
+                  if (colMap[f] !== undefined && dataRow[colMap[f]] != null) {
+                    const val = String(dataRow[colMap[f]]).trim();
+                    if (val) lastTool[f] = lastTool[f] ? lastTool[f] + " " + val : val;
+                  }
+                }
+              }
+              continue;
+            }
+
             if (existingToolNumbers.has(toolNumStr)) continue;
             existingToolNumbers.add(toolNumStr);
             processedRows.add(j);
@@ -341,6 +362,10 @@ export function parseExcel(file) {
           }
           if (colMap.op_number === undefined) continue;
 
+          const fieldCols = [
+            "operation_name", "comment", "tool_number", "min_z",
+            "cycle_time", "type", "feed", "max_rpm", "cut_time",
+          ];
           for (let j = i + 2; j < rows.length; j++) {
             if (processedRows.has(j)) break;
             const dataRow = rows[j];
@@ -348,16 +373,34 @@ export function parseExcel(file) {
             if (isSectionMarkerRow(dataRow)) break;
 
             const opNum = dataRow[colMap.op_number];
-            if (opNum == null || String(opNum).trim() === "") break;
+            const opNumStr = opNum != null ? String(opNum).trim() : "";
+
+            // Check if row has any data in non-number columns
+            const hasOtherData = fieldCols.some(f =>
+              colMap[f] !== undefined && dataRow[colMap[f]] != null && String(dataRow[colMap[f]]).trim() !== ""
+            );
+
+            if (opNumStr === "") {
+              if (!hasOtherData) break; // completely empty row — end of section
+              // Continuation row — append text to previous operation
+              processedRows.add(j);
+              if (operations.length > 0) {
+                const lastOp = operations[operations.length - 1];
+                for (const f of fieldCols) {
+                  if (colMap[f] !== undefined && dataRow[colMap[f]] != null) {
+                    const val = String(dataRow[colMap[f]]).trim();
+                    if (val) lastOp[f] = lastOp[f] ? lastOp[f] + " " + val : val;
+                  }
+                }
+              }
+              continue;
+            }
+
             processedRows.add(j);
 
             const op = { ...emptyOperation };
-            op.op_number = String(opNum).trim();
+            op.op_number = opNumStr;
 
-            const fieldCols = [
-              "operation_name", "comment", "tool_number", "min_z",
-              "cycle_time", "type", "feed", "max_rpm", "cut_time",
-            ];
             for (const f of fieldCols) {
               if (colMap[f] !== undefined && dataRow[colMap[f]] != null) {
                 op[f] = String(dataRow[colMap[f]]).trim();
