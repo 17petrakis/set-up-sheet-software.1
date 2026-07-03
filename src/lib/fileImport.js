@@ -300,6 +300,9 @@ export function parseExcel(file) {
               continue;
             }
 
+            // Only import tools with numerical tool numbers
+            if (!/^\d+$/.test(toolNumStr)) continue;
+
             if (existingToolNumbers.has(toolNumStr)) continue;
             existingToolNumbers.add(toolNumStr);
             processedRows.add(j);
@@ -465,21 +468,53 @@ export async function extractExcelImage(file) {
   try {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
+
     const arrayBuffer = await file.arrayBuffer();
+
+    // Step 1: Check for IMG: or PICTURE: label in the sheet
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const zip = workbook.zip;
-    if (!zip) return null;
+    const ws = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+    let hasImageLabel = false;
+    for (const row of rows) {
+      if (!row) continue;
+      for (const cell of row) {
+        if (cell == null) continue;
+        const norm = String(cell).trim().toLowerCase().replace(/[^a-z]/g, "");
+        if (norm === "img" || norm === "picture") {
+          hasImageLabel = true;
+          break;
+        }
+      }
+      if (hasImageLabel) break;
+    }
+    if (!hasImageLabel) return null;
+
+    // Step 2: Extract embedded image via JSZip
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
     const mediaFiles = Object.keys(zip.files).filter(f =>
       f.startsWith('xl/media/') && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
     );
     if (mediaFiles.length === 0) return null;
 
-    const imgFile = zip.files[mediaFiles[0]];
-    const imgData = await imgFile.async('base64');
-    const ext = mediaFiles[0].split('.').pop().toLowerCase();
-    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
-    return `data:${mimeType};base64,${imgData}`;
+    // Use the largest image file (avoid tiny icons/logos)
+    let bestFile = null;
+    let bestSize = 0;
+    for (const f of mediaFiles) {
+      const entry = zip.files[f];
+      const data = await entry.async('base64');
+      if (data.length > bestSize) {
+        bestSize = data.length;
+        bestFile = { name: f, data };
+      }
+    }
+    if (!bestFile) return null;
+
+    const ext = bestFile.name.split('.').pop().toLowerCase();
+    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
+    return `data:${mimeType};base64,${bestFile.data}`;
   } catch (e) {
     // silently skip
   }
