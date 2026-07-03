@@ -498,8 +498,36 @@ export async function extractExcelImage(file) {
     // Step 2: Extract embedded image via JSZip (use slice to avoid buffer mutation)
     const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
 
-    // List all files for debugging
     const allFiles = Object.keys(zip.files);
+
+    // ── Diagnostic: log every image referenced by xl/drawings ──
+    const relFiles = allFiles.filter(f => /^xl\/drawings\/_rels\/.*\.rels$/i.test(f));
+    console.log("[extractExcelImage] Drawing rels files:", relFiles);
+    for (const relFile of relFiles) {
+      const relXml = await zip.files[relFile].async('string');
+      const matches = [...relXml.matchAll(/Target="([^"]+)"/gi)];
+      for (const m of matches) {
+        let target = m[1];
+        // Resolve relative path (relative to xl/drawings/)
+        if (target.startsWith('..')) {
+          target = 'xl/' + target.replace(/^\.\.\//, '');
+        } else if (!target.startsWith('xl/')) {
+          target = 'xl/drawings/' + target;
+        }
+        const zipPath = target.replace(/\\/g, '/').replace(/^xl\/xl\//, 'xl/');
+        const ext = zipPath.split('.').pop().toLowerCase();
+        const entry = zip.files[zipPath];
+        if (!entry) {
+          console.log("[extractExcelImage] [DIAG] drawing ref → not found in zip:", zipPath, "ext:", "." + ext);
+          continue;
+        }
+        const uint8 = await entry.async('uint8array');
+        const first8 = Array.from(uint8.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        console.log("[extractExcelImage] [DIAG] drawing ref:", zipPath, "| ext:." + ext, "| bytes:" + uint8.length, "| first8:" + first8);
+      }
+    }
+
+    // List all files for debugging
     const mediaFiles = allFiles.filter(f => f.startsWith('xl/media/') || f.startsWith('xl/embeddings/'));
     console.log("[extractExcelImage] All media/embedding files:", mediaFiles);
 
