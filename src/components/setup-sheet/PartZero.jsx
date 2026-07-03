@@ -184,7 +184,7 @@ export default function PartZero({ data, onChange, machineType }) {
 
               {data.part_zero_enabled && (
                 <div className="px-4 py-4">
-                  <div className="border border-border/50 rounded-lg overflow-hidden max-w-md">
+                  <div className="border border-border/50 rounded-lg overflow-hidden">
                     <table className="w-full">
                       <thead>
                         <tr className="bg-muted/40 border-b border-border/50">
