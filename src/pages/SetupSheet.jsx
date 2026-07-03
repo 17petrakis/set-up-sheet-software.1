@@ -280,24 +280,36 @@ export default function SetupSheet() {
     setImporting(true);
     setImportError(null);
     try {
-      const [result, isoImage] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
+      // Run image extraction and Excel parsing independently so a failure in
+      // one never discards the result of the other.
+      const [result, isoImage] = await Promise.allSettled([
+        parseExcel(file),
+        extractExcelImage(file),
+      ]);
 
-      const newGen = result.general && Object.keys(result.general).length
-        ? { ...general, ...result.general } : general;
-      const newTools = result.tools?.length
-        ? [...result.tools].sort((a, b) => {
+      const parsed = result.status === 'fulfilled' ? result.value : null;
+      const isoImg = isoImage.status === 'fulfilled' ? isoImage.value : null;
+
+      if (!parsed && !isoImg) {
+        throw new Error("Import failed");
+      }
+
+      const newGen = parsed?.general && Object.keys(parsed.general).length
+        ? { ...general, ...parsed.general } : general;
+      const newTools = parsed?.tools?.length
+        ? [...parsed.tools].sort((a, b) => {
             const aNum = parseInt(a.tool_number) || 0;
             const bNum = parseInt(b.tool_number) || 0;
             return aNum - bNum;
           })
         : tools;
-      const newPZ = result.partZero && Object.keys(result.partZero).length
-        ? { ...partZero, ...result.partZero } : partZero;
-      const newOps = result.operations?.length ? result.operations : operations;
+      const newPZ = parsed?.partZero && Object.keys(parsed.partZero).length
+        ? { ...partZero, ...parsed.partZero } : partZero;
+      const newOps = parsed?.operations?.length ? parsed.operations : operations;
 
       let isoUrl = null;
-      if (isoImage) {
-        const blob = await (await fetch(isoImage)).blob();
+      if (isoImg) {
+        const blob = await (await fetch(isoImg)).blob();
         const uploadResult = await base44.integrations.Core.UploadFile({ file: new File([blob], 'iso.png', { type: 'image/png' }) });
         isoUrl = uploadResult.file_url;
       }
