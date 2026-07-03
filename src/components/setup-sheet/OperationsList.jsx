@@ -13,9 +13,11 @@ const columns = [
   { key: "comment", label: "Comment", w: "w-auto" },
   { key: "tool_number", label: "Tool #", w: "w-16" },
   { key: "min_z", label: "Min Z", w: "w-18" },
-  { key: "max_z", label: "Max Z", w: "w-18" },
+  { key: "type", label: "Type", w: "w-24" },
+  { key: "feed", label: "Feed", w: "w-24" },
+  { key: "max_rpm", label: "Max RPM", w: "w-24" },
+  { key: "cut_time", label: "Cut Time", w: "w-24" },
   { key: "cycle_time", label: "Cycle Time", w: "w-24" },
-  { key: "spindle_rpm", label: "Spindle RPM", w: "w-24" },
 ];
 
 const hasData = (ops) =>
@@ -72,7 +74,7 @@ export default function OperationsList({ operations, onChange }) {
                 <TableBody>
                   {operations.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-sm text-muted-foreground py-8">
+                      <TableCell colSpan={11} className="text-center text-sm text-muted-foreground py-8">
                         No operations added. Click "Add Operation" to start.
                       </TableCell>
                     </TableRow>

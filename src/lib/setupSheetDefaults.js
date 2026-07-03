@@ -58,9 +58,11 @@ export const emptyOperation = {
   comment: "",
   tool_number: "",
   min_z: "",
-  max_z: "",
+  type: "",
+  feed: "",
+  max_rpm: "",
+  cut_time: "",
   cycle_time: "",
-  spindle_rpm: "",
 };
 
 export const emptyTurningChuck = {
