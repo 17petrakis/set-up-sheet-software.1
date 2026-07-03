@@ -107,6 +107,10 @@
       "type": "string",
       "description": "Machine cycle time (turning)"
     },
+    "cycle_time_hrs": {
+      "type": "string",
+      "description": "Cycle time in hours (milling)"
+    },
     "handling_time": {
       "type": "string",
       "description": "Handling time including material inspection (turning)"

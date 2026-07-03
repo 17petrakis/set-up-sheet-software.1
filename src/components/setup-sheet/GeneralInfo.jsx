@@ -143,10 +143,12 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
         </div>
 
-        {/* Row 5: Cycle Time, Program Desc. */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
+        {/* Row 5: Cycle Time, Hrs, Program Desc., Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-3 mb-1">
           <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} time />
+          <Field label="Hrs" value={data.cycle_time_hrs} onChange={update("cycle_time_hrs")} placeholder="e.g. 1.5" />
           <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
+          <Field label="Date" value={data.date} onChange={update("date")} type="date" />
         </div>
 
         {/* Stops */}
