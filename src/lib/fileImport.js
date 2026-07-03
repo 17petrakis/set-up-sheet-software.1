@@ -477,15 +477,19 @@ export function parseExcel(file) {
 }
 
 export async function extractExcelImage(file) {
+  console.log("[extractExcelImage] === FUNCTION ENTRY ===", new Error().stack);
   try {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
     // Read arrayBuffer and immediately clone for each consumer so parseExcel
     // (running concurrently via Promise.all) can't detach/consume our buffer.
+    console.log("[extractExcelImage] Calling file.arrayBuffer() — file size:", file.size, "file name:", file.name);
     const rawBuffer = await file.arrayBuffer();
+    console.log("[extractExcelImage] rawBuffer byteLength:", rawBuffer.byteLength);
     const xlsxBuffer = rawBuffer.slice(0);
     const zipBuffer = rawBuffer.slice(0);
+    console.log("[extractExcelImage] Cloned buffers — xlsxBuffer:", xlsxBuffer.byteLength, "zipBuffer:", zipBuffer.byteLength);
 
     // Step 1: Check for IMG: or PICTURE: label in the sheet
     const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
@@ -510,7 +514,13 @@ export async function extractExcelImage(file) {
     }
 
     // Step 2: Extract embedded image via JSZip using our own independent clone
+    // ── DIAGNOSTIC: log buffer origin, hex header, and stack trace ──
+    const _zipHex = Array.from(new Uint8Array(zipBuffer).slice(0, 16))
+      .map(b => b.toString(16).padStart(2, '0')).join(' ');
     console.log("[extractExcelImage] JSZip input byteLength:", zipBuffer.byteLength);
+    console.log("[extractExcelImage] JSZip buffer first 16 bytes (hex):", _zipHex);
+    console.log("[extractExcelImage] JSZip buffer origin: rawBuffer.slice(0) from file.arrayBuffer()");
+    console.log("[extractExcelImage] JSZip.loadAsync call site — stack:", new Error().stack);
     const zip = await JSZip.loadAsync(zipBuffer);
 
     const allFiles = Object.keys(zip.files);
@@ -576,6 +586,7 @@ export async function extractExcelImage(file) {
       candidates.sort((a, b) => b.size - a.size);
       const best = candidates[0];
       console.log("[extractExcelImage] Best image (direct):", best.name, "size:", best.size, "type:", best.mimeType);
+      console.log("[extractExcelImage] returning early, skipping further JSZip calls");
       return uint8ToDataUrl(best.data, best.mimeType);
     }
 
@@ -641,9 +652,12 @@ export async function extractExcelImage(file) {
     candidates.sort((a, b) => b.size - a.size);
     const best = candidates[0];
     console.log("[extractExcelImage] Best image:", best.name, "size:", best.size, "type:", best.mimeType);
+    console.log("[extractExcelImage] returning early, skipping further JSZip calls");
     return uint8ToDataUrl(best.data, best.mimeType);
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
+    console.error("[extractExcelImage] Error stack:", e.stack);
   }
+  console.log("[extractExcelImage] === FUNCTION EXIT (returning null) ===");
   return null;
 }
