@@ -470,11 +470,14 @@ export async function extractExcelImage(file) {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
-    // Read arrayBuffer once
-    const arrayBuffer = await file.arrayBuffer();
+    // Read arrayBuffer and immediately clone for each consumer so parseExcel
+    // (running concurrently via Promise.all) can't detach/consume our buffer.
+    const rawBuffer = await file.arrayBuffer();
+    const xlsxBuffer = rawBuffer.slice(0);
+    const zipBuffer = rawBuffer.slice(0);
 
     // Step 1: Check for IMG: or PICTURE: label in the sheet
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
     const ws = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
     let hasImageLabel = false;
@@ -495,8 +498,9 @@ export async function extractExcelImage(file) {
       return null;
     }
 
-    // Step 2: Extract embedded image via JSZip (use slice to avoid buffer mutation)
-    const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
+    // Step 2: Extract embedded image via JSZip using our own independent clone
+    console.log("[extractExcelImage] JSZip input byteLength:", zipBuffer.byteLength);
+    const zip = await JSZip.loadAsync(zipBuffer);
 
     const allFiles = Object.keys(zip.files);
 
