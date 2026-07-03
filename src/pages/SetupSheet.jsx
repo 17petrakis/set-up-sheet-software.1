@@ -22,7 +22,7 @@ import AddOperationDialog from "@/components/home/AddOperationDialog";
 import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
-import { parseExcel, parsePDF, extractPDFImage, extractExcelImage } from "@/lib/fileImport";
+import { parseExcel, extractExcelImage } from "@/lib/fileImport";
 
 export default function SetupSheet() {
   const { id } = useParams();
@@ -280,14 +280,7 @@ export default function SetupSheet() {
     setImporting(true);
     setImportError(null);
     try {
-      let result;
-      let isoImage = null;
-      const ext = file.name.split(".").pop().toLowerCase();
-      if (ext === "xlsx" || ext === "xls") {
-        [result, isoImage] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
-      } else if (ext === "pdf") {
-        [result, isoImage] = await Promise.all([parsePDF(file), extractPDFImage(file)]);
-      } else throw new Error("Unsupported file type. Please use .xlsx or .pdf files.");
+      const [result, isoImage] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
@@ -295,9 +288,7 @@ export default function SetupSheet() {
       const newPZ = result.partZero && Object.keys(result.partZero).length
         ? { ...partZero, ...result.partZero } : partZero;
       const newOps = result.operations?.length ? result.operations : operations;
-      console.log('Extracted image:', isoImage ? 'YES - length ' + isoImage.length : 'NULL');
 
-      // Convert base64 data URL to a hosted file URL before saving
       let isoUrl = null;
       if (isoImage) {
         const blob = await (await fetch(isoImage)).blob();
@@ -313,7 +304,7 @@ export default function SetupSheet() {
       handleOperationsChange(newOps);
       if (isoUrl) handlePhotosChange(newPhotos);
     } catch (err) {
-      setImportError("Could not read file — please fill in manually");
+      setImportError("Could not read Excel file — please fill in manually");
       console.error("Import error:", err);
     } finally {
       setImporting(false);
@@ -412,15 +403,17 @@ export default function SetupSheet() {
           </div>
 
           <div className="flex items-center gap-2">
-            <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.pdf" onChange={handleImport} className="hidden" />
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
 
             {/* Desktop action buttons */}
             <div className="hidden md:flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
-                <Upload className="w-3.5 h-3.5" />
-                {importing ? "Importing..." : "Import File"}
-              </Button>
+              {general.machine_type !== "turning" && (
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
+                  <Upload className="w-3.5 h-3.5" />
+                  {importing ? "Importing..." : "Import File"}
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-8 text-xs gap-1.5">
                 <Eye className="w-3.5 h-3.5" />
                 Print View
@@ -457,11 +450,13 @@ export default function SetupSheet() {
       {mobileMenuOpen && (
         <div className="md:hidden sticky top-[57px] z-40 bg-background border-b border-border shadow-md no-print">
           <div className="px-4 py-2 flex flex-col gap-1">
-            <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-              <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
-              {importing ? "Importing..." : "Import File"}
-            </button>
+            {general.machine_type !== "turning" && (
+              <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
+                {importing ? "Importing..." : "Import File"}
+              </button>
+            )}
             <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
               <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />

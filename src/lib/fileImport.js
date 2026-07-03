@@ -1,16 +1,129 @@
-function dayFractionToHMS(val) {
-  if (!val || isNaN(val)) return "";
-  const totalSeconds = Math.round(Number(val) * 86400);
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
+import { TOOL_TYPE_OPTIONS } from "@/lib/toolTypeOptions";
+
+// Build a lookup of valid tool types (lowercase → correct case)
+const TOOL_TYPE_LOOKUP = {};
+TOOL_TYPE_OPTIONS.forEach(group => {
+  group.children.forEach(child => {
+    TOOL_TYPE_LOOKUP[child.value.toLowerCase()] = child.value;
+  });
+});
+
+function normalizeText(text) {
+  return String(text || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function matchLabel(text, label) {
-  if (!text || !label) return false;
-  return String(text).trim().toLowerCase().replace(/[^a-z0-9]/g, "") ===
-    label.toLowerCase().replace(/[^a-z0-9]/g, "");
+function normalizeHeader(text) {
+  return String(text || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * Find a label in a cell and determine if the value is in the same cell or the next cell(s).
+ * Returns { sameCell: true, value } | { sameCell: false } | null
+ */
+function findLabelInCell(cellText, label) {
+  const lower = cellText.toLowerCase();
+  const idx = lower.indexOf(label);
+  if (idx < 0) return null;
+
+  // Character before must not be a letter (avoid matching inside words)
+  if (idx > 0) {
+    const prev = lower[idx - 1];
+    if (prev >= "a" && prev <= "z") return null;
+  }
+  // Character after must not be a letter (avoid partial-word matches like "prog" in "programmer")
+  const afterIdx = idx + label.length;
+  if (afterIdx < lower.length) {
+    const next = lower[afterIdx];
+    if (next >= "a" && next <= "z") return null;
+  }
+
+  const after = cellText.substring(afterIdx).trim();
+  if (after === "" || after === ":") return { sameCell: false };
+  const colonMatch = after.match(/^[:=]\s*(.*)/);
+  if (colonMatch) {
+    if (colonMatch[1].trim()) return { sameCell: true, value: colonMatch[1].trim() };
+    return { sameCell: false };
+  }
+  return null;
+}
+
+function rowValuesAfter(row, startCol) {
+  const parts = [];
+  for (let c = startCol; c < (row?.length || 0); c++) {
+    if (row[c] != null && String(row[c]).trim()) {
+      parts.push(String(row[c]).trim());
+    }
+  }
+  return parts.join(" ");
+}
+
+function isSectionMarkerRow(row) {
+  if (!row) return false;
+  for (let c = 0; c < row.length; c++) {
+    const norm = normalizeText(row[c]);
+    if (norm.includes("toollist") || norm.includes("operationlist") ||
+        norm.includes("operations") || norm.includes("partzero")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// ── General info labels (order doesn't matter; findLabelInCell prevents partial matches) ──
+const generalLabels = [
+  { label: "program location", field: "program_location" },
+  { label: "programmer", field: "programmer" },
+  { label: "program", field: "program" },
+  { label: "prog", field: "program" },
+  { label: "customer", field: "customer" },
+  { label: "part number", field: "part_number" },
+  { label: "part #", field: "part_number" },
+  { label: "part#", field: "part_number" },
+  { label: "part name", field: "part_name" },
+  { label: "machine", field: "machine" },
+  { label: "mach", field: "machine" },
+  { label: "material", field: "material" },
+  { label: "rev", field: "revision" },
+  { label: "qty", field: "quantity" },
+  { label: "date", field: "date" },
+  { label: "operation", field: "program_description" },
+];
+
+// ── Tool header column mapping (raw lowercased text) ──
+const toolHeaderMap = {
+  "#": "tool_number", "t#": "tool_number", "tool#": "tool_number",
+  "tool no": "tool_number", "tool no.": "tool_number",
+  "type": "tool_type",
+  "dia": "diameter", "diameter": "diameter",
+  "flutes": "flutes",
+  "stickout": "stickout_length", "stickout length": "stickout_length",
+  "name": "name",
+};
+
+// ── Operation header column mapping ──
+const opHeaderMap = {
+  "op #": "op_number", "op#": "op_number", "op no": "op_number", "op no.": "op_number",
+  "operation name": "operation_name",
+  "comment": "comment",
+  "tool #": "tool_number", "tool#": "tool_number", "tool": "tool_number",
+  "min-z": "min_z", "min z": "min_z",
+  "cycle time": "cycle_time",
+  "type": "type",
+  "feed": "feed",
+  "max rpm": "max_rpm",
+  "cut time": "cut_time",
+};
+
+function isToolHeaderRow(row) {
+  let hasToolNum = false;
+  let hasToolField = false;
+  for (let c = 0; c < row.length; c++) {
+    const h = normalizeHeader(row[c]);
+    if (["#", "t#", "tool#", "tool no", "tool no."].includes(h)) hasToolNum = true;
+    if (["type", "dia", "diameter", "flutes", "stickout", "stickout length", "name"].includes(h)) hasToolField = true;
+  }
+  return hasToolNum && hasToolField;
 }
 
 export function parseExcel(file) {
@@ -25,110 +138,274 @@ export function parseExcel(file) {
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
         const general = {};
+        const tools = [];
+        const operations = [];
+        const partZero = {};
+        let cycleTimeSeconds = 0;
+        let hasCycleTime = false;
 
-        // Each entry: [normalizedLabelKey, fieldName]
-        // Value is ONLY column 1 of that row — never concatenated with other columns.
-        const labelMap = [
-          ["machine",    "machine"],
-          ["job#",       "job_number"],
-          ["customer",   "customer"],
-          ["programmer", "programmer"],
-          ["part#",      "part_number"],
-          ["rev",        "revision"],
-          ["date",       "date"],
-          ["qty",        "quantity"],
-          ["material",   "material"],
-          ["operation",  "operation_description"],
-          ["program",    "program"],
-          ["units",      "units"],
-        ];
+        // ── Pass 1: General info, CYCLE TIME, TIME ──
+        rows.forEach((row) => {
+          if (!row) return;
+          for (let c = 0; c < row.length; c++) {
+            const cellVal = row[c];
+            if (cellVal == null) continue;
+            const cellText = String(cellVal).trim();
+            if (!cellText) continue;
 
-        let toolHeaderIdx = -1;
-        let partZeroIdx = -1;
-        let opsIdx = -1;
+            let matched = false;
 
-        rows.forEach((row, i) => {
-          const cell0 = row[0] != null ? String(row[0]).trim() : "";
-          const key = cell0.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-          // Match general fields — value is strictly column 1 only
-          for (const [lbl, field] of labelMap) {
-            if (key === lbl) {
-              // column 1 only — do NOT read col 2 or beyond
-              let val = row[1] != null ? String(row[1]).trim() : "";
-              if (field === "date" && row[1] instanceof Date) {
-                val = row[1].toISOString().split("T")[0];
+            // CYCLE TIME (checked before TIME to avoid conflict)
+            const ctResult = findLabelInCell(cellText, "cycle time");
+            if (ctResult) {
+              matched = true;
+              let val = ctResult.sameCell ? ctResult.value : null;
+              if (!val && row[c + 1] != null) val = String(row[c + 1]).trim();
+              if (val) {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num > 0 && num < 1) {
+                  cycleTimeSeconds += Math.round(num * 86400);
+                  hasCycleTime = true;
+                } else {
+                  const parts = val.split(/[:.]/).map(p => parseInt(p) || 0);
+                  if (parts.length >= 3) {
+                    cycleTimeSeconds += parts[0] * 3600 + parts[1] * 60 + parts[2];
+                    hasCycleTime = true;
+                  } else if (parts.length === 2) {
+                    cycleTimeSeconds += parts[0] * 60 + parts[1];
+                    hasCycleTime = true;
+                  }
+                }
               }
-              general[field] = val;
+            }
+
+            // TIME (num HOURS, num MINUTES, num SECONDS — may appear multiple times)
+            if (!matched) {
+              const tResult = findLabelInCell(cellText, "time");
+              if (tResult) {
+                let val = tResult.sameCell ? tResult.value : null;
+                if (!val) val = rowValuesAfter(row, c + 1);
+                if (val) {
+                  const hMatch = val.match(/(\d+)\s*hours?/i);
+                  const mMatch = val.match(/(\d+)\s*minutes?/i);
+                  const sMatch = val.match(/(\d+)\s*seconds?/i);
+                  if (hMatch || mMatch || sMatch) {
+                    cycleTimeSeconds += (parseInt(hMatch?.[1]) || 0) * 3600
+                      + (parseInt(mMatch?.[1]) || 0) * 60
+                      + (parseInt(sMatch?.[1]) || 0);
+                    hasCycleTime = true;
+                    matched = true;
+                  }
+                }
+              }
+            }
+
+            // General info labels
+            if (!matched) {
+              for (const { label, field } of generalLabels) {
+                const result = findLabelInCell(cellText, label);
+                if (result) {
+                  let val = result.sameCell ? result.value : null;
+                  if (!val) val = rowValuesAfter(row, c + 1);
+                  if (val) {
+                    if (field === "date" && row[c + 1] instanceof Date) {
+                      val = row[c + 1].toISOString().split("T")[0];
+                    }
+                    general[field] = val;
+                  }
+                  matched = true;
+                  break;
+                }
+              }
             }
           }
-
-          if (key.includes("totalcycletime") || (cell0.toLowerCase().includes("total") && cell0.toLowerCase().includes("cycle"))) {
-            general.total_cycle_time = dayFractionToHMS(row[1]);
-          }
-
-          if (matchLabel(cell0, "Tool #") || matchLabel(cell0, "Tool#")) toolHeaderIdx = i;
-          if (matchLabel(cell0, "PART ZERO")) partZeroIdx = i;
-          if (cell0.toLowerCase().includes("operations:") || matchLabel(cell0, "OPERATIONS")) opsIdx = i;
         });
 
-        // Parse tools
-        const tools = [];
-        if (toolHeaderIdx >= 0) {
-          for (let i = toolHeaderIdx + 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (!row || !row[0] || String(row[0]).trim() === "") break;
-            tools.push({
-              tool_number: row[0] != null ? String(row[0]).trim() : "",
-              tool_type: row[1] != null ? String(row[1]).trim() : "",
-              diameter: row[2] != null ? String(row[2]).trim() : "",
-              flutes: row[3] != null ? String(row[3]).trim() : "",
-              length: row[4] != null ? String(row[4]).trim() : "",
-              corner_radius: "",
-              holder: "",
-            });
+        if (hasCycleTime) {
+          const hrs = Math.floor(cycleTimeSeconds / 3600);
+          const min = Math.floor((cycleTimeSeconds % 3600) / 60);
+          const sec = cycleTimeSeconds % 60;
+          general.cycle_time_hrs = String(hrs);
+          general.cycle_time = `${min}:${String(sec).padStart(2, "0")}`;
+        }
+
+        // ── Pass 2: Tool lists ──
+        const existingToolNumbers = new Set();
+        const processedRows = new Set();
+
+        for (let i = 0; i < rows.length; i++) {
+          if (processedRows.has(i)) continue;
+          const row = rows[i];
+          if (!row) continue;
+
+          let headerIdx = -1;
+
+          // Check for "TOOL LIST" section marker
+          for (let c = 0; c < row.length; c++) {
+            if (normalizeText(row[c]).includes("toollist")) {
+              headerIdx = i + 1;
+              break;
+            }
+          }
+
+          // If no section marker, check if this row is a tool header
+          if (headerIdx < 0 && isToolHeaderRow(row)) {
+            headerIdx = i;
+          }
+
+          if (headerIdx < 0) continue;
+          const headerRow = rows[headerIdx];
+          if (!headerRow) continue;
+
+          // Map columns by header text
+          const colMap = {};
+          for (let c = 0; c < headerRow.length; c++) {
+            const h = normalizeHeader(headerRow[c]);
+            if (toolHeaderMap[h] !== undefined) {
+              colMap[toolHeaderMap[h]] = c;
+            }
+          }
+          if (colMap.tool_number === undefined) continue;
+          processedRows.add(headerIdx);
+
+          // Read data rows
+          for (let j = headerIdx + 1; j < rows.length; j++) {
+            if (processedRows.has(j)) break;
+            const dataRow = rows[j];
+            if (!dataRow) break;
+            if (isSectionMarkerRow(dataRow)) break;
+
+            const toolNum = dataRow[colMap.tool_number];
+            if (toolNum == null || String(toolNum).trim() === "") break;
+
+            const toolNumStr = String(toolNum).trim();
+            if (existingToolNumbers.has(toolNumStr)) continue;
+            existingToolNumbers.add(toolNumStr);
+            processedRows.add(j);
+
+            const tool = { ...emptyTool, tool_number: toolNumStr };
+
+            if (colMap.tool_type !== undefined && dataRow[colMap.tool_type] != null) {
+              const typeStr = String(dataRow[colMap.tool_type]).trim();
+              const correctCase = TOOL_TYPE_LOOKUP[typeStr.toLowerCase()];
+              if (correctCase) tool.tool_type = correctCase;
+            }
+            if (colMap.diameter !== undefined && dataRow[colMap.diameter] != null) {
+              tool.diameter = String(dataRow[colMap.diameter]).trim();
+            }
+            if (colMap.flutes !== undefined && dataRow[colMap.flutes] != null) {
+              tool.flutes = String(dataRow[colMap.flutes]).trim();
+            }
+            if (colMap.stickout_length !== undefined && dataRow[colMap.stickout_length] != null) {
+              tool.stickout_length = String(dataRow[colMap.stickout_length]).trim();
+            }
+            if (colMap.name !== undefined && dataRow[colMap.name] != null) {
+              tool.name = String(dataRow[colMap.name]).trim();
+            }
+
+            tools.push(tool);
           }
         }
 
-        // Parse part zero
-        const partZero = {};
-        if (partZeroIdx >= 0) {
-          const axes = ["x", "y", "z"];
-          for (let offset = 2; offset <= 4; offset++) {
-            const row = rows[partZeroIdx + offset];
-            if (!row) continue;
-            const axis = axes[offset - 2];
-            if (axis) {
-              partZero[`${axis}_max`] = row[1] != null ? String(row[1]).trim() : "";
-              partZero[`${axis}_min`] = row[2] != null ? String(row[2]).trim() : "";
+        // ── Pass 3: Operations ──
+        for (let i = 0; i < rows.length; i++) {
+          if (processedRows.has(i)) continue;
+          const row = rows[i];
+          if (!row) continue;
+
+          let isOpsSection = false;
+          for (let c = 0; c < row.length; c++) {
+            const norm = normalizeText(row[c]);
+            if (norm.includes("operationlist") || norm.includes("operations")) {
+              isOpsSection = true;
+              break;
             }
+          }
+          if (!isOpsSection) continue;
+          processedRows.add(i);
+
+          const headerRow = rows[i + 1];
+          if (!headerRow) continue;
+          processedRows.add(i + 1);
+
+          const colMap = {};
+          for (let c = 0; c < headerRow.length; c++) {
+            const h = normalizeHeader(headerRow[c]);
+            if (h === "operation name") {
+              colMap.operation_name = c;
+            } else if (opHeaderMap[h] !== undefined) {
+              colMap[opHeaderMap[h]] = c;
+            } else if (h === "operation" && colMap.operation_name === undefined) {
+              colMap.operation_name = c;
+            }
+          }
+          if (colMap.op_number === undefined) continue;
+
+          for (let j = i + 2; j < rows.length; j++) {
+            if (processedRows.has(j)) break;
+            const dataRow = rows[j];
+            if (!dataRow) break;
+            if (isSectionMarkerRow(dataRow)) break;
+
+            const opNum = dataRow[colMap.op_number];
+            if (opNum == null || String(opNum).trim() === "") break;
+            processedRows.add(j);
+
+            const op = { ...emptyOperation };
+            op.op_number = String(opNum).trim();
+
+            const fieldCols = [
+              "operation_name", "comment", "tool_number", "min_z",
+              "cycle_time", "type", "feed", "max_rpm", "cut_time",
+            ];
+            for (const f of fieldCols) {
+              if (colMap[f] !== undefined && dataRow[colMap[f]] != null) {
+                op[f] = String(dataRow[colMap[f]]).trim();
+              }
+            }
+            operations.push(op);
           }
         }
 
-        // Parse operations
-        const operations = [];
-        if (opsIdx >= 0) {
-          const opsRow = rows[opsIdx];
-          const commentRow = rows[opsIdx + 1];
-          const rpmRow = rows.find((r, i) => i > opsIdx && r && String(r[0] || "").toLowerCase().includes("spindle"));
-          const timeRow = rows.find((r, i) => i > opsIdx && r && String(r[0] || "").toLowerCase().includes("op time"));
+        // ── Pass 4: Part Zero ──
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row) continue;
+          let isPartZero = false;
+          for (let c = 0; c < row.length; c++) {
+            if (normalizeText(row[c]).includes("partzero")) { isPartZero = true; break; }
+          }
+          if (!isPartZero) continue;
 
-          if (opsRow) {
-            for (let c = 1; c < opsRow.length; c++) {
-              const opVal = opsRow[c];
-              if (opVal == null || String(opVal).trim() === "") continue;
-              operations.push({
-                op_number: String(c),
-                operation_name: String(opVal).trim(),
-                comment: commentRow && commentRow[c] != null ? String(commentRow[c]).trim() : "",
-                tool_number: "",
-                min_z: "",
-                max_z: "",
-                cycle_time: timeRow && timeRow[c] != null ? dayFractionToHMS(timeRow[c]) : "",
-                spindle_rpm: rpmRow && rpmRow[c] != null ? String(rpmRow[c]).trim() : "",
-              });
+          const axisLabels = { x: "x", y: "y", z: "z" };
+          for (let j = i + 1; j < Math.min(i + 10, rows.length); j++) {
+            const dataRow = rows[j];
+            if (!dataRow) continue;
+            if (isSectionMarkerRow(dataRow)) break;
+            for (let c = 0; c < dataRow.length; c++) {
+              const cellNorm = normalizeText(dataRow[c]);
+              if (axisLabels[cellNorm]) {
+                const axis = axisLabels[cellNorm];
+                const vals = [];
+                for (let cc = c + 1; cc < dataRow.length && vals.length < 2; cc++) {
+                  if (dataRow[cc] != null && String(dataRow[cc]).trim()) {
+                    vals.push(String(dataRow[cc]).trim());
+                  }
+                }
+                if (vals.length >= 2) {
+                  partZero[`${axis}_max`] = vals[0];
+                  partZero[`${axis}_min`] = vals[1];
+                } else if (vals.length === 1) {
+                  partZero[`${axis}_max`] = vals[0];
+                }
+                break;
+              }
             }
           }
+          if (Object.keys(partZero).length > 0) {
+            partZero.part_zero_enabled = true;
+          }
+          break;
         }
 
         resolve({ general, tools, partZero, operations });
@@ -139,200 +416,6 @@ export function parseExcel(file) {
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
-}
-
-export async function parsePDF(file) {
-  const pdfjsLib = window.pdfjsLib;
-  if (!pdfjsLib) throw new Error("PDF.js not loaded");
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-  // Collect all items with position from all pages
-  const allItems = [];
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    for (const item of content.items) {
-      if (item.str.trim() === '') continue;
-      allItems.push({
-        str: item.str.trim(),
-        x: Math.round(item.transform[4]),
-        y: Math.round(item.transform[5]),
-        page: p,
-      });
-    }
-  }
-
-  // Group items into rows by matching Y values (within 3px tolerance)
-  function groupByY(items) {
-    const rows = [];
-    for (const item of items) {
-      const existing = rows.find(r => Math.abs(r.y - item.y) <= 3);
-      if (existing) {
-        existing.items.push(item);
-      } else {
-        rows.push({ y: item.y, page: item.page, items: [item] });
-      }
-    }
-    // Sort each row's items left to right by X
-    for (const row of rows) {
-      row.items.sort((a, b) => a.x - b.x);
-      row.text = row.items.map(i => i.str).join(' ');
-    }
-    return rows;
-  }
-
-  const page1Items = allItems.filter(i => i.page === 1);
-  const page2Items = allItems.filter(i => i.page === 2);
-  const rows1 = groupByY(page1Items);
-  const rows2 = groupByY(page2Items);
-
-  // --- GENERAL INFORMATION (page 1) ---
-  // Labels are at x~77, values are at x~181
-  // Find value at x~181 on the same Y as a label at x~77
-
-  function findValue(rows, labelText) {
-    for (const row of rows) {
-      const label = row.items.find(i => i.x < 160 && i.str.toUpperCase().includes(labelText.toUpperCase()));
-      if (label) {
-        const value = row.items.find(i => i.x >= 160);
-        if (value) return value.str.trim();
-      }
-    }
-    return null;
-  }
-
-  const sheet = {
-    job_number:            findValue(rows1, 'JOB #'),
-    customer:              findValue(rows1, 'CUSTOMER'),
-    programmer:            findValue(rows1, 'PROGRAMMER'),
-    part_number:           findValue(rows1, 'PART #'),
-    revision:              findValue(rows1, 'REV:'),
-    date:                  findValue(rows1, 'DATE'),
-    quantity:              findValue(rows1, 'QTY'),
-    material:              findValue(rows1, 'MATERIAL'),
-    operation_description: findValue(rows1, 'OPERATION'),
-    program:               findValue(rows1, 'PROGRAM'),
-    machine:               findValue(rows1, 'MACHINE'),
-    units:                 'Inch',
-    total_cycle_time:      null,
-  };
-
-  // Cycle time row
-  const ctRow = rows1.find(r => r.text.includes('TOTAL CYCLE TIME'));
-  if (ctRow) {
-    const ctMatch = ctRow.text.match(/(\d+)\s*HOURS?,\s*(\d+)\s*MINUTES?,\s*(\d+)\s*SECONDS?/i);
-    if (ctMatch) {
-      sheet.total_cycle_time =
-        String(ctMatch[1]).padStart(2,'0') + ':' +
-        String(ctMatch[2]).padStart(2,'0') + ':' +
-        String(ctMatch[3]).padStart(2,'0');
-    }
-  }
-
-  // --- TOOL LIST (page 2) ---
-  // Tool rows: Tool # at x~78, Description at x~109, Diameter at x~271, Holder at x~448
-  // Find the TOOL LIST header row first, then read rows below it
-
-  const tools = [];
-  const toolHeaderIdx = page2Items.findIndex(i => i.str === 'TOOL LIST');
-  if (toolHeaderIdx >= 0) {
-    const toolHeaderY = page2Items[toolHeaderIdx].y;
-    // Get all rows below the tool header (lower Y value in PDF coords = lower on page)
-    const toolRows = groupByY(page2Items.filter(i => i.y < toolHeaderY - 5));
-    // Filter to rows that have an item at x~78 that is a number (tool number)
-    for (const row of toolRows) {
-      const toolNumItem = row.items.find(i => i.x < 95 && /^\d+$/.test(i.str));
-      if (!toolNumItem) continue;
-      const desc    = row.items.find(i => i.x >= 100 && i.x < 265);
-      const dia     = row.items.find(i => i.x >= 265 && i.x < 320);
-      const holder  = row.items.find(i => i.x >= 440);
-      tools.push({
-        tool_number:   parseInt(toolNumItem.str),
-        tool_type:     desc ? desc.str : null,
-        diameter:      dia ? parseFloat(dia.str) : null,
-        flutes:        null,
-        length:        null,
-        corner_radius: null,
-        holder:        holder ? holder.str : null,
-      });
-    }
-  }
-
-  // --- OPERATIONS (page 1 bottom + page 2) ---
-  // Op rows: OP# at x~78, Operation Name at x~116, Comment at x~211, Tool# at x~334, Min-Z at x~375, Cycle Time at x~423
-  // Operations are on page 1 (last op) and page 2
-
-  const operations = [];
-
-  function parseOpRows(rows) {
-    for (const row of rows) {
-      const opNumItem = row.items.find(i => i.x < 95 && /^\d+$/.test(i.str));
-      if (!opNumItem) continue;
-      const opName   = row.items.find(i => i.x >= 110 && i.x < 210);
-      const comment  = row.items.find(i => i.x >= 210 && i.x < 330);
-      const toolNum  = row.items.find(i => i.x >= 330 && i.x < 375);
-      const minZ     = row.items.find(i => i.x >= 375 && i.x < 420);
-      const cycleT   = row.items.find(i => i.x >= 420);
-      operations.push({
-        op_number:      parseInt(opNumItem.str),
-        operation_name: opName ? opName.str : null,
-        comment:        comment ? comment.str : null,
-        tool_number:    toolNum ? parseInt(toolNum.str) : null,
-        min_z:          minZ ? parseFloat(minZ.str) : null,
-        max_z:          1.0,
-        cycle_time:     cycleT ? cycleT.str : null,
-        spindle_rpm:    null,
-      });
-    }
-  }
-
-  // Page 1: op rows are below the OPERATION LIST header (y < ~144)
-  const opRows1 = groupByY(page1Items.filter(i => i.y < 130));
-  parseOpRows(opRows1);
-
-  // Page 2: op rows are above the TOOL LIST header
-  const toolListItem = page2Items.find(i => i.str === 'TOOL LIST');
-  const toolListY = toolListItem ? toolListItem.y : 0;
-  const opRows2 = groupByY(page2Items.filter(i => i.y > toolListY + 5));
-  parseOpRows(opRows2);
-
-  return { general: sheet, tools, partZero: {}, operations };
-}
-
-export async function extractPDFImage(file) {
-  try {
-    const pdfjsLib = window.pdfjsLib;
-    if (!pdfjsLib) return null;
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 2 });
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d');
-    await page.render({ canvasContext: ctx, viewport }).promise;
-
-    // Crop the middle section where the 3D model image lives
-    const cropY = Math.floor(canvas.height * 0.25);
-    const cropH = Math.floor(canvas.height * 0.55);
-    const cropCanvas = document.createElement('canvas');
-    cropCanvas.width = canvas.width;
-    cropCanvas.height = cropH;
-    const cropCtx = cropCanvas.getContext('2d');
-    cropCtx.drawImage(canvas, 0, cropY, canvas.width, cropH, 0, 0, canvas.width, cropH);
-    return cropCanvas.toDataURL('image/png');
-  } catch (e) {
-    console.error('PDF image extraction failed:', e);
-    return null;
-  }
 }
 
 export async function extractExcelImage(file) {
