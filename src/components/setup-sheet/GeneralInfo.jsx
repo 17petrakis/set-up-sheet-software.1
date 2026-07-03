@@ -22,14 +22,14 @@ const MACHINES = [
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
 
-const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false }) => (
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, hrs, onHrsChange }) => (
   <div className={className}>
     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
       {label}
       {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
     </Label>
     {time ? (
-      <TimeInput value={value} onChange={onChange} />
+      <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} />
     ) : (
       <Input
         type={type}
@@ -143,10 +143,16 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
         </div>
 
-        {/* Row 5: Cycle Time, Hrs, Program Desc., Date */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time (Includes Handling)" value={data.cycle_time} onChange={update("cycle_time")} time />
-          <Field label="Hrs" value={data.cycle_time_hrs} onChange={update("cycle_time_hrs")} placeholder="e.g. 1.5" />
+        {/* Row 5: Cycle Time, Program Desc., Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
+          <Field
+            label="Cycle Time (Includes Handling)"
+            value={data.cycle_time}
+            onChange={update("cycle_time")}
+            time
+            hrs={data.cycle_time_hrs}
+            onHrsChange={update("cycle_time_hrs")}
+          />
           <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
           <Field label="Date" value={data.date} onChange={update("date")} type="date" />
         </div>
