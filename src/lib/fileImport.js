@@ -1,5 +1,6 @@
 import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS } from "@/lib/toolTypeOptions";
+import JSZip from 'jszip';
 
 // Build a lookup of valid tool types (lowercase → correct case)
 const TOOL_TYPE_LOOKUP = {};
@@ -469,6 +470,7 @@ export async function extractExcelImage(file) {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
+    // Read arrayBuffer once — reuse for both XLSX parsing and JSZip
     const arrayBuffer = await file.arrayBuffer();
 
     // Step 1: Check for IMG: or PICTURE: label in the sheet
@@ -488,21 +490,34 @@ export async function extractExcelImage(file) {
       }
       if (hasImageLabel) break;
     }
-    if (!hasImageLabel) return null;
+    if (!hasImageLabel) {
+      console.log("[extractExcelImage] No IMG: or PICTURE: label found, skipping image extraction");
+      return null;
+    }
 
     // Step 2: Extract embedded image via JSZip
-    const JSZip = (await import('jszip')).default;
     const zip = await JSZip.loadAsync(arrayBuffer);
 
-    const mediaFiles = Object.keys(zip.files).filter(f =>
-      f.startsWith('xl/media/') && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
+    // List all files under xl/media/ for debugging
+    const allMediaFiles = Object.keys(zip.files).filter(f => f.startsWith('xl/media/'));
+    console.log("[extractExcelImage] All media files:", allMediaFiles);
+
+    const mediaFiles = allMediaFiles.filter(f =>
+      /\.(png|jpg|jpeg|gif|bmp|emf|wmf)$/i.test(f)
     );
-    if (mediaFiles.length === 0) return null;
+    if (mediaFiles.length === 0) {
+      console.log("[extractExcelImage] No displayable image files found in xl/media/");
+      return null;
+    }
 
     // Use the largest image file (avoid tiny icons/logos)
+    // Prefer PNG/JPEG over EMF/WMF (which browsers can't display)
+    const displayable = mediaFiles.filter(f => /\.(png|jpg|jpeg|gif|bmp)$/i.test(f));
+    const filesToCheck = displayable.length > 0 ? displayable : mediaFiles;
+
     let bestFile = null;
     let bestSize = 0;
-    for (const f of mediaFiles) {
+    for (const f of filesToCheck) {
       const entry = zip.files[f];
       const data = await entry.async('base64');
       if (data.length > bestSize) {
@@ -514,9 +529,10 @@ export async function extractExcelImage(file) {
 
     const ext = bestFile.name.split('.').pop().toLowerCase();
     const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
+    console.log("[extractExcelImage] Successfully extracted:", bestFile.name, "size:", bestSize);
     return `data:${mimeType};base64,${bestFile.data}`;
   } catch (e) {
-    // silently skip
+    console.error("[extractExcelImage] Error:", e);
   }
   return null;
 }

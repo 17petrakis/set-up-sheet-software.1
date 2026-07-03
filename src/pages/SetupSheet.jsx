@@ -284,7 +284,13 @@ export default function SetupSheet() {
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
-      const newTools = result.tools?.length ? result.tools : tools;
+      const newTools = result.tools?.length
+        ? [...result.tools].sort((a, b) => {
+            const aNum = parseInt(a.tool_number) || 0;
+            const bNum = parseInt(b.tool_number) || 0;
+            return aNum - bNum;
+          })
+        : tools;
       const newPZ = result.partZero && Object.keys(result.partZero).length
         ? { ...partZero, ...result.partZero } : partZero;
       const newOps = result.operations?.length ? result.operations : operations;
