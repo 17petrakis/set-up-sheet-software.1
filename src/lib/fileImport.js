@@ -470,7 +470,7 @@ export async function extractExcelImage(file) {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
-    // Read arrayBuffer once — reuse for both XLSX parsing and JSZip
+    // Read arrayBuffer once
     const arrayBuffer = await file.arrayBuffer();
 
     // Step 1: Check for IMG: or PICTURE: label in the sheet
@@ -495,42 +495,106 @@ export async function extractExcelImage(file) {
       return null;
     }
 
-    // Step 2: Extract embedded image via JSZip
-    const zip = await JSZip.loadAsync(arrayBuffer);
+    // Step 2: Extract embedded image via JSZip (use slice to avoid buffer mutation)
+    const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
 
-    // List all files under xl/media/ for debugging
-    const allMediaFiles = Object.keys(zip.files).filter(f => f.startsWith('xl/media/'));
-    console.log("[extractExcelImage] All media files:", allMediaFiles);
+    // List all files for debugging
+    const allFiles = Object.keys(zip.files);
+    const mediaFiles = allFiles.filter(f => f.startsWith('xl/media/') || f.startsWith('xl/embeddings/'));
+    console.log("[extractExcelImage] All media/embedding files:", mediaFiles);
 
-    const mediaFiles = allMediaFiles.filter(f =>
-      /\.(png|jpg|jpeg|gif|bmp|emf|wmf)$/i.test(f)
-    );
     if (mediaFiles.length === 0) {
-      console.log("[extractExcelImage] No displayable image files found in xl/media/");
+      console.log("[extractExcelImage] No media files found in xl/media/ or xl/embeddings/");
       return null;
     }
 
-    // Use the largest image file (avoid tiny icons/logos)
-    // Prefer PNG/JPEG over EMF/WMF (which browsers can't display)
-    const displayable = mediaFiles.filter(f => /\.(png|jpg|jpeg|gif|bmp)$/i.test(f));
-    const filesToCheck = displayable.length > 0 ? displayable : mediaFiles;
+    // Helper: scan binary data for embedded raster image signatures
+    // EMF/WMF files from CAD pastes often contain embedded PNG or JPEG data
+    const extractRasterFromBinary = (uint8) => {
+      const pngSig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+      const jpgSig = [0xFF, 0xD8, 0xFF];
 
-    let bestFile = null;
-    let bestSize = 0;
-    for (const f of filesToCheck) {
+      // Search for PNG signature
+      for (let i = 0; i < uint8.length - 8; i++) {
+        if (uint8[i] === pngSig[0] && uint8[i+1] === pngSig[1] && uint8[i+2] === pngSig[2] && uint8[i+3] === pngSig[3]) {
+          // Find IEND chunk to get the end of PNG data
+          const iendMarker = [0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82];
+          for (let j = i + 8; j < uint8.length - 8; j++) {
+            if (uint8[j] === iendMarker[0] && uint8[j+1] === iendMarker[1] && uint8[j+2] === iendMarker[2] && uint8[j+3] === iendMarker[3]) {
+              const pngData = uint8.slice(i, j + 8);
+              console.log("[extractExcelImage] Found embedded PNG in binary data, size:", pngData.length);
+              return { data: pngData, mimeType: 'image/png' };
+            }
+          }
+        }
+      }
+
+      // Search for JPEG signature (FFD8FF...FFD9)
+      for (let i = 0; i < uint8.length - 3; i++) {
+        if (uint8[i] === jpgSig[0] && uint8[i+1] === jpgSig[1] && uint8[i+2] === jpgSig[2]) {
+          // Find JPEG end marker (FFD9)
+          for (let j = uint8.length - 2; j > i; j--) {
+            if (uint8[j] === 0xFF && uint8[j+1] === 0xD9) {
+              const jpgData = uint8.slice(i, j + 2);
+              console.log("[extractExcelImage] Found embedded JPEG in binary data, size:", jpgData.length);
+              return { data: jpgData, mimeType: 'image/jpeg' };
+            }
+          }
+        }
+      }
+
+      return null;
+    };
+
+    // Collect all candidate images (direct displayable + raster extracted from EMF/WMF)
+    const candidates = [];
+    for (const f of mediaFiles) {
       const entry = zip.files[f];
-      const data = await entry.async('base64');
-      if (data.length > bestSize) {
-        bestSize = data.length;
-        bestFile = { name: f, data };
+      if (!entry || entry.dir) continue;
+      const uint8 = await entry.async('uint8array');
+      const ext = f.split('.').pop().toLowerCase();
+
+      if (['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) {
+        const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
+        candidates.push({ name: f, data: uint8, mimeType, size: uint8.length });
+        console.log("[extractExcelImage] Direct displayable image:", f, "size:", uint8.length);
+      } else if (['emf', 'wmf'].includes(ext)) {
+        // Try to extract embedded raster from EMF/WMF
+        console.log("[extractExcelImage] EMF/WMF file found, scanning for embedded raster:", f);
+        const raster = extractRasterFromBinary(uint8);
+        if (raster) {
+          candidates.push({ name: f + ' (extracted raster)', data: raster.data, mimeType: raster.mimeType, size: raster.data.length });
+        } else {
+          console.log("[extractExcelImage] No embedded raster found in", f);
+        }
+      } else {
+        // For .bin or other files (OLE objects), also try scanning for embedded images
+        console.log("[extractExcelImage] Scanning unknown format for embedded image:", f);
+        const raster = extractRasterFromBinary(uint8);
+        if (raster) {
+          candidates.push({ name: f + ' (extracted raster)', data: raster.data, mimeType: raster.mimeType, size: raster.data.length });
+        }
       }
     }
-    if (!bestFile) return null;
 
-    const ext = bestFile.name.split('.').pop().toLowerCase();
-    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
-    console.log("[extractExcelImage] Successfully extracted:", bestFile.name, "size:", bestSize);
-    return `data:${mimeType};base64,${bestFile.data}`;
+    if (candidates.length === 0) {
+      console.log("[extractExcelImage] No displayable images could be extracted");
+      return null;
+    }
+
+    // Use the largest candidate
+    candidates.sort((a, b) => b.size - a.size);
+    const best = candidates[0];
+    console.log("[extractExcelImage] Best image:", best.name, "size:", best.size, "type:", best.mimeType);
+
+    // Convert to base64 data URL
+    let base64 = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < best.data.length; i += chunkSize) {
+      const chunk = best.data.subarray(i, i + chunkSize);
+      base64 += String.fromCharCode.apply(null, chunk);
+    }
+    return `data:${best.mimeType};base64,${btoa(base64)}`;
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
   }
