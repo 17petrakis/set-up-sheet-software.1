@@ -75,16 +75,18 @@ export default function ToolList({ tools, onChange, machine }) {
       };
       const res = await base44.functions.invoke('syncToolListToMachine', payload);
       const data = res.data || res;
-      toast({
+      const t = toast({
         title: "Machine tool list updated",
         description: data.message || data.summary || "Sync complete.",
       });
+      setTimeout(() => t.dismiss(), 30000);
     } catch (err) {
-      toast({
+      const t = toast({
         title: "Sync failed",
         description: err?.response?.data?.error || err?.message || "Could not sync tool list.",
         variant: "destructive",
       });
+      setTimeout(() => t.dismiss(), 30000);
     } finally {
       setSyncing(false);
     }
