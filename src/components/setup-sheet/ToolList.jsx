@@ -56,14 +56,53 @@ export default function ToolList({ tools, onChange, machine }) {
     onChange(reordered);
   };
 
+  const handleSync = async () => {
+    if (!machine) {
+      toast({ title: "No machine selected", description: "Please select a machine before syncing.", variant: "destructive" });
+      return;
+    }
+    setSyncing(true);
+    try {
+      const payload = {
+        machineId: machine,
+        tools: tools.map(t => ({
+          tool_number: t.tool_number,
+          tool_type: t.tool_type,
+          diameter: t.diameter,
+          holder: t.holder,
+          name: t.name,
+        })),
+      };
+      const res = await base44.functions.invoke('syncToolListToMachine', payload);
+      const data = res.data || res;
+      toast({
+        title: "Machine tool list updated",
+        description: data.message || data.summary || "Sync complete.",
+      });
+    } catch (err) {
+      toast({
+        title: "Sync failed",
+        description: err?.response?.data?.error || err?.message || "Could not sync tool list.",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List">
           {tools.length > 0 && (
-            <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-              <Plus className="w-3 h-3" /> Add Tool
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-7 text-xs gap-1.5">
+                <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List
+              </Button>
+              <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+                <Plus className="w-3 h-3" /> Add Tool
+              </Button>
+            </div>
           )}
         </SectionHeader>
 
