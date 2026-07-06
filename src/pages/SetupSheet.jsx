@@ -82,19 +82,25 @@ export default function SetupSheet() {
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
       const d = latestData.current;
-      await base44.entities.SetupSheet.update(id, {
-        ...d.gen,
-        tools: d.t,
-        turning_tools: d.tt,
-        part_zero: d.pz,
-        operations: d.ops,
-        photos: d.ph,
-        fixturing_notes: d.fn,
-        turning_chuck: d.tc,
-      });
-      setSaving(false);
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus(null), 2000);
+      try {
+        await base44.entities.SetupSheet.update(id, {
+          ...d.gen,
+          tools: d.t,
+          turning_tools: d.tt,
+          part_zero: d.pz,
+          operations: d.ops,
+          photos: d.ph,
+          fixturing_notes: d.fn,
+          turning_chuck: d.tc,
+        });
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(null), 2000);
+      } catch (err) {
+        // Sheet may have been deleted — silently redirect home
+        navigate("/", { replace: true });
+      } finally {
+        setSaving(false);
+      }
     }, 800);
   }, [id]);
 
@@ -125,7 +131,7 @@ export default function SetupSheet() {
           photos: ph,
           fixturing_notes: fn,
           turning_chuck: tc,
-        });
+        }).catch(() => {});
       }
     };
   }, [id]);
