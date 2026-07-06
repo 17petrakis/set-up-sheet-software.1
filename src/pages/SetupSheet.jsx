@@ -163,7 +163,7 @@ export default function SetupSheet() {
       const machine = value || "";
       let chuckUpdate = null;
 
-      if (machine === "Doosan Puma 2100 YII") {
+      if (machine === "Doosan Puma Z100") {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: false,
           wh_s1: { chuck_type: '8" 3-Jaw' },
