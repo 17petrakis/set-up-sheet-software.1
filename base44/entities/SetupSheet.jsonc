@@ -91,12 +91,6 @@
     },
     "program_description": {
       "type": "string",
-      "enum": [
-        "Roughing",
-        "Finishing",
-        "Prep",
-        "Complete with transfer"
-      ],
       "description": "What is happening in this operation"
     },
     "program_location": {

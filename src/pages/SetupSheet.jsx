@@ -286,7 +286,7 @@ export default function SetupSheet() {
     setImporting(true);
     setImportError(null);
     try {
-      const [result, isoImage] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
+      const [result, isoResult] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
@@ -302,8 +302,8 @@ export default function SetupSheet() {
       const newOps = result.operations?.length ? result.operations : operations;
 
       let isoUrl = null;
-      if (isoImage) {
-        const blob = await (await fetch(isoImage)).blob();
+      if (isoResult?.dataUrl) {
+        const blob = await (await fetch(isoResult.dataUrl)).blob();
         const uploadResult = await base44.integrations.Core.UploadFile({ file: new File([blob], 'iso.png', { type: 'image/png' }) });
         isoUrl = uploadResult.file_url;
       }
@@ -315,6 +315,11 @@ export default function SetupSheet() {
       handlePartZeroChange(newPZ);
       handleOperationsChange(newOps);
       if (isoUrl) handlePhotosChange(newPhotos);
+
+      // Show message if IMG/PICTURE label was found but image couldn't be extracted
+      if (isoResult?.labelFound && !isoUrl) {
+        setImportError("Image upload failed. Please manually input ISO image.");
+      }
     } catch (err) {
       setImportError("Could not read Excel file — please fill in manually");
       console.error("Import error:", err);

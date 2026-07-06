@@ -533,7 +533,7 @@ function uint8ToBase64(uint8) {
 export async function extractExcelImage(file) {
   try {
     const XLSX = window.XLSX;
-    if (!XLSX) return null;
+    if (!XLSX) return { labelFound: false, dataUrl: null };
 
     // Clone the buffer — XLSX.read may detach/transfer the original
     const arrayBuffer = await file.arrayBuffer();
@@ -560,7 +560,7 @@ export async function extractExcelImage(file) {
       }
       if (hasImageLabel) break;
     }
-    if (!hasImageLabel) return null;
+    if (!hasImageLabel) return { labelFound: false, dataUrl: null };
 
     // Step 2: Load zip and search ALL files for embedded image data by magic bytes
     // This catches standalone PNGs AND PNGs wrapped inside OLE containers (.bin files)
@@ -581,13 +581,16 @@ export async function extractExcelImage(file) {
       }
     }
 
-    if (!bestImage) return null;
+    if (!bestImage) {
+      console.log("[extractExcelImage] IMG label found but no extractable image (may be EMF/unsupported format)");
+      return { labelFound: true, dataUrl: null };
+    }
 
     const base64 = uint8ToBase64(bestImage.data);
     console.log("[extractExcelImage] Extracted image, type:", bestImage.type, "size:", bestSize);
-    return `data:${bestImage.type};base64,${base64}`;
+    return { labelFound: true, dataUrl: `data:${bestImage.type};base64,${base64}` };
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
   }
-  return null;
+  return { labelFound: false, dataUrl: null };
 }
