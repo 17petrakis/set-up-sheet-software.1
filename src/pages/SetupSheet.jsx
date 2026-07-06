@@ -403,8 +403,8 @@ export default function SetupSheet() {
             }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            {general.photos?.iso ? (
-              <img src={general.photos.iso} alt="ISO" className="w-9 h-9 rounded-xl object-cover border border-border" />
+            {photos.iso ? (
+              <img src={photos.iso} alt="ISO" className="w-9 h-9 rounded-xl object-cover border border-border" />
             ) : (
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                 <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
