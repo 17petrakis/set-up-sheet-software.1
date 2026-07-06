@@ -602,7 +602,7 @@ export default function SetupSheet() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-              <ToolList tools={tools} onChange={handleToolsChange} />
+              <ToolList tools={tools} onChange={handleToolsChange} machine={general.machine} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>

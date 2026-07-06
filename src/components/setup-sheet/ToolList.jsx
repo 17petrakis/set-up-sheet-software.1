@@ -10,9 +10,14 @@ import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFi
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
+import { useToast } from "@/components/ui/use-toast";
+import { base44 } from "@/api/base44Client";
+import { RefreshCw } from "lucide-react";
 
-export default function ToolList({ tools, onChange }) {
+export default function ToolList({ tools, onChange, machine }) {
+  const { toast } = useToast();
   const [editingIndex, setEditingIndex] = useState(null);
+  const [syncing, setSyncing] = useState(false);
 
   const sortByTNumber = (arr) =>
     [...arr].sort((a, b) => {
