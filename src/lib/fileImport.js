@@ -465,6 +465,51 @@ export function parseExcel(file) {
   });
 }
 
+// Search a Uint8Array for PNG or JPEG image data by magic bytes.
+// This catches images stored as standalone files AND images embedded
+// inside OLE containers (xl/embeddings/*.bin).
+function findImagesInBytes(uint8) {
+  const results = [];
+
+  // PNG: starts with \x89PNG\r\n\x1a\n, ends with IEND\xaeB`\x82
+  for (let i = 0; i <= uint8.length - 8; i++) {
+    if (uint8[i] === 0x89 && uint8[i + 1] === 0x50 && uint8[i + 2] === 0x4E && uint8[i + 3] === 0x47) {
+      // Find IEND chunk
+      for (let j = i + 8; j <= uint8.length - 8; j++) {
+        if (uint8[j] === 0x49 && uint8[j + 1] === 0x45 && uint8[j + 2] === 0x4E && uint8[j + 3] === 0x44) {
+          results.push({ type: 'image/png', data: uint8.slice(i, j + 8) });
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  // JPEG: starts with \xff\xd8\xff, ends with \xff\xd9
+  for (let i = 0; i <= uint8.length - 3; i++) {
+    if (uint8[i] === 0xFF && uint8[i + 1] === 0xD8 && uint8[i + 2] === 0xFF) {
+      for (let j = uint8.length - 2; j >= i; j--) {
+        if (uint8[j] === 0xFF && uint8[j + 1] === 0xD9) {
+          results.push({ type: 'image/jpeg', data: uint8.slice(i, j + 2) });
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  return results;
+}
+
+function uint8ToBase64(uint8) {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < uint8.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, uint8.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
 export async function extractExcelImage(file) {
   try {
     const XLSX = window.XLSX;
@@ -472,7 +517,7 @@ export async function extractExcelImage(file) {
 
     const arrayBuffer = await file.arrayBuffer();
 
-    // Step 1: Check ALL sheets for IMG or PICTURE label (lenient match)
+    // Step 1: Check ALL sheets for IMG or PICTURE label
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     let hasImageLabel = false;
     for (const sheetName of workbook.SheetNames) {
@@ -484,7 +529,7 @@ export async function extractExcelImage(file) {
         for (const cell of row) {
           if (cell == null) continue;
           const lower = String(cell).trim().toLowerCase();
-          if (lower.startsWith("img") || lower.includes("picture")) {
+          if (lower.includes("img") || lower.includes("picture")) {
             hasImageLabel = true;
             break;
           }
@@ -495,38 +540,30 @@ export async function extractExcelImage(file) {
     }
     if (!hasImageLabel) return null;
 
-    // Step 2: Load zip and find ALL files
+    // Step 2: Load zip and search ALL files for embedded image data by magic bytes
+    // This catches standalone PNGs AND PNGs wrapped inside OLE containers (.bin files)
     const zip = await JSZip.loadAsync(arrayBuffer);
-    const allFiles = Object.keys(zip.files);
-    console.log("[extractExcelImage] All zip files:", allFiles);
+    const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
 
-    // Step 3: Find every image file anywhere in the zip (not just xl/media/)
-    const imageFiles = allFiles.filter(f =>
-      zip.files[f] && !zip.files[f].dir && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
-    );
-    console.log("[extractExcelImage] Image files found:", imageFiles);
-
-    if (imageFiles.length === 0) return null;
-
-    // Step 4: Pick the largest image (avoids tiny icons/logos)
-    let bestFile = null;
+    let bestImage = null;
     let bestSize = 0;
-    for (const f of imageFiles) {
-      const data = await zip.files[f].async('base64');
-      if (data.length > bestSize) {
-        bestSize = data.length;
-        bestFile = { name: f, data };
+
+    for (const f of allFiles) {
+      const uint8 = await zip.files[f].async('uint8array');
+      const images = findImagesInBytes(uint8);
+      for (const img of images) {
+        if (img.data.length > bestSize) {
+          bestSize = img.data.length;
+          bestImage = img;
+        }
       }
     }
-    if (!bestFile) return null;
 
-    const ext = bestFile.name.split('.').pop().toLowerCase();
-    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
-      : ext === 'gif' ? 'image/gif'
-      : ext === 'bmp' ? 'image/bmp'
-      : 'image/png';
-    console.log("[extractExcelImage] Extracted:", bestFile.name, "size:", bestSize);
-    return `data:${mimeType};base64,${bestFile.data}`;
+    if (!bestImage) return null;
+
+    const base64 = uint8ToBase64(bestImage.data);
+    console.log("[extractExcelImage] Extracted image, type:", bestImage.type, "size:", bestSize);
+    return `data:${bestImage.type};base64,${base64}`;
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
   }
