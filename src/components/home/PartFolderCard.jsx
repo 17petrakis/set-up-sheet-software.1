@@ -21,9 +21,13 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
       </button>
 
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <FileText className="w-4 h-4 text-primary" />
-        </div>
+        {primarySheet?.photos?.iso ? (
+          <img src={primarySheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 text-primary" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-sm text-foreground truncate max-w-[120px]">{partNumber || "Unnamed"}</span>

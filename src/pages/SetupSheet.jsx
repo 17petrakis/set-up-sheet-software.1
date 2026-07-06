@@ -403,9 +403,13 @@ export default function SetupSheet() {
             }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-              <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
-            </div>
+            {general.photos?.iso ? (
+              <img src={general.photos.iso} alt="ISO" className="w-9 h-9 rounded-xl object-cover border border-border" />
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+                <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
+              </div>
+            )}
             <div>
               <h1 className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none">
                 {general.part_number || "CNC Setup Sheet"}

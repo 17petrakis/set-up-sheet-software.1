@@ -138,9 +138,13 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
               </button>
             )}
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
+              {sheet.photos?.iso ? (
+                <img src={sheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+              ) : (
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-primary" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm text-foreground">Operation {sheet.operation_number || 1}</p>
                 <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
