@@ -72,6 +72,7 @@ export default function PrintView() {
   const turningTools = data.turning_tools || { axial: [], radial: [] };
   const turningChuck = data.turning_chuck || {};
   const partZero = data.part_zero && Object.keys(data.part_zero).length ? { ...emptyPartZero, ...data.part_zero } : emptyPartZero;
+  const partZeroHasData = Object.values(partZero).some(v => v !== "" && v !== null && v !== undefined);
   const operations = data.operations?.length ? data.operations : [];
   const photos = data.photos || {};
   const extraSlots = photos.__extra_slots || [];
@@ -345,6 +346,7 @@ export default function PrintView() {
               )}
 
               {/* Part Zero */}
+              {partZeroHasData && (
               <section>
                 <h2 className="print-section-title">Part Zero</h2>
                 <table className="print-table w-full" style={{ maxWidth: "220px" }}>
@@ -363,6 +365,7 @@ export default function PrintView() {
                   </tbody>
                 </table>
               </section>
+              )}
 
               {/* Turning Operations */}
               {operations.length > 0 && (
@@ -398,6 +401,7 @@ export default function PrintView() {
               )}
 
               {/* Part Zero */}
+              {partZeroHasData && (
               <section>
                 <h2 className="print-section-title">Part Zero</h2>
                 <table className="print-table w-full" style={{ maxWidth: "220px" }}>
@@ -417,6 +421,7 @@ export default function PrintView() {
                   </tbody>
                 </table>
               </section>
+              )}
 
               {/* Operations */}
               {operations.length > 0 && (
