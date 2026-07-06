@@ -2,17 +2,6 @@ import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS } from "@/lib/toolTypeOptions";
 import JSZip from 'jszip';
 
-// Convert a Uint8Array to a base64 data URL
-function uint8ToDataUrl(uint8, mimeType) {
-  let base64 = '';
-  const chunkSize = 8192;
-  for (let i = 0; i < uint8.length; i += chunkSize) {
-    const chunk = uint8.subarray(i, i + chunkSize);
-    base64 += String.fromCharCode.apply(null, chunk);
-  }
-  return `data:${mimeType};base64,${btoa(base64)}`;
-}
-
 // Build a lookup of valid tool types (lowercase → correct case)
 const TOOL_TYPE_LOOKUP = {};
 TOOL_TYPE_OPTIONS.forEach(group => {
@@ -477,22 +466,15 @@ export function parseExcel(file) {
 }
 
 export async function extractExcelImage(file) {
-  console.log("[extractExcelImage] === FUNCTION ENTRY ===", new Error().stack);
   try {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
-    // Read arrayBuffer and immediately clone for each consumer so parseExcel
-    // (running concurrently via Promise.all) can't detach/consume our buffer.
-    console.log("[extractExcelImage] Calling file.arrayBuffer() — file size:", file.size, "file name:", file.name);
-    const rawBuffer = await file.arrayBuffer();
-    console.log("[extractExcelImage] rawBuffer byteLength:", rawBuffer.byteLength);
-    const xlsxBuffer = rawBuffer.slice(0);
-    const zipBuffer = rawBuffer.slice(0);
-    console.log("[extractExcelImage] Cloned buffers — xlsxBuffer:", xlsxBuffer.byteLength, "zipBuffer:", zipBuffer.byteLength);
+    // Read arrayBuffer once — reuse for both XLSX parsing and JSZip
+    const arrayBuffer = await file.arrayBuffer();
 
     // Step 1: Check for IMG: or PICTURE: label in the sheet
-    const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     const ws = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
     let hasImageLabel = false;
@@ -513,151 +495,44 @@ export async function extractExcelImage(file) {
       return null;
     }
 
-    // Step 2: Extract embedded image via JSZip using our own independent clone
-    // ── DIAGNOSTIC: log buffer origin, hex header, and stack trace ──
-    const _zipHex = Array.from(new Uint8Array(zipBuffer).slice(0, 16))
-      .map(b => b.toString(16).padStart(2, '0')).join(' ');
-    console.log("[extractExcelImage] JSZip input byteLength:", zipBuffer.byteLength);
-    console.log("[extractExcelImage] JSZip buffer first 16 bytes (hex):", _zipHex);
-    console.log("[extractExcelImage] JSZip buffer origin: rawBuffer.slice(0) from file.arrayBuffer()");
-    console.log("[extractExcelImage] JSZip.loadAsync call site — stack:", new Error().stack);
-    const zip = await JSZip.loadAsync(zipBuffer);
+    // Step 2: Extract embedded image via JSZip
+    const zip = await JSZip.loadAsync(arrayBuffer);
 
-    const allFiles = Object.keys(zip.files);
+    // List all files under xl/media/ for debugging
+    const allMediaFiles = Object.keys(zip.files).filter(f => f.startsWith('xl/media/'));
+    console.log("[extractExcelImage] All media files:", allMediaFiles);
 
-    // ── Diagnostic: log every image referenced by xl/drawings ──
-    const relFiles = allFiles.filter(f => /^xl\/drawings\/_rels\/.*\.rels$/i.test(f));
-    console.log("[extractExcelImage] Drawing rels files:", relFiles);
-    for (const relFile of relFiles) {
-      const relXml = await zip.files[relFile].async('string');
-      const matches = [...relXml.matchAll(/Target="([^"]+)"/gi)];
-      for (const m of matches) {
-        let target = m[1];
-        // Resolve relative path (relative to xl/drawings/)
-        if (target.startsWith('..')) {
-          target = 'xl/' + target.replace(/^\.\.\//, '');
-        } else if (!target.startsWith('xl/')) {
-          target = 'xl/drawings/' + target;
-        }
-        const zipPath = target.replace(/\\/g, '/').replace(/^xl\/xl\//, 'xl/');
-        const ext = zipPath.split('.').pop().toLowerCase();
-        const entry = zip.files[zipPath];
-        if (!entry) {
-          console.log("[extractExcelImage] [DIAG] drawing ref → not found in zip:", zipPath, "ext:", "." + ext);
-          continue;
-        }
-        const uint8 = await entry.async('uint8array');
-        const first8 = Array.from(uint8.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
-        console.log("[extractExcelImage] [DIAG] drawing ref:", zipPath, "| ext:." + ext, "| bytes:" + uint8.length, "| first8:" + first8);
-      }
-    }
-
-    // List all files for debugging
-    const mediaFiles = allFiles.filter(f => f.startsWith('xl/media/') || f.startsWith('xl/embeddings/'));
-    console.log("[extractExcelImage] All media/embedding files:", mediaFiles);
-
+    const mediaFiles = allMediaFiles.filter(f =>
+      /\.(png|jpg|jpeg|gif|bmp|emf|wmf)$/i.test(f)
+    );
     if (mediaFiles.length === 0) {
-      console.log("[extractExcelImage] No media files found in xl/media/ or xl/embeddings/");
+      console.log("[extractExcelImage] No displayable image files found in xl/media/");
       return null;
     }
 
-    // Collect all candidate images.
-    // Priority: direct displayable images (png/jpg/jpeg/gif/bmp) first.
-    // Only if none found do we attempt raster extraction from EMF/WMF/binary.
-    const candidates = [];
+    // Use the largest image file (avoid tiny icons/logos)
+    // Prefer PNG/JPEG over EMF/WMF (which browsers can't display)
+    const displayable = mediaFiles.filter(f => /\.(png|jpg|jpeg|gif|bmp)$/i.test(f));
+    const filesToCheck = displayable.length > 0 ? displayable : mediaFiles;
 
-    // Pass 1: direct displayable images
-    for (const f of mediaFiles) {
+    let bestFile = null;
+    let bestSize = 0;
+    for (const f of filesToCheck) {
       const entry = zip.files[f];
-      if (!entry || entry.dir) continue;
-      const ext = f.split('.').pop().toLowerCase();
-      if (['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) {
-        const uint8 = await entry.async('uint8array');
-        const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
-        candidates.push({ name: f, data: uint8, mimeType, size: uint8.length });
-        console.log("[extractExcelImage] Direct displayable image:", f, "size:", uint8.length);
+      const data = await entry.async('base64');
+      if (data.length > bestSize) {
+        bestSize = data.length;
+        bestFile = { name: f, data };
       }
     }
+    if (!bestFile) return null;
 
-    // If we already have a direct displayable image, return the best one immediately.
-    // Skip all EMF/WMF raster-scanning fallbacks — they are unnecessary and any
-    // failure there must never discard an already-successful result.
-    if (candidates.length > 0) {
-      candidates.sort((a, b) => b.size - a.size);
-      const best = candidates[0];
-      console.log("[extractExcelImage] Best image (direct):", best.name, "size:", best.size, "type:", best.mimeType);
-      console.log("[extractExcelImage] returning early, skipping further JSZip calls");
-      return uint8ToDataUrl(best.data, best.mimeType);
-    }
-
-    // Pass 2 (fallback only): scan EMF/WMF/binary for embedded raster images.
-    // Wrapped in try/catch so a failure here can never wipe out a prior success
-    // (there is none in this path, but defensive).
-    try {
-      const extractRasterFromBinary = (uint8) => {
-        const pngSig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-        const jpgSig = [0xFF, 0xD8, 0xFF];
-
-        for (let i = 0; i < uint8.length - 8; i++) {
-          if (uint8[i] === pngSig[0] && uint8[i+1] === pngSig[1] && uint8[i+2] === pngSig[2] && uint8[i+3] === pngSig[3]) {
-            const iendMarker = [0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82];
-            for (let j = i + 8; j < uint8.length - 8; j++) {
-              if (uint8[j] === iendMarker[0] && uint8[j+1] === iendMarker[1] && uint8[j+2] === iendMarker[2] && uint8[j+3] === iendMarker[3]) {
-                const pngData = uint8.slice(i, j + 8);
-                console.log("[extractExcelImage] Found embedded PNG in binary data, size:", pngData.length);
-                return { data: pngData, mimeType: 'image/png' };
-              }
-            }
-          }
-        }
-
-        for (let i = 0; i < uint8.length - 3; i++) {
-          if (uint8[i] === jpgSig[0] && uint8[i+1] === jpgSig[1] && uint8[i+2] === jpgSig[2]) {
-            for (let j = uint8.length - 2; j > i; j--) {
-              if (uint8[j] === 0xFF && uint8[j+1] === 0xD9) {
-                const jpgData = uint8.slice(i, j + 2);
-                console.log("[extractExcelImage] Found embedded JPEG in binary data, size:", jpgData.length);
-                return { data: jpgData, mimeType: 'image/jpeg' };
-              }
-            }
-          }
-        }
-        return null;
-      };
-
-      for (const f of mediaFiles) {
-        const entry = zip.files[f];
-        if (!entry || entry.dir) continue;
-        const ext = f.split('.').pop().toLowerCase();
-        if (['emf', 'wmf', 'bin'].includes(ext) || !['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) {
-          console.log("[extractExcelImage] Scanning for embedded raster:", f);
-          const uint8 = await entry.async('uint8array');
-          const raster = extractRasterFromBinary(uint8);
-          if (raster) {
-            candidates.push({ name: f + ' (extracted raster)', data: raster.data, mimeType: raster.mimeType, size: raster.data.length });
-          } else {
-            console.log("[extractExcelImage] No embedded raster found in", f);
-          }
-        }
-      }
-    } catch (fallbackErr) {
-      console.error("[extractExcelImage] Fallback raster scan error (non-fatal):", fallbackErr);
-    }
-
-    if (candidates.length === 0) {
-      console.log("[extractExcelImage] No displayable images could be extracted");
-      return null;
-    }
-
-    candidates.sort((a, b) => b.size - a.size);
-    const best = candidates[0];
-    console.log("[extractExcelImage] Best image:", best.name, "size:", best.size, "type:", best.mimeType);
-    console.log("[extractExcelImage] returning early, skipping further JSZip calls");
-    return uint8ToDataUrl(best.data, best.mimeType);
+    const ext = bestFile.name.split('.').pop().toLowerCase();
+    const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'bmp' ? 'image/bmp' : 'image/png';
+    console.log("[extractExcelImage] Successfully extracted:", bestFile.name, "size:", bestSize);
+    return `data:${mimeType};base64,${bestFile.data}`;
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
-    console.error("[extractExcelImage] Error stack:", e.stack);
   }
-  console.log("[extractExcelImage] === FUNCTION EXIT (returning null) ===");
   return null;
 }
