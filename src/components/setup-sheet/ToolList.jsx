@@ -71,6 +71,8 @@ export default function ToolList({ tools, onChange, machine }) {
           diameter: t.diameter,
           holder: t.holder,
           name: t.name,
+          flutes: t.flutes,
+          stickout_length: t.stickout_length,
         })),
       };
       const res = await base44.functions.invoke('syncToolListToMachine', payload);
