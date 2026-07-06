@@ -465,37 +465,57 @@ export function parseExcel(file) {
   });
 }
 
-// Search a Uint8Array for PNG or JPEG image data by magic bytes.
-// This catches images stored as standalone files AND images embedded
-// inside OLE containers (xl/embeddings/*.bin).
+// Search a Uint8Array for ALL PNG or JPEG image data by magic bytes.
+// Catches images stored as standalone files AND images embedded inside
+// OLE containers (xl/embeddings/*.bin). Collects ALL matches so the
+// caller can pick the largest (the real image, not a tiny icon).
 function findImagesInBytes(uint8) {
   const results = [];
+  const len = uint8.length;
 
-  // PNG: starts with \x89PNG\r\n\x1a\n, ends with IEND\xaeB`\x82
-  for (let i = 0; i <= uint8.length - 8; i++) {
-    if (uint8[i] === 0x89 && uint8[i + 1] === 0x50 && uint8[i + 2] === 0x4E && uint8[i + 3] === 0x47) {
-      // Find IEND chunk
-      for (let j = i + 8; j <= uint8.length - 8; j++) {
-        if (uint8[j] === 0x49 && uint8[j + 1] === 0x45 && uint8[j + 2] === 0x4E && uint8[j + 3] === 0x44) {
-          results.push({ type: 'image/png', data: uint8.slice(i, j + 8) });
+  // Find ALL PNGs — full 8-byte signature: \x89PNG\r\n\x1a\n
+  let i = 0;
+  while (i <= len - 8) {
+    if (uint8[i] === 0x89 && uint8[i + 1] === 0x50 && uint8[i + 2] === 0x4E &&
+        uint8[i + 3] === 0x47 && uint8[i + 4] === 0x0D && uint8[i + 5] === 0x0A &&
+        uint8[i + 6] === 0x1A && uint8[i + 7] === 0x0A) {
+      let end = -1;
+      for (let j = i + 8; j <= len - 8; j++) {
+        // IEND chunk marker
+        if (uint8[j] === 0x49 && uint8[j + 1] === 0x45 && uint8[j + 2] === 0x4E &&
+            uint8[j + 3] === 0x44 && uint8[j + 4] === 0xAE && uint8[j + 5] === 0x42 &&
+            uint8[j + 6] === 0x60 && uint8[j + 7] === 0x82) {
+          end = j + 8;
           break;
         }
       }
-      break;
+      if (end > 0) {
+        results.push({ type: 'image/png', data: uint8.slice(i, end) });
+        i = end;
+        continue;
+      }
     }
+    i++;
   }
 
-  // JPEG: starts with \xff\xd8\xff, ends with \xff\xd9
-  for (let i = 0; i <= uint8.length - 3; i++) {
+  // Find ALL JPEGs — \xff\xd8\xff ... \xff\xd9
+  i = 0;
+  while (i <= len - 3) {
     if (uint8[i] === 0xFF && uint8[i + 1] === 0xD8 && uint8[i + 2] === 0xFF) {
-      for (let j = uint8.length - 2; j >= i; j--) {
+      let end = -1;
+      for (let j = i + 3; j <= len - 2; j++) {
         if (uint8[j] === 0xFF && uint8[j + 1] === 0xD9) {
-          results.push({ type: 'image/jpeg', data: uint8.slice(i, j + 2) });
+          end = j + 2;
           break;
         }
       }
-      break;
+      if (end > 0) {
+        results.push({ type: 'image/jpeg', data: uint8.slice(i, end) });
+        i = end;
+        continue;
+      }
     }
+    i++;
   }
 
   return results;
@@ -515,10 +535,12 @@ export async function extractExcelImage(file) {
     const XLSX = window.XLSX;
     if (!XLSX) return null;
 
+    // Clone the buffer — XLSX.read may detach/transfer the original
     const arrayBuffer = await file.arrayBuffer();
+    const xlsxBuffer = arrayBuffer.slice(0);
 
     // Step 1: Check ALL sheets for IMG or PICTURE label
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
     let hasImageLabel = false;
     for (const sheetName of workbook.SheetNames) {
       const ws = workbook.Sheets[sheetName];
