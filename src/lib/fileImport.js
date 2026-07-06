@@ -472,7 +472,7 @@ export async function extractExcelImage(file) {
 
     const arrayBuffer = await file.arrayBuffer();
 
-    // Step 1: Check ALL sheets for IMG: or PICTURE: label
+    // Step 1: Check ALL sheets for IMG or PICTURE label (lenient match)
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     let hasImageLabel = false;
     for (const sheetName of workbook.SheetNames) {
@@ -483,8 +483,8 @@ export async function extractExcelImage(file) {
         if (!row) continue;
         for (const cell of row) {
           if (cell == null) continue;
-          const norm = String(cell).trim().toLowerCase().replace(/[^a-z]/g, "");
-          if (norm === "img" || norm === "picture") {
+          const lower = String(cell).trim().toLowerCase();
+          if (lower.startsWith("img") || lower.includes("picture")) {
             hasImageLabel = true;
             break;
           }
@@ -493,81 +493,26 @@ export async function extractExcelImage(file) {
       }
       if (hasImageLabel) break;
     }
-    if (!hasImageLabel) {
-      console.log("[extractExcelImage] No IMG: or PICTURE: label found in any sheet");
-      return null;
-    }
+    if (!hasImageLabel) return null;
 
-    // Step 2: Load zip and log ALL files for debugging
+    // Step 2: Load zip and find ALL files
     const zip = await JSZip.loadAsync(arrayBuffer);
     const allFiles = Object.keys(zip.files);
     console.log("[extractExcelImage] All zip files:", allFiles);
 
-    // Step 3: Parse drawing rels to map rIds → media file paths
-    // This finds ALL images referenced by drawings, including PNG alternatives to EMF
-    const relsFiles = allFiles.filter(f => /^xl\/drawings\/_rels\/.*\.rels$/i.test(f));
-    const rIdToMedia = {};
-    for (const relsPath of relsFiles) {
-      try {
-        const content = await zip.files[relsPath].async('string');
-        const dir = relsPath.replace(/\/_rels\/[^/]+$/, '/');
-        const matches = [...content.matchAll(/Id="([^"]+)"[^>]*Target="([^"]+)"/g)];
-        for (const m of matches) {
-          const target = m[2].replace(/^\//, '');
-          const fullPath = target.startsWith('xl/') ? target : (dir + target).replace(/\.\.\//g, '');
-          rIdToMedia[m[1]] = fullPath;
-        }
-      } catch (e) { /* skip */ }
-    }
-    console.log("[extractExcelImage] rId → media mapping:", rIdToMedia);
-
-    // Step 4: Parse drawing XML to find ALL r:embed references
-    // This includes alternative PNG versions stored alongside EMF images
-    const drawingFiles = allFiles.filter(f => /^xl\/drawings\/drawing.*\.xml$/i.test(f));
-    const allReferencedRIds = new Set();
-    for (const drawPath of drawingFiles) {
-      try {
-        const content = await zip.files[drawPath].async('string');
-        const matches = [...content.matchAll(/r:embed="([^"]+)"/g)];
-        matches.forEach(m => allReferencedRIds.add(m[1]));
-      } catch (e) { /* skip */ }
-    }
-    console.log("[extractExcelImage] All r:embed IDs in drawings:", [...allReferencedRIds]);
-
-    // Step 5: Build set of all candidate media files
-    const candidates = new Set();
-    // From drawing rels
-    Object.values(rIdToMedia).forEach(f => candidates.add(f));
-    // From all r:embed references resolved through rels
-    allReferencedRIds.forEach(rId => {
-      if (rIdToMedia[rId]) candidates.add(rIdToMedia[rId]);
-    });
-    // From xl/media/ directly
-    allFiles.filter(f => f.startsWith('xl/media/')).forEach(f => candidates.add(f));
-    console.log("[extractExcelImage] All candidate media files:", [...candidates]);
-
-    // Step 6: Find displayable images (browsers can't render EMF/WMF)
-    const displayable = [...candidates].filter(f =>
-      zip.files[f] && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
+    // Step 3: Find every image file anywhere in the zip (not just xl/media/)
+    const imageFiles = allFiles.filter(f =>
+      zip.files[f] && !zip.files[f].dir && /\.(png|jpg|jpeg|gif|bmp)$/i.test(f)
     );
-    console.log("[extractExcelImage] Displayable (PNG/JPEG/GIF/BMP) files:", displayable);
+    console.log("[extractExcelImage] Image files found:", imageFiles);
 
-    if (displayable.length === 0) {
-      // Check for EMF/WMF only
-      const emfOnly = [...candidates].filter(f =>
-        zip.files[f] && /\.(emf|wmf)$/i.test(f)
-      );
-      console.log("[extractExcelImage] No browser-renderable images found. EMF/WMF only:", emfOnly);
-      console.log("[extractExcelImage] NOTE: EMF/WMF images from CAD software cannot be rendered in browsers. The Excel file stores the image as a metafile, not a standard image format.");
-      return null;
-    }
+    if (imageFiles.length === 0) return null;
 
-    // Step 7: Pick the largest displayable image (avoids tiny logos/icons)
+    // Step 4: Pick the largest image (avoids tiny icons/logos)
     let bestFile = null;
     let bestSize = 0;
-    for (const f of displayable) {
-      const entry = zip.files[f];
-      const data = await entry.async('base64');
+    for (const f of imageFiles) {
+      const data = await zip.files[f].async('base64');
       if (data.length > bestSize) {
         bestSize = data.length;
         bestFile = { name: f, data };
@@ -580,7 +525,7 @@ export async function extractExcelImage(file) {
       : ext === 'gif' ? 'image/gif'
       : ext === 'bmp' ? 'image/bmp'
       : 'image/png';
-    console.log("[extractExcelImage] Successfully extracted:", bestFile.name, "size:", bestSize);
+    console.log("[extractExcelImage] Extracted:", bestFile.name, "size:", bestSize);
     return `data:${mimeType};base64,${bestFile.data}`;
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
