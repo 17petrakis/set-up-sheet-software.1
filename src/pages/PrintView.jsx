@@ -111,24 +111,46 @@ export default function PrintView() {
           {/* General info grid */}
           <section>
             <h2 className="print-section-title">General Information</h2>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-1.5 border border-gray-200 rounded p-3 bg-gray-50">
-              <InfoRow label="Customer" value={general.customer} />
-              <InfoRow label="Rev" value={general.revision} />
-              <InfoRow label="Part Name" value={general.part_name} />
-              <InfoRow label="Machine" value={general.machine} />
-              <InfoRow label="Machinist" value={general.programmer} />
-              <InfoRow label="CAM" value={general.program_software} />
-              <InfoRow label="Material" value={general.material} />
-              {general.material_color_enabled && general.material_color && <InfoRow label="Material Color" value={general.material_color} />}
-              {general.material_condition_enabled && general.material_condition && <div className="col-span-2"><InfoRow label="Material Condition" value={general.material_condition} /></div>}
-              <InfoRow label="Stock" value={general.stock} />
-              <InfoRow label="Qty" value={general.quantity} />
-              <InfoRow label="Program #" value={general.program} />
-              <InfoRow label="Program Desc" value={general.program_description} />
-              <InfoRow label="Cycle Time" value={general.cycle_time} />
-              <InfoRow label="Handling Time" value={general.handling_time} />
-              <InfoRow label="Total Cycle" value={general.total_cycle_time} />
-            </div>
+            {(() => {
+              const fields = [
+                ["Customer", general.customer],
+                ["Rev", general.revision],
+                ["Part Name", general.part_name],
+                ["Machine", general.machine],
+                ["Machinist", general.programmer],
+                ["CAM", general.program_software],
+                ["Material", general.material],
+                ...(general.material_color_enabled && general.material_color ? [["Material Color", general.material_color]] : []),
+                ...(general.material_condition_enabled && general.material_condition ? [["Material Condition", general.material_condition]] : []),
+                ["Stock", general.stock],
+                ["Qty", general.quantity],
+                ["Program #", general.program],
+                ["Program Desc", general.program_description],
+                ["Cycle Time", general.cycle_time],
+                ["Handling Time", general.handling_time],
+                ["Total Cycle", general.total_cycle_time],
+              ].filter(([, v]) => v);
+              const rows = [];
+              for (let i = 0; i < fields.length; i += 2) {
+                rows.push([fields[i], fields[i + 1] || ["", ""]]);
+              }
+              return (
+              <div className="border border-gray-200 rounded p-3 bg-gray-50">
+                <table className="w-full border-collapse text-xs">
+                  <tbody>
+                    {rows.map(([left, right], i) => (
+                      <tr key={i} className="border-b border-gray-200 last:border-b-0">
+                        <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{left[0]}</td>
+                        <td className="py-1.5 pr-6 text-gray-900 break-words align-top">{left[1]}</td>
+                        <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{right[0]}</td>
+                        <td className="py-1.5 text-gray-900 break-words align-top">{right[1]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              );
+            })()}
             {!isTurning && (general.stops || []).filter(Boolean).length > 0 && (
               <div className="mt-2 border border-gray-200 rounded p-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Stops</p>
