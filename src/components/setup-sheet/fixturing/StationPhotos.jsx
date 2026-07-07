@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, X, Loader2 } from "lucide-react";
+import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
 
 /**
  * Per-station photo manager. Each photo renders large (~half width) with the
@@ -11,6 +12,7 @@ import { Plus, X, Loader2 } from "lucide-react";
 export default function StationPhotos({ photos, onChange }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState(null);
 
   const photosArr = photos || [];
 
@@ -57,7 +59,7 @@ export default function StationPhotos({ photos, onChange }) {
       {photosArr.map((p, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch">
           <div className="relative flex-1 rounded-lg overflow-hidden border border-border/60 bg-muted/10" style={{ minHeight: "320px" }}>
-            <img src={p.url} alt="" className="w-full h-full object-contain absolute inset-0" style={{ minHeight: "320px" }} />
+            <img src={p.url} alt="" className="w-full h-full object-contain absolute inset-0 cursor-zoom-in" style={{ minHeight: "320px" }} onClick={() => setLightboxUrl(p.url)} />
             <button
               type="button"
               onClick={() => removePhoto(i)}
@@ -75,6 +77,9 @@ export default function StationPhotos({ photos, onChange }) {
           />
         </div>
       ))}
+      {lightboxUrl && (
+        <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+      )}
     </div>
   );
 }

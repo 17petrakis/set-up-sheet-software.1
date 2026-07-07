@@ -124,7 +124,6 @@ export default function PrintView() {
               <InfoRow label="Stock" value={general.stock} />
               <InfoRow label="Qty" value={general.quantity} />
               <InfoRow label="Program #" value={general.program} />
-              <InfoRow label="Program Location" value={general.program_location} />
               <InfoRow label="Program Desc" value={general.program_description} />
               <InfoRow label="Cycle Time" value={general.cycle_time} />
               <InfoRow label="Handling Time" value={general.handling_time} />
@@ -198,11 +197,11 @@ export default function PrintView() {
                     )}
                     {fix.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{fix.notes}</p>}
                     {fix.photos?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-1.5">
+                      <div className="space-y-3 mt-1.5">
                         {fix.photos.map((p, pi) => (
                           <div key={pi}>
-                            <img src={p.url} alt="" className="w-24 h-24 object-cover rounded border border-gray-200" />
-                            {p.note && <p className="text-[9px] text-gray-600 mt-0.5 max-w-[6rem]">{p.note}</p>}
+                            <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                            {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                           </div>
                         ))}
                       </div>
@@ -273,11 +272,11 @@ export default function PrintView() {
                               </div>
                               {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
                               {s.photos?.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-1.5">
+                                <div className="space-y-3 mt-1.5">
                                   {s.photos.map((p, pi) => (
                                     <div key={pi}>
-                                      <img src={p.url} alt="" className="w-24 h-24 object-cover rounded border border-gray-200" />
-                                      {p.note && <p className="text-[9px] text-gray-600 mt-0.5 max-w-[6rem]">{p.note}</p>}
+                                      <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                      {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                                     </div>
                                   ))}
                                 </div>
@@ -345,25 +344,48 @@ export default function PrintView() {
                 </section>
               )}
 
-              {/* Part Zero */}
+              {/* Offsets */}
               {partZeroHasData && (
               <section>
-                <h2 className="print-section-title">Part Zero</h2>
-                <table className="print-table w-full" style={{ maxWidth: "220px" }}>
-                  <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
-                  <tbody>
-                    {[
-                      { axis: "X", max: partZero.x_max, min: partZero.x_min },
-                      { axis: "Z", max: partZero.z_max, min: partZero.z_min },
-                    ].map(({ axis, max, min }) => (
-                      <tr key={axis}>
-                        <td className="font-bold font-mono">{axis}</td>
-                        <td className="font-mono">{max}</td>
-                        <td className="font-mono">{min}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <h2 className="print-section-title">Offsets</h2>
+                <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
+                  {partZero.offsets?.length > 0 && (
+                    <div className="space-y-2">
+                      {partZero.offsets.map((offset, i) => (
+                        <div key={i} className="border border-gray-200 rounded p-2 bg-white">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">
+                            {i === 0 ? "Primary Offset" : `Stage ${i + 1}`}
+                          </p>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                            <InfoRow label="Work Offset" value={offset.g_code} />
+                            <InfoRow label="Z" value={offset.z} />
+                            <InfoRow label="C" value={offset.c} />
+                            <InfoRow label="Z Stock Amount" value={offset.dist_from_jaws} />
+                            {i > 0 && <InfoRow label="Relative Pickoff" value={offset.relative_pickoff} />}
+                          </div>
+                          {offset.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{offset.note}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {partZero.part_zero_enabled && (
+                    <table className="print-table w-full" style={{ maxWidth: "220px" }}>
+                      <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
+                      <tbody>
+                        {[
+                          { axis: "X", max: partZero.x_max, min: partZero.x_min },
+                          { axis: "Z", max: partZero.z_max, min: partZero.z_min },
+                        ].map(({ axis, max, min }) => (
+                          <tr key={axis}>
+                            <td className="font-bold font-mono">{axis}</td>
+                            <td className="font-mono">{max}</td>
+                            <td className="font-mono">{min}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </section>
               )}
 
@@ -400,26 +422,40 @@ export default function PrintView() {
                 </section>
               )}
 
-              {/* Part Zero */}
+              {/* Offsets */}
               {partZeroHasData && (
               <section>
-                <h2 className="print-section-title">Part Zero</h2>
-                <table className="print-table w-full" style={{ maxWidth: "220px" }}>
-                  <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
-                  <tbody>
-                    {[
-                      { axis: "X", max: partZero.x_max, min: partZero.x_min },
-                      { axis: "Y", max: partZero.y_max, min: partZero.y_min },
-                      { axis: "Z", max: partZero.z_max, min: partZero.z_min },
-                    ].map(({ axis, max, min }) => (
-                      <tr key={axis}>
-                        <td className="font-bold font-mono">{axis}</td>
-                        <td className="font-mono">{max}</td>
-                        <td className="font-mono">{min}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <h2 className="print-section-title">Offsets</h2>
+                <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
+                  {partZero.program_coord_zero_note && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Program Coordinate Zero Note</p>
+                      <p className="text-xs text-gray-800 whitespace-pre-wrap">{partZero.program_coord_zero_note}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">
+                    <InfoRow label="Coordinate System" value={partZero.coordinate_system} />
+                    <InfoRow label="Overall Depth Range" value={partZero.overall_depth_range} />
+                  </div>
+                  {partZero.part_zero_enabled && (
+                    <table className="print-table w-full" style={{ maxWidth: "220px" }}>
+                      <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
+                      <tbody>
+                        {[
+                          { axis: "X", max: partZero.x_max, min: partZero.x_min },
+                          { axis: "Y", max: partZero.y_max, min: partZero.y_min },
+                          { axis: "Z", max: partZero.z_max, min: partZero.z_min },
+                        ].map(({ axis, max, min }) => (
+                          <tr key={axis}>
+                            <td className="font-bold font-mono">{axis}</td>
+                            <td className="font-mono">{max}</td>
+                            <td className="font-mono">{min}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </section>
               )}
 
