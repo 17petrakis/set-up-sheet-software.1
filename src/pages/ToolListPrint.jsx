@@ -80,23 +80,19 @@ export default function ToolListPrint() {
               <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Machine</p>
               <p className="text-foreground font-semibold">{sheet.machine || "N/A"}</p>
             </div>
+            {sheet.customer && (
+              <div>
+                <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Customer</p>
+                <p className="text-foreground font-semibold">{sheet.customer}</p>
+              </div>
+            )}
+            {sheet.revision && (
+              <div>
+                <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Revision</p>
+                <p className="text-foreground font-semibold">{sheet.revision}</p>
+              </div>
+            )}
           </div>
-          {(sheet.customer || sheet.revision) && (
-            <div className="grid grid-cols-2 gap-4 text-sm mt-3">
-              {sheet.customer && (
-                <div>
-                  <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Customer</p>
-                  <p className="text-foreground font-semibold">{sheet.customer}</p>
-                </div>
-              )}
-              {sheet.revision && (
-                <div>
-                  <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Revision</p>
-                  <p className="text-foreground font-semibold">{sheet.revision}</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Tool Table */}
