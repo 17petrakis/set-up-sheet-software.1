@@ -46,7 +46,7 @@ export default function ToolListPrint() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background print:bg-white print:min-h-0">
       {/* Print button - hidden when printing */}
       <div className="no-print sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border px-6 py-3 flex items-center justify-between">
         <button
