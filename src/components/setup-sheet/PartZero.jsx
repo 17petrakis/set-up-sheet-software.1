@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import ComboBox from "@/components/ui/ComboBox";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
 import { Crosshair, Plus, Trash2 } from "lucide-react";
@@ -42,12 +42,16 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
       <div className="flex flex-wrap items-end gap-x-3 gap-y-3">
         {/* G-code selector */}
         <FieldWrap label="Work Offset">
-          <ComboBox
-            value={offset.g_code || "G54"}
-            onChange={set("g_code")}
-            options={G_CODES}
-            className="h-9 text-sm px-3 w-24"
-          />
+          <Select value={offset.g_code || "G54"} onValueChange={set("g_code")}>
+            <SelectTrigger className="h-9 text-sm w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {G_CODES.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FieldWrap>
         {/* Z */}
         <FieldWrap label="Z">
