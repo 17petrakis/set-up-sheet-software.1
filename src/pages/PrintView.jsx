@@ -31,9 +31,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="flex gap-1 text-xs">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{label}:</span>
-      <span className="text-gray-900">{value}</span>
+    <div className="flex gap-1 text-xs min-w-0 overflow-hidden">
+      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap shrink-0">{label}:</span>
+      <span className="text-gray-900 break-words min-w-0">{value}</span>
     </div>
   );
 }

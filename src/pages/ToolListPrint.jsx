@@ -63,7 +63,7 @@ export default function ToolListPrint() {
       </div>
 
       {/* Print content */}
-      <div className="print-container max-w-4xl mx-auto p-8 print:p-0">
+      <div className="print-container max-w-4xl mx-auto p-8">
         {/* Header */}
         <div className="mb-8 pb-4 border-b-2 border-border">
           <h1 className="text-3xl font-bold text-foreground mb-2">Tool List</h1>
@@ -208,6 +208,9 @@ export default function ToolListPrint() {
       {/* Print styles */}
       <style>{`
         @media print {
+          @page {
+            margin: 0.5in;
+          }
           body {
             background: white !important;
             -webkit-print-color-adjust: exact;
@@ -217,7 +220,6 @@ export default function ToolListPrint() {
             display: none !important;
           }
           .print-container {
-            padding: 0 !important;
             max-width: 100% !important;
           }
         }
