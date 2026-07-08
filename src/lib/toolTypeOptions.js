@@ -32,7 +32,7 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Reamer", value: "Reamer" },
       { label: "Boring Bar", value: "Boring Bar" },
       { label: "Back Boring Bar", value: "Back Boring Bar" },
-      { label: "Tap", value: "Tap" },
+      { label: "Rigid Tap", value: "Rigid Tap" },
     ]
   },
   {
@@ -40,6 +40,9 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Dovetail Cutter", value: "Dovetail Cutter" },
       { label: "Slitting Saw", value: "Slitting Saw" },
       { label: "Form Tool", value: "Form Tool" },
+      { label: "FEM", value: "FEM" },
+      { label: "REM", value: "REM" },
+      { label: "Key Cutter", value: "Key Cutter" },
     ]
   },
 ];
@@ -60,13 +63,13 @@ export const TOOL_FIELDS = [
   { key: "insert_type", label: "Insert Type" },
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
-  { key: "angle", label: "Angle" },
-  { key: "name", label: "Name" },
+  { key: "angle", label: "Tip Angle" },
+  { key: "name", label: "Tool Comment" },
 ];
 
 // Short labels for compact row display
 export const TOOL_FIELD_SHORT = {
-  name: "Name",
+  name: "Comment",
   diameter: "Dia",
   flutes: "Flutes",
   flute_length: "Flute Len",
@@ -81,7 +84,7 @@ export const TOOL_FIELD_SHORT = {
   insert_type: "Insert",
   blade_thickness: "Blade",
   arbor_size: "Arbor",
-  angle: "Angle",
+  angle: "Tip Ang",
 };
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
@@ -91,7 +94,7 @@ const ENDMILL_TYPES = [
 ];
 const HOLE_MAKING_TYPES = [
   "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore",
-  "Reamer", "Boring Bar", "Back Boring Bar", "Tap",
+  "Reamer", "Boring Bar", "Back Boring Bar", "Rigid Tap",
 ];
 const DRILL_REAMER_TYPES = [
   "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore", "Reamer",
@@ -116,7 +119,7 @@ export function getDefaultVisibleFields(toolType) {
     v.stickout_length = true;
     if (DRILL_REAMER_TYPES.includes(toolType)) v.flutes = true;
   }
-  if (toolType === "Tap") {
+  if (toolType === "Rigid Tap") {
     v.thread_pitch = true;
     v.thread_form = true;
   }
@@ -162,7 +165,7 @@ export function getFieldOptions(fieldKey, toolType) {
   if (fieldKey === "angle" && (toolType === "Chamfer Mill" || toolType === "Countersink")) {
     return ["60°", "82°", "90°", "100°", "120°"];
   }
-  if (fieldKey === "thread_pitch" && toolType === "Tap") {
+  if (fieldKey === "thread_pitch" && toolType === "Rigid Tap") {
     return [
       "#4-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "1/4-28", "5/16-18", "3/8-16", "1/2-13",
       "M3x0.5", "M4x0.7", "M5x0.8", "M6x1.0", "M8x1.25", "M10x1.5", "M12x1.75"

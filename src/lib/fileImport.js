@@ -1,5 +1,5 @@
 import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
-import { TOOL_TYPE_OPTIONS } from "@/lib/toolTypeOptions";
+import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, getDefaultVisibleFields } from "@/lib/toolTypeOptions";
 import JSZip from 'jszip';
 
 // Build a lookup of valid tool types (lowercase → correct case)
@@ -96,11 +96,36 @@ const toolHeaderMap = {
   "#": "tool_number", "t#": "tool_number", "tool#": "tool_number",
   "tool no": "tool_number", "tool no.": "tool_number",
   "type": "tool_type",
-  "dia": "diameter", "diameter": "diameter",
-  "flutes": "flutes",
-  "stickout": "stickout_length", "stickout length": "stickout_length",
-  "name": "name",
+  "dia": "diameter", "diameter": "diameter", "tool dia": "diameter",
+  "flutes": "flutes", "flute": "flutes",
+  "flute len": "flute_length", "flute length": "flute_length", "fl len": "flute_length",
+  "stickout": "stickout_length", "stickout length": "stickout_length", "stick out": "stickout_length",
+  "cut length": "cut_length", "cut len": "cut_length",
+  "holder": "holder", "tool holder": "holder",
+  "thread pitch": "thread_pitch", "pitch": "thread_pitch",
+  "thread form": "thread_form", "form": "thread_form",
+  "min bore": "min_bore_diameter", "min bore dia": "min_bore_diameter", "min bore diameter": "min_bore_diameter",
+  "max bore": "max_bore_diameter", "max bore dia": "max_bore_diameter", "max bore diameter": "max_bore_diameter",
+  "insert count": "insert_count", "# inserts": "insert_count", "inserts": "insert_count",
+  "insert type": "insert_type", "insert": "insert_type",
+  "blade thickness": "blade_thickness", "blade": "blade_thickness", "blade thick": "blade_thickness",
+  "arbor": "arbor_size", "arbor size": "arbor_size",
+  "tip angle": "angle", "angle": "angle",
+  "tool comment": "name", "comment": "name", "name": "name",
 };
+
+// Compute visible_fields overrides so that fields with imported data are shown,
+// and default-visible fields with no data are hidden.
+function computeImportedVisibleFields(tool) {
+  const defaults = getDefaultVisibleFields(tool.tool_type);
+  const overrides = {};
+  for (const f of TOOL_FIELDS) {
+    const hasData = tool[f.key] != null && String(tool[f.key]).trim() !== "";
+    if (hasData && !defaults[f.key]) overrides[f.key] = true;
+    else if (!hasData && defaults[f.key]) overrides[f.key] = false;
+  }
+  return overrides;
+}
 
 // ── Operation header column mapping ──
 const opHeaderMap = {
@@ -121,8 +146,9 @@ function isToolHeaderRow(row) {
   let hasToolField = false;
   for (let c = 0; c < row.length; c++) {
     const h = normalizeHeader(row[c]);
-    if (["#", "t#", "tool#", "tool no", "tool no."].includes(h)) hasToolNum = true;
-    if (["type", "dia", "diameter", "flutes", "stickout", "stickout length", "name"].includes(h)) hasToolField = true;
+    const mapped = toolHeaderMap[h];
+    if (mapped === "tool_number") hasToolNum = true;
+    else if (mapped) hasToolField = true;
   }
   return hasToolNum && hasToolField;
 }
@@ -270,7 +296,7 @@ export function parseExcel(file) {
           processedRows.add(headerIdx);
 
           // Read data rows
-          const toolFieldCols = ["tool_type", "diameter", "flutes", "stickout_length", "name"];
+          const toolFieldCols = ["tool_type", ...TOOL_FIELDS.map(f => f.key)];
           for (let j = headerIdx + 1; j < rows.length; j++) {
             if (processedRows.has(j)) break;
             const dataRow = rows[j];
@@ -297,6 +323,7 @@ export function parseExcel(file) {
                     if (val) lastTool[f] = lastTool[f] ? lastTool[f] + " " + val : val;
                   }
                 }
+                lastTool.visible_fields = computeImportedVisibleFields(lastTool);
               }
               continue;
             }
@@ -315,18 +342,13 @@ export function parseExcel(file) {
               const correctCase = TOOL_TYPE_LOOKUP[typeStr.toLowerCase()];
               if (correctCase) tool.tool_type = correctCase;
             }
-            if (colMap.diameter !== undefined && dataRow[colMap.diameter] != null) {
-              tool.diameter = String(dataRow[colMap.diameter]).trim();
+            for (const f of TOOL_FIELDS) {
+              if (colMap[f.key] !== undefined && dataRow[colMap[f.key]] != null) {
+                tool[f.key] = String(dataRow[colMap[f.key]]).trim();
+              }
             }
-            if (colMap.flutes !== undefined && dataRow[colMap.flutes] != null) {
-              tool.flutes = String(dataRow[colMap.flutes]).trim();
-            }
-            if (colMap.stickout_length !== undefined && dataRow[colMap.stickout_length] != null) {
-              tool.stickout_length = String(dataRow[colMap.stickout_length]).trim();
-            }
-            if (colMap.name !== undefined && dataRow[colMap.name] != null) {
-              tool.name = String(dataRow[colMap.name]).trim();
-            }
+
+            tool.visible_fields = computeImportedVisibleFields(tool);
 
             tools.push(tool);
           }
