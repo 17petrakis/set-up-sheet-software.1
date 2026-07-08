@@ -168,7 +168,7 @@ export default function SetupSheet() {
           wh_s1_active: true, wh_s2_active: false,
           wh_s1: { chuck_type: '8" 3-Jaw' },
         };
-      } else if (machine === "Doosan PUMA MX2100ST") {
+      } else if (machine === "Doosan Puma MX2100ST") {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: true,
           wh_s1: { chuck_type: '8" 3-Jaw' },
