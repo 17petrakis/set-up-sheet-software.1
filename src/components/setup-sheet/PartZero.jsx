@@ -213,7 +213,7 @@ export default function PartZero({ data, onChange, machineType }) {
                   onChange={(e) => onChange({ ...data, part_zero_enabled: e.target.checked })}
                   className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
                 />
-                <span className="text-sm font-medium text-foreground">PART ZERO</span>
+                <span className="text-sm font-medium text-foreground">Part Zero</span>
               </label>
 
               {data.part_zero_enabled && (

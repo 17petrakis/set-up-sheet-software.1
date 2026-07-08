@@ -101,7 +101,7 @@ export default function ToolList({ tools, onChange, machine }) {
           {tools.length > 0 && (
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-7 text-xs gap-1.5">
-                <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List
+                <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
               </Button>
               <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
                 <Plus className="w-3 h-3" /> Add Tool

@@ -69,7 +69,7 @@ export default function TurningToolList({ tools, onChange, machine }) {
         <SectionHeader icon={Wrench} title="Tool List (Turret)">
           <div className="flex items-center gap-2">
             <Button type="button" size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-8 text-xs gap-1.5">
-              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
             </Button>
             {turrets.length < MAX_TURRETS && (
               <Button type="button" size="sm" variant="outline" onClick={addTurret} className="h-8 text-xs gap-1.5">
