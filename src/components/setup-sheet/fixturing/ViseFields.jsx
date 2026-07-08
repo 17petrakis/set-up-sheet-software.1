@@ -91,7 +91,10 @@ export default function ViseFields({ data, onChange }) {
   const additionalVises = data.additional_vises || [];
 
   const addVise = () => {
-    const newVise = { vise_model: "Kurt Vise", jaw_type: "", parallels: false, parallel_height: "", work_offset: "" };
+    const lastVise = additionalVises.length > 0
+      ? additionalVises[additionalVises.length - 1]
+      : { vise_model: data.vise_model, vise_model_other: data.vise_model_other, jaw_type: data.jaw_type, parallels: data.parallels, parallel_height: data.parallel_height, work_offset: data.work_offset };
+    const newVise = { ...lastVise };
     onChange({ ...data, additional_vises: [...additionalVises, newVise] });
   };
 
@@ -111,9 +114,11 @@ export default function ViseFields({ data, onChange }) {
         viseData={data}
         onChangeVise={onChange}
         trailing={
-          <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> Add Vise
-          </Button>
+          additionalVises.length < 2 ? (
+            <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add Vise
+            </Button>
+          ) : null
         }
       />
 
@@ -123,15 +128,22 @@ export default function ViseFields({ data, onChange }) {
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Vise {i + 2}
             </span>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              onClick={() => removeAdditionalVise(i)}
-              className="h-7 w-7 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {i === additionalVises.length - 1 && additionalVises.length < 2 && (
+                <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-7 text-xs gap-1.5">
+                  <Plus className="w-3.5 h-3.5" /> Add Vise
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => removeAdditionalVise(i)}
+                className="h-7 w-7 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           </div>
           <SingleViseFields viseData={vise} onChangeVise={(updated) => updateAdditionalVise(i, updated)} />
         </div>
