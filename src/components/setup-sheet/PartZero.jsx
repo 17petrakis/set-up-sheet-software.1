@@ -25,6 +25,20 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
   const setE = (k) => (e) => onChange({ ...offset, [k]: e.target.value });
 
   const [showNote, setShowNote] = useState(!!offset.note);
+  const [showC, setShowC] = useState(!!offset.c);
+
+  const handleZChange = (e) => {
+    let val = e.target.value.replace(/[^0-9.\-]/g, "");
+    const parts = val.split(".");
+    if (parts.length > 2) val = parts[0] + "." + parts.slice(1).join("");
+    onChange({ ...offset, z: val });
+  };
+  const handleZBlur = (e) => {
+    const val = e.target.value.trim();
+    if (val === "" || val === "-" || val === ".") return;
+    const num = parseFloat(val);
+    if (!isNaN(num)) onChange({ ...offset, z: num.toFixed(3) });
+  };
 
   return (
     <div className="border border-border/50 rounded-lg p-3 mb-3 bg-muted/10">
@@ -55,14 +69,16 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
         </FieldWrap>
         {/* Z */}
         <FieldWrap label="Z">
-          <Input value={offset.z || ""} onChange={setE("z")} placeholder="0.000"
+          <Input value={offset.z || ""} onChange={handleZChange} onBlur={handleZBlur} placeholder="0.000"
             className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
         </FieldWrap>
-        {/* C */}
-        <FieldWrap label="C">
-          <Input value={offset.c || ""} onChange={setE("c")} placeholder="C Null"
-            className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
-        </FieldWrap>
+        {/* C — toggleable */}
+        {showC && (
+          <FieldWrap label="C">
+            <Input value={offset.c || ""} onChange={setE("c")} placeholder="Null"
+              className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
+          </FieldWrap>
+        )}
         {/* Z stock amount */}
         <FieldWrap label="Z stock amount">
           <Input value={offset.dist_from_jaws || ""} onChange={setE("dist_from_jaws")} placeholder="e.g. 1.250"
@@ -88,6 +104,20 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
           className={`h-9 text-xs gap-1 ${showNote ? "text-primary" : "text-muted-foreground"}`}
         >
           <Plus className="w-3 h-3" /> Note
+        </Button>
+        {/* + C toggle */}
+        <Button
+          type="button"
+          size="sm"
+          variant={showC ? "secondary" : "outline"}
+          onClick={() => {
+            const next = !showC;
+            setShowC(next);
+            if (!next) set("c")("");
+          }}
+          className={`h-9 text-xs gap-1 ${showC ? "text-primary" : "text-muted-foreground"}`}
+        >
+          <Plus className="w-3 h-3" /> C
         </Button>
       </div>
       {showNote && (
