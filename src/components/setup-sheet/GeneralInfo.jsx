@@ -194,7 +194,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            Add Stop
+            Add Program Stop
           </button>
         </div>
 
