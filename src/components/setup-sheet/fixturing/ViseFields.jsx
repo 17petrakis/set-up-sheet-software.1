@@ -15,12 +15,22 @@ export default function ViseFields({ data, onChange, numVisesOptions = null }) {
     <div className="space-y-3 pl-3 border-l-2 border-primary/20">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FixturingField label="Vise Model">
-          <FixturingSelect
-            value={data.vise_model || ""}
-            onChange={(v) => update("vise_model", v)}
-            options={VISE_MODELS}
-            allowEmpty={false}
-          />
+          <div className="space-y-2">
+            <FixturingSelect
+              value={data.vise_model || "Kurt Vise"}
+              onChange={(v) => update("vise_model", v)}
+              options={VISE_MODELS}
+              allowEmpty={false}
+            />
+            {data.vise_model === "Other" && (
+              <Input
+                value={data.vise_model_other || ""}
+                onChange={(e) => update("vise_model_other", e.target.value)}
+                placeholder="Specify vise model…"
+                className="h-9 text-sm bg-background border-border/60"
+              />
+            )}
+          </div>
         </FixturingField>
         <FixturingField label="Jaw Type">
           <FixturingSelect

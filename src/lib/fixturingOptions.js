@@ -36,7 +36,7 @@ export const VMC_FIXTURE_TYPES = ["Vise", "Fixture Plate", "Direct Clamp", "Vacu
 export const DT_FIXTURE_TYPES = ["Vise", "Collet Chuck", "Tallon Grip", "Vacuum Plate", "Fixture Plate", "Custom"];
 
 // ── Shared ──
-export const VISE_MODELS = ['Kurt 5"', 'Kurt 6"', "Lang Makro", "Chick", "Custom"];
+export const VISE_MODELS = ["Kurt Vise", "5th Axis Vise", "Lang Vise", "Other"];
 export const JAW_TYPES = ["Hard Jaws", "Soft Jaws", "Step Jaws", "Tallon Grip", "Versa-Grip"];
 export const NUM_VISES_3 = ["1", "2", "3"];
 export const NUM_VISES_2 = ["1", "2"];
@@ -63,7 +63,7 @@ export const emptyHmcStation = {
   face_label: "",
   tombstone_structure: "",
   workholding_type: "",
-  vise_model: "",
+  vise_model: "Kurt Vise",
   jaw_type: "",
   num_vises: "",
   parallels: false,
@@ -85,7 +85,7 @@ export const emptyHmcStation = {
 export const emptyVmcStation = {
   station_label: "",
   fixture_type: "",
-  vise_model: "",
+  vise_model: "Kurt Vise",
   jaw_type: "",
   parallels: false,
   parallel_height: "",
@@ -106,7 +106,7 @@ export const emptyVmcStation = {
 export const emptyDrillTapStation = {
   station_label: "",
   fixture_type: "",
-  vise_model: "",
+  vise_model: "Kurt Vise",
   jaw_type: "",
   parallels: false,
   parallel_height: "",
