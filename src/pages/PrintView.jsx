@@ -287,6 +287,7 @@ export default function PrintView() {
                 }
                 if (s.work_coordinate_system) rows.push(["Work Coord Sys", s.work_coordinate_system]);
                 if (s.work_stop) rows.push(["Work Stop", "Yes"]);
+                if (s.workholding_note) rows.push(["Note", s.workholding_note]);
                 if (fGroup !== "hmc" && s.fixture_type === "Collet Chuck") rows.push(["Stickout", s.part_stickout]);
                 return rows;
               };

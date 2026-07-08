@@ -78,6 +78,7 @@ export const emptyHmcStation = {
   part_stickout: "",
   work_coordinate_system: "",
   work_stop: false,
+  workholding_note: "",
   notes: "",
   photos: [],
 };

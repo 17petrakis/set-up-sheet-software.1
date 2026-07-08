@@ -9,7 +9,10 @@ import ViseFields from "./ViseFields";
 import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
 import CommonStationFields from "./CommonStationFields";
+import WorkholdingNoteField from "./WorkholdingNoteField";
 import { HMC_TOMBSTONE_TYPES, HMC_FIXTURE_TYPES, HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
+
+const NOTE_WORKHOLDING_TYPES = ["Mitee-Bite / Edge Clamp", "Direct Clamp", "Dovetail Fixture", "Collet / Chuck"];
 
 const NO_TOMBSTONE_MACHINES = ["matsuuramx330", "matsuuramx520"];
 const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -91,6 +94,9 @@ export default function HmcStationCard({ station, index, machine, onChange, onRe
           )}
           {station.workholding_type === "Soft Jaw Pocket" && (
             <SoftJawPocketFields data={station} onChange={onChange} />
+          )}
+          {NOTE_WORKHOLDING_TYPES.includes(station.workholding_type) && (
+            <WorkholdingNoteField data={station} onChange={onChange} />
           )}
 
           <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out / Orientation" showStickout={false} />
