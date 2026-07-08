@@ -1,71 +1,71 @@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import { VISE_MODELS, JAW_TYPES } from "@/lib/fixturingOptions";
 
-/**
- * Shared vise sub-fields.
- *   numVisesOptions — array or null (null hides the "# Vises" field)
- */
-export default function ViseFields({ data, onChange, numVisesOptions = null }) {
-  const update = (field, val) => onChange({ ...data, [field]: val });
-
+function ViseModelField({ viseData, onChangeVise }) {
   return (
-    <div className="space-y-3 pl-3 border-l-2 border-primary/20">
+    <FixturingField label="Vise Model">
+      {viseData.vise_model === "Other" ? (
+        <div className="flex gap-1.5">
+          <Input
+            value={viseData.vise_model_other || ""}
+            onChange={(e) => onChangeVise({ ...viseData, vise_model_other: e.target.value })}
+            placeholder="Specify vise model…"
+            className="h-9 text-sm bg-background border-border/60"
+            autoFocus
+          />
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => onChangeVise({ ...viseData, vise_model: "Kurt Vise", vise_model_other: "" })}
+            className="h-9 w-9 shrink-0"
+            title="Back to list"
+          >
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      ) : (
+        <FixturingSelect
+          value={viseData.vise_model || "Kurt Vise"}
+          onChange={(v) => onChangeVise({ ...viseData, vise_model: v })}
+          options={VISE_MODELS}
+          allowEmpty={false}
+        />
+      )}
+    </FixturingField>
+  );
+}
+
+function SingleViseFields({ viseData, onChangeVise, trailing }) {
+  return (
+    <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <FixturingField label="Vise Model">
-          {data.vise_model === "Other" ? (
-            <div className="flex gap-1.5">
-              <Input
-                value={data.vise_model_other || ""}
-                onChange={(e) => update("vise_model_other", e.target.value)}
-                placeholder="Specify vise model…"
-                className="h-9 text-sm bg-background border-border/60"
-                autoFocus
-              />
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                onClick={() => onChange({ ...data, vise_model: "Kurt Vise", vise_model_other: "" })}
-                className="h-9 w-9 shrink-0"
-                title="Back to list"
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ) : (
-            <FixturingSelect
-              value={data.vise_model || "Kurt Vise"}
-              onChange={(v) => update("vise_model", v)}
-              options={VISE_MODELS}
-              allowEmpty={false}
-            />
-          )}
-        </FixturingField>
+        <ViseModelField viseData={viseData} onChangeVise={onChangeVise} />
         <FixturingField label="Jaw Type">
           <FixturingSelect
-            value={data.jaw_type || ""}
-            onChange={(v) => update("jaw_type", v)}
+            value={viseData.jaw_type || ""}
+            onChange={(v) => onChangeVise({ ...viseData, jaw_type: v })}
             options={JAW_TYPES}
           />
         </FixturingField>
         <FixturingField label="Parallels">
           <div className="flex items-center gap-2 h-9">
             <Checkbox
-              checked={!!data.parallels}
-              onCheckedChange={(v) => update("parallels", !!v)}
+              checked={!!viseData.parallels}
+              onCheckedChange={(v) => onChangeVise({ ...viseData, parallels: !!v })}
             />
             <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {data.parallels ? "Yes" : "No"}
+              {viseData.parallels ? "Yes" : "No"}
             </span>
-            {data.parallels && (
+            {viseData.parallels && (
               <Input
-                value={data.parallel_height || ""}
-                onChange={(e) => update("parallel_height", e.target.value)}
+                value={viseData.parallel_height || ""}
+                onChange={(e) => onChangeVise({ ...viseData, parallel_height: e.target.value })}
                 placeholder='e.g. 1.000"'
                 className="h-8 text-sm flex-1 min-w-[80px] bg-background border-border/60"
               />
@@ -73,25 +73,69 @@ export default function ViseFields({ data, onChange, numVisesOptions = null }) {
           </div>
         </FixturingField>
       </div>
-      <div className={`grid grid-cols-1 gap-3 ${numVisesOptions ? "sm:grid-cols-2" : ""}`}>
-        {numVisesOptions && (
-          <FixturingField label="Number of Vises">
-            <FixturingSelect
-              value={data.num_vises || ""}
-              onChange={(v) => update("num_vises", v)}
-              options={numVisesOptions}
-              allowEmpty={false}
-            />
-          </FixturingField>
-        )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FixturingField label="Work Offset">
           <Input
-            value={data.work_offset || ""}
-            onChange={(e) => update("work_offset", e.target.value)}
+            value={viseData.work_offset || ""}
+            onChange={(e) => onChangeVise({ ...viseData, work_offset: e.target.value })}
             className="h-9 text-sm bg-background border-border/60"
           />
         </FixturingField>
+        {trailing && <div className="flex items-end">{trailing}</div>}
       </div>
+    </div>
+  );
+}
+
+export default function ViseFields({ data, onChange }) {
+  const additionalVises = data.additional_vises || [];
+
+  const addVise = () => {
+    const newVise = { vise_model: "Kurt Vise", jaw_type: "", parallels: false, parallel_height: "", work_offset: "" };
+    onChange({ ...data, additional_vises: [...additionalVises, newVise] });
+  };
+
+  const updateAdditionalVise = (index, updated) => {
+    const next = [...additionalVises];
+    next[index] = updated;
+    onChange({ ...data, additional_vises: next });
+  };
+
+  const removeAdditionalVise = (index) => {
+    onChange({ ...data, additional_vises: additionalVises.filter((_, i) => i !== index) });
+  };
+
+  return (
+    <div className="space-y-3 pl-3 border-l-2 border-primary/20">
+      <SingleViseFields
+        viseData={data}
+        onChangeVise={onChange}
+        trailing={
+          <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> Add Vise
+          </Button>
+        }
+      />
+
+      {additionalVises.map((vise, i) => (
+        <div key={i} className="border border-border/40 rounded-lg p-3 space-y-3 bg-background/50">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Vise {i + 2}
+            </span>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={() => removeAdditionalVise(i)}
+              className="h-7 w-7 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+          <SingleViseFields viseData={vise} onChangeVise={(updated) => updateAdditionalVise(i, updated)} />
+        </div>
+      ))}
     </div>
   );
 }

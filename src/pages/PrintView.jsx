@@ -241,6 +241,14 @@ export default function PrintView() {
                   rows.push(["Pallet", s.pallet_id], ["Face", s.face_label], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
                   if (s.workholding_type === "Vise") {
                     rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["Work Offset", s.work_offset]);
+                    (s.additional_vises || []).forEach((v, vi) => {
+                      rows.push(
+                        [`Vise ${vi + 2} Model`, v.vise_model === "Other" ? (v.vise_model_other || "Other") : v.vise_model],
+                        [`Vise ${vi + 2} Jaw Type`, v.jaw_type],
+                        [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"],
+                        [`Vise ${vi + 2} Work Offset`, v.work_offset]
+                      );
+                    });
                   }
                   if (s.workholding_type === "Custom Fixture Block") {
                     rows.push(["Block ID", s.fixture_block_id], ["Clamp Type", s.clamp_type], ["Parts/Face", s.parts_per_face], ["Work Offset", s.work_offset]);
@@ -252,6 +260,14 @@ export default function PrintView() {
                   rows.push(["Station", s.station_label], ["Fixture Type", s.fixture_type]);
                   if (s.fixture_type === "Vise") {
                     rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["# Vises", s.num_vises], ["Work Offset", s.work_offset]);
+                    (s.additional_vises || []).forEach((v, vi) => {
+                      rows.push(
+                        [`Vise ${vi + 2} Model`, v.vise_model === "Other" ? (v.vise_model_other || "Other") : v.vise_model],
+                        [`Vise ${vi + 2} Jaw Type`, v.jaw_type],
+                        [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"],
+                        [`Vise ${vi + 2} Work Offset`, v.work_offset]
+                      );
+                    });
                   }
                   if (s.fixture_type === "Fixture Plate") {
                     rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type], ["Work Offset", s.work_offset]);
