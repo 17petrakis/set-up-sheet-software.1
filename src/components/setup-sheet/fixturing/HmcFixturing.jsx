@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import HmcStationCard from "./HmcStationCard";
 import { emptyHmcStation } from "@/lib/fixturingOptions";
 
-export default function HmcFixturing({ data, onChange }) {
+export default function HmcFixturing({ data, onChange, machine }) {
   const stations = data.stations || [];
 
   const updateStation = (i, updated) => {
@@ -21,6 +21,7 @@ export default function HmcFixturing({ data, onChange }) {
           key={i}
           station={s}
           index={i}
+          machine={machine}
           onChange={(updated) => updateStation(i, updated)}
           onRemove={() => removeStation(i)}
         />

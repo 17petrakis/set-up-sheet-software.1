@@ -10,6 +10,14 @@ export const HMC_TOMBSTONE_TYPES = [
   "None",
 ];
 
+// HMC machines without tombstones (e.g. MX-330, MX-520)
+export const HMC_FIXTURE_TYPES = [
+  "Angle Plate",
+  "Pallet Fixture Plate",
+  "Custom Fixture Block",
+  "None",
+];
+
 export const HMC_WORKHOLDING = [
   "Vise",
   "Custom Fixture Block",

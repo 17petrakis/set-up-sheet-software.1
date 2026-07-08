@@ -9,12 +9,17 @@ import ViseFields from "./ViseFields";
 import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
 import CommonStationFields from "./CommonStationFields";
-import { HMC_TOMBSTONE_TYPES, HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
+import { HMC_TOMBSTONE_TYPES, HMC_FIXTURE_TYPES, HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
-export default function HmcStationCard({ station, index, onChange, onRemove }) {
+const NO_TOMBSTONE_MACHINES = ["matsuuramx330", "matsuuramx520"];
+const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+export default function HmcStationCard({ station, index, machine, onChange, onRemove }) {
   const [collapsed, setCollapsed] = useState(false);
   const update = (field, val) => onChange({ ...station, [field]: val });
   const summary = [station.pallet_id, station.face_label].filter(Boolean).join(" — ");
+  const noTombstone = NO_TOMBSTONE_MACHINES.includes(norm(machine));
+  const structureOptions = noTombstone ? HMC_FIXTURE_TYPES : HMC_TOMBSTONE_TYPES;
 
   return (
     <div className="border border-border/60 rounded-lg bg-muted/10">
@@ -57,11 +62,11 @@ export default function HmcStationCard({ station, index, onChange, onRemove }) {
                 className="h-9 text-sm bg-background border-border/60"
               />
             </FixturingField>
-            <FixturingField label="Tombstone / Fixture Structure">
+            <FixturingField label={noTombstone ? "Fixture Structure" : "Tombstone / Fixture Structure"}>
               <FixturingSelect
                 value={station.tombstone_structure || ""}
                 onChange={(v) => update("tombstone_structure", v)}
-                options={HMC_TOMBSTONE_TYPES}
+                options={structureOptions}
               />
             </FixturingField>
           </div>

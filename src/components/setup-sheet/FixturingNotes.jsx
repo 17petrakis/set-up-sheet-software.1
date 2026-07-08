@@ -21,7 +21,7 @@ export default function FixturingNotes({ data, onChange, machine }) {
             Select a machine in General Info to load fixturing options.
           </p>
         ) : group === "hmc" ? (
-          <HmcFixturing data={data} onChange={onChange} />
+          <HmcFixturing data={data} onChange={onChange} machine={machine} />
         ) : group === "vmc" ? (
           <VmcSection data={data} onChange={onChange} />
         ) : group === "drill_tap" ? (
