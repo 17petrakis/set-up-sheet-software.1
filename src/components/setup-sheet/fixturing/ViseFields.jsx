@@ -30,7 +30,7 @@ export default function ViseFields({ data, onChange, numVisesOptions = null }) {
                 type="button"
                 size="icon"
                 variant="outline"
-                onClick={() => { update("vise_model", "Kurt Vise"); update("vise_model_other", ""); }}
+                onClick={() => onChange({ ...data, vise_model: "Kurt Vise", vise_model_other: "" })}
                 className="h-9 w-9 shrink-0"
                 title="Back to list"
               >
