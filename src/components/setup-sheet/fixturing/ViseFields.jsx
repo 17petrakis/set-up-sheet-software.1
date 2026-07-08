@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import { VISE_MODELS, JAW_TYPES } from "@/lib/fixturingOptions";
@@ -15,22 +17,34 @@ export default function ViseFields({ data, onChange, numVisesOptions = null }) {
     <div className="space-y-3 pl-3 border-l-2 border-primary/20">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FixturingField label="Vise Model">
-          <div className="space-y-2">
+          {data.vise_model === "Other" ? (
+            <div className="flex gap-1.5">
+              <Input
+                value={data.vise_model_other || ""}
+                onChange={(e) => update("vise_model_other", e.target.value)}
+                placeholder="Specify vise model…"
+                className="h-9 text-sm bg-background border-border/60"
+                autoFocus
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                onClick={() => { update("vise_model", "Kurt Vise"); update("vise_model_other", ""); }}
+                className="h-9 w-9 shrink-0"
+                title="Back to list"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ) : (
             <FixturingSelect
               value={data.vise_model || "Kurt Vise"}
               onChange={(v) => update("vise_model", v)}
               options={VISE_MODELS}
               allowEmpty={false}
             />
-            {data.vise_model === "Other" && (
-              <Input
-                value={data.vise_model_other || ""}
-                onChange={(e) => update("vise_model_other", e.target.value)}
-                placeholder="Specify vise model…"
-                className="h-9 text-sm bg-background border-border/60"
-              />
-            )}
-          </div>
+          )}
         </FixturingField>
         <FixturingField label="Jaw Type">
           <FixturingSelect
