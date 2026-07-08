@@ -110,7 +110,17 @@ export default function ViseFields({ data, onChange }) {
 
   return (
     <div className="space-y-3 pl-3 border-l-2 border-primary/20">
-      <SingleViseFields viseData={data} onChangeVise={onChange} />
+      <SingleViseFields
+        viseData={data}
+        onChangeVise={onChange}
+        trailing={
+          additionalVises.length < 2 ? (
+            <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Add Vise
+            </Button>
+          ) : null
+        }
+      />
 
       {additionalVises.map((vise, i) => (
         <div key={i} className="border border-border/40 rounded-lg p-3 space-y-3 bg-background/50">
@@ -128,15 +138,19 @@ export default function ViseFields({ data, onChange }) {
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
-          <SingleViseFields viseData={vise} onChangeVise={(updated) => updateAdditionalVise(i, updated)} />
+          <SingleViseFields
+            viseData={vise}
+            onChangeVise={(updated) => updateAdditionalVise(i, updated)}
+            trailing={
+              i === additionalVises.length - 1 && additionalVises.length < 2 ? (
+                <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
+                  <Plus className="w-3.5 h-3.5" /> Add Vise
+                </Button>
+              ) : null
+            }
+          />
         </div>
       ))}
-
-      {additionalVises.length < 2 && (
-        <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
-          <Plus className="w-3.5 h-3.5" /> Add Vise
-        </Button>
-      )}
     </div>
   );
 }
