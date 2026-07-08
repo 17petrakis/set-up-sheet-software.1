@@ -15,7 +15,7 @@ import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
-  { group: "DOOSAN", models: ["PUMA Z100", "PUMA MX2100ST"] },
+  { group: "Doosan", models: ["Puma 2100Y II", "PUMA MX2100ST"] },
   { group: "Mori", models: ["NL-2000"] },
   { group: "HAAS", models: ["SL-10"] },
   { group: "Nakamura", models: ["WY-150", "NTY3-150"] },

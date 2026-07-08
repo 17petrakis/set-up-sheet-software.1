@@ -18,8 +18,8 @@ const CHUCK_OPTIONS = [
 
 // Machine → chuck type mapping. Machines not listed (Manual, Citizen) use manual input.
 const MACHINE_CHUCK_MAP = {
-  "DOOSAN PUMA Z100": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: false },
-  "DOOSAN PUMA MX2100ST": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: true },
+  "Doosan Puma 2100Y II": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: false },
+  "Doosan PUMA MX2100ST": { main: '8" 3-Jaw', sub: '8" 3-Jaw', allowSub: true },
   "HAAS SL-10": { main: '6" 3-Jaw', sub: null, allowSub: false },
   "Nakamura WY-150": { main: 'Collet – Flex-C65', sub: 'Collet – Flex-C65', allowSub: true },
   "Nakamura NTY3-150": { main: 'Collet – Flex-C65', sub: 'Collet – Flex-C65', allowSub: true },
