@@ -2,6 +2,8 @@ import React from "react";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 import { getMachineGroup } from "@/lib/machineGroups";
 import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
+import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
+import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -18,12 +20,6 @@ const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z
 function filterOpColumns(cols, keys, ops) {
   return keys.map((k, i) => ({ col: cols[i], key: k })).filter(({ key }) => ops.some(op => op[key] !== "" && op[key] !== null && op[key] !== undefined));
 }
-
-const AXIAL_COLS = ["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"];
-const AXIAL_KEYS = ["tool_number", "description", "type", "diameter_radius", "angle", "holder", "stickout"];
-
-const RADIAL_COLS = ["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"];
-const RADIAL_KEYS = ["tool_number", "description", "type", "diameter_radius", "angle_insert", "holder", "stickout", "extension"];
 
 const TURNING_OP_COLS = ["N-Block", "OP #", "Operation Name", "Comment", "Tool #", "CS #", "Min Z", "Max Z"];
 const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "tool_number", "cs_number", "min_z", "max_z"];
@@ -56,7 +52,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
     const filteredAlways = alwaysCols.filter(c => millTools.some(t => t[c.key]));
     return [...filteredAlways, ...dynamicCols];
   })() : [];
-  const tTools = turningTools || { axial: [], radial: [] };
+  const tTools = turningTools || { turrets: [] };
   const tChuck = turningChuck || {};
   const partZero = pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : emptyPartZero;
   const partZeroHasData = Object.entries(partZero).some(([k, v]) => {
@@ -308,50 +304,17 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
 
         {isTurning ? (
           <>
-            {(tChuck.jaw_description || tChuck.chuck_type || tChuck.chuck_pressure_psi || tChuck.fixturing_notes) && (
+            {hasTurningChuckData(tChuck) && (
               <section>
                 <SectionTitle>Chuck & Work Holding</SectionTitle>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-6 gap-y-1.5 border border-gray-200 rounded p-3 bg-gray-50">
-                  <InfoRow label="Jaw Description" value={tChuck.jaw_description} />
-                  <InfoRow label="Chuck Type" value={tChuck.chuck_type} />
-                  <InfoRow label="Chuck PSI" value={tChuck.chuck_pressure_psi} />
-                  <InfoRow label="Coolant PSI" value={tChuck.coolant_pressure_psi} />
-                  <InfoRow label="Concentricity" value={tChuck.concentricity_requirement} />
-                </div>
-                {tChuck.fixturing_notes && (
-                  <div className="mt-2 border border-gray-200 rounded p-3">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Fixturing Notes</p>
-                    <p className="text-xs text-gray-800 whitespace-pre-wrap">{tChuck.fixturing_notes}</p>
-                  </div>
-                )}
+                <TurningChuckView turningChuck={tChuck} />
               </section>
             )}
 
-            {tTools.axial?.length > 0 && (
+            {hasTurningToolsData(tTools) && (
               <section>
-                <SectionTitle>Axial Tools</SectionTitle>
-                <table className="view-table w-full">
-                  <thead><tr>{AXIAL_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                  <tbody>
-                    {tTools.axial.map((tool, i) => (
-                      <tr key={i}>{AXIAL_KEYS.map((k) => <td key={k}>{tool[k]}</td>)}</tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
-            )}
-
-            {tTools.radial?.length > 0 && (
-              <section>
-                <SectionTitle>Radial Tools</SectionTitle>
-                <table className="view-table w-full">
-                  <thead><tr>{RADIAL_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                  <tbody>
-                    {tTools.radial.map((tool, i) => (
-                      <tr key={i}>{RADIAL_KEYS.map((k) => <td key={k}>{tool[k]}</td>)}</tr>
-                    ))}
-                  </tbody>
-                </table>
+                <SectionTitle>Tools</SectionTitle>
+                <TurningToolsView turningTools={tTools} tableClass="view-table" />
               </section>
             )}
 

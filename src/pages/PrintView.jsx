@@ -6,6 +6,8 @@ import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 import { getMachineGroup } from "@/lib/machineGroups";
+import TurningChuckView, { hasTurningChuckData } from "@/components/setup-sheet/TurningChuckView";
+import TurningToolsView, { hasTurningToolsData } from "@/components/setup-sheet/TurningToolsView";
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -22,12 +24,6 @@ const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z
 function filterOpColumns(cols, keys, ops) {
   return keys.map((k, i) => ({ col: cols[i], key: k })).filter(({ key }) => ops.some(op => op[key] !== "" && op[key] !== null && op[key] !== undefined));
 }
-
-const AXIAL_COLS = ["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"];
-const AXIAL_KEYS = ["tool_number", "description", "type", "diameter_radius", "angle", "holder", "stickout"];
-
-const RADIAL_COLS = ["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"];
-const RADIAL_KEYS = ["tool_number", "description", "type", "diameter_radius", "angle_insert", "holder", "stickout", "extension"];
 
 const TURNING_OP_COLS = ["N-Block", "OP #", "Operation Name", "Comment", "Tool #", "CS #", "Min Z", "Max Z"];
 const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "tool_number", "cs_number", "min_z", "max_z"];
@@ -74,7 +70,7 @@ export default function PrintView() {
     const filteredAlways = alwaysCols.filter(c => tools.some(t => t[c.key]));
     return [...filteredAlways, ...dynamicCols];
   })() : [];
-  const turningTools = data.turning_tools || { axial: [], radial: [] };
+  const turningTools = data.turning_tools || { turrets: [] };
   const turningChuck = data.turning_chuck || {};
   const partZero = data.part_zero && Object.keys(data.part_zero).length ? { ...emptyPartZero, ...data.part_zero } : emptyPartZero;
   const partZeroHasData = Object.entries(partZero).some(([k, v]) => {
@@ -355,52 +351,18 @@ export default function PrintView() {
           {isTurning ? (
             <>
               {/* Chuck & Work Holding */}
-              {(turningChuck.jaw_description || turningChuck.chuck_type || turningChuck.chuck_pressure_psi || turningChuck.fixturing_notes) && (
+              {hasTurningChuckData(turningChuck) && (
                 <section>
                   <h2 className="print-section-title">Chuck & Work Holding</h2>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-x-6 gap-y-1.5 border border-gray-200 rounded p-3 bg-gray-50">
-                    <InfoRow label="Jaw Description" value={turningChuck.jaw_description} />
-                    <InfoRow label="Chuck Type" value={turningChuck.chuck_type} />
-                    <InfoRow label="Chuck PSI" value={turningChuck.chuck_pressure_psi} />
-                    <InfoRow label="Coolant PSI" value={turningChuck.coolant_pressure_psi} />
-                    <InfoRow label="Concentricity" value={turningChuck.concentricity_requirement} />
-                  </div>
-                  {turningChuck.fixturing_notes && (
-                    <div className="mt-2 border border-gray-200 rounded p-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Fixturing Notes</p>
-                      <p className="text-xs text-gray-800 whitespace-pre-wrap">{turningChuck.fixturing_notes}</p>
-                    </div>
-                  )}
+                  <TurningChuckView turningChuck={turningChuck} />
                 </section>
               )}
 
-              {/* Axial Tools */}
-              {turningTools.axial?.length > 0 && (
+              {/* Tools */}
+              {hasTurningToolsData(turningTools) && (
                 <section>
-                  <h2 className="print-section-title">Axial Tools</h2>
-                  <table className="print-table w-full">
-                    <thead><tr>{AXIAL_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                    <tbody>
-                      {turningTools.axial.map((tool, i) => (
-                        <tr key={i}>{AXIAL_KEYS.map((k) => <td key={k}>{tool[k]}</td>)}</tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </section>
-              )}
-
-              {/* Radial Tools */}
-              {turningTools.radial?.length > 0 && (
-                <section>
-                  <h2 className="print-section-title">Radial Tools</h2>
-                  <table className="print-table w-full">
-                    <thead><tr>{RADIAL_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                    <tbody>
-                      {turningTools.radial.map((tool, i) => (
-                        <tr key={i}>{RADIAL_KEYS.map((k) => <td key={k}>{tool[k]}</td>)}</tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <h2 className="print-section-title">Tools</h2>
+                  <TurningToolsView turningTools={turningTools} tableClass="print-table" />
                 </section>
               )}
 
