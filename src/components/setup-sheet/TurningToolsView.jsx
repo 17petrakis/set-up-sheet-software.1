@@ -73,20 +73,22 @@ export default function TurningToolsView({ turningTools, tableClass = "view-tabl
         return (
           <div key={ti}>
             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
-            <table className={`${tableClass} w-full`}>
-              <thead>
-                <tr>{allCols.map(c => <th key={c.key}>{c.label}</th>)}</tr>
-              </thead>
-              <tbody>
-                {tools.map((tool, i) => (
-                  <tr key={i}>
-                    {allCols.map(c => (
-                      <td key={c.key}>{c.getValue ? formatVal(c.getValue(tool)) : formatVal(tool[c.key])}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className={`${tableClass} w-full`}>
+                <thead>
+                  <tr>{allCols.map(c => <th key={c.key}>{c.label}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {tools.map((tool, i) => (
+                    <tr key={i}>
+                      {allCols.map(c => (
+                        <td key={c.key}>{c.getValue ? formatVal(c.getValue(tool)) : formatVal(tool[c.key])}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         );
       })}

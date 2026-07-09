@@ -27,9 +27,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="text-xs min-w-0 break-words">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{label}:</span>{" "}
-      <span className="text-gray-900">{value}</span>
+    <div className="text-xs min-w-0">
+      <span className="font-semibold text-gray-500 uppercase tracking-wide">{label}:</span>{" "}
+      <span className="text-gray-900 break-words">{value}</span>
     </div>
   );
 }
@@ -102,24 +102,13 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ...(gen.date ? [["Date", gen.date]] : []),
             ].filter(([, v]) => v);
             if (fields.length === 0) return null;
-            const rows = [];
-            for (let i = 0; i < fields.length; i += 2) {
-              rows.push([fields[i], fields[i + 1] || ["", ""]]);
-            }
             return (
               <div className="border border-gray-200 rounded p-3 bg-gray-50">
-                <table className="w-full border-collapse text-xs">
-                  <tbody>
-                    {rows.map(([left, right], i) => (
-                      <tr key={i} className="border-b border-gray-200 last:border-b-0">
-                        <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{left[0]}</td>
-                        <td className="py-1.5 pr-6 text-gray-900 break-words align-top">{left[1]}</td>
-                        <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{right[0]}</td>
-                        <td className="py-1.5 text-gray-900 break-words align-top">{right[1]}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                  {fields.map(([label, val]) => (
+                    <InfoRow key={label} label={label} value={val} />
+                  ))}
+                </div>
               </div>
             );
           })()}
@@ -367,14 +356,16 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               return (
               <section>
                 <SectionTitle>Operations</SectionTitle>
-                <table className="view-table w-full">
-                  <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
-                  <tbody>
-                    {ops.map((op, i) => (
-                      <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="view-table w-full">
+                    <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
+                    <tbody>
+                      {ops.map((op, i) => (
+                        <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
               );
             })()}
@@ -384,14 +375,16 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
             {millTools.length > 0 && (
               <section>
                 <SectionTitle>Tool List</SectionTitle>
-                <table className="view-table w-full">
-                  <thead><tr>{millToolColumns.map(c => <th key={c.key}>{c.label}</th>)}</tr></thead>
-                  <tbody>
-                    {millTools.map((tool, i) => (
-                      <tr key={i}>{millToolColumns.map(c => <td key={c.key}>{tool[c.key]}</td>)}</tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="view-table w-full">
+                    <thead><tr>{millToolColumns.map(c => <th key={c.key}>{c.label}</th>)}</tr></thead>
+                    <tbody>
+                      {millTools.map((tool, i) => (
+                        <tr key={i}>{millToolColumns.map(c => <td key={c.key}>{tool[c.key]}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             )}
 
@@ -436,14 +429,16 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               return (
               <section>
                 <SectionTitle>Operations</SectionTitle>
-                <table className="view-table w-full">
-                  <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
-                  <tbody>
-                    {ops.map((op, i) => (
-                      <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="view-table w-full">
+                    <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
+                    <tbody>
+                      {ops.map((op, i) => (
+                        <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
               );
             })()}
