@@ -15,6 +15,10 @@ const DEFAULT_PHOTO_SLOTS = [
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Type", "Feed", "Max RPM", "Cut Time", "Cycle Time"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "type", "feed", "max_rpm", "cut_time", "cycle_time"];
 
+function filterOpColumns(cols, keys, ops) {
+  return keys.map((k, i) => ({ col: cols[i], key: k })).filter(({ key }) => ops.some(op => op[key] !== "" && op[key] !== null && op[key] !== undefined));
+}
+
 const AXIAL_COLS = ["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"];
 const AXIAL_KEYS = ["tool_number", "description", "type", "diameter_radius", "angle", "holder", "stickout"];
 
@@ -49,12 +53,18 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
       TOOL_FIELDS.forEach(f => { if (vis[f.key] && t[f.key]) visibleKeys.add(f.key); });
     });
     const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
-    return [...alwaysCols, ...dynamicCols];
+    const filteredAlways = alwaysCols.filter(c => millTools.some(t => t[c.key]));
+    return [...filteredAlways, ...dynamicCols];
   })() : [];
   const tTools = turningTools || { axial: [], radial: [] };
   const tChuck = turningChuck || {};
   const partZero = pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : emptyPartZero;
-  const partZeroHasData = Object.values(partZero).some(v => v !== "" && v !== null && v !== undefined);
+  const partZeroHasData = Object.entries(partZero).some(([k, v]) => {
+    if (k === "part_zero_enabled") return false;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === "object" && v !== null) return Object.keys(v).length > 0;
+    return v !== "" && v !== null && v !== undefined;
+  });
   const ops = operations?.length ? operations : [];
   const opsHasData = ops.some(op => Object.values(op).some(v => v !== "" && v !== null && v !== undefined));
   const ph = photos || {};
@@ -388,19 +398,22 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {opsHasData && (
+            {opsHasData && (() => {
+              const filtered = filterOpColumns(TURNING_OP_COLS, TURNING_OP_KEYS, ops);
+              return (
               <section>
                 <SectionTitle>Operations</SectionTitle>
                 <table className="view-table w-full">
-                  <thead><tr>{TURNING_OP_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
+                  <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
                   <tbody>
                     {ops.map((op, i) => (
-                      <tr key={i}>{TURNING_OP_KEYS.map((k) => <td key={k}>{op[k]}</td>)}</tr>
+                      <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
                     ))}
                   </tbody>
                 </table>
               </section>
-            )}
+              );
+            })()}
           </>
         ) : (
           <>
@@ -454,19 +467,22 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {opsHasData && (
+            {opsHasData && (() => {
+              const filtered = filterOpColumns(OP_COLS, OP_KEYS, ops);
+              return (
               <section>
                 <SectionTitle>Operations</SectionTitle>
                 <table className="view-table w-full">
-                  <thead><tr>{OP_COLS.map((c) => <th key={c}>{c}</th>)}</tr></thead>
+                  <thead><tr>{filtered.map(({ col, key }) => <th key={key}>{col}</th>)}</tr></thead>
                   <tbody>
                     {ops.map((op, i) => (
-                      <tr key={i}>{OP_KEYS.map((k) => <td key={k}>{op[k]}</td>)}</tr>
+                      <tr key={i}>{filtered.map(({ key }) => <td key={key}>{op[key]}</td>)}</tr>
                     ))}
                   </tbody>
                 </table>
               </section>
-            )}
+              );
+            })()}
           </>
         )}
 

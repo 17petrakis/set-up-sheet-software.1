@@ -166,7 +166,8 @@ export default function ToolListPrint() {
               TOOL_FIELDS.forEach(f => { if (vis[f.key] && t[f.key]) visibleKeys.add(f.key); });
             });
             const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
-            const cols = [...alwaysCols, ...dynamicCols];
+            const filteredAlways = alwaysCols.filter(c => sheet.tools.some(t => t[c.key]));
+            const cols = [...filteredAlways, ...dynamicCols];
             return (
               <table className="print-table w-full">
                 <thead>
