@@ -478,7 +478,7 @@ export default function SetupSheet() {
                     <span className="hidden md:inline">{importing ? "Importing..." : "Import"}</span>
                   </Button>
                 )}
-                <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
+                <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Eye className="w-4 h-4" />
                   View
                 </Button>
