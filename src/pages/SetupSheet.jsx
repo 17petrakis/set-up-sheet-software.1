@@ -515,6 +515,12 @@ export default function SetupSheet() {
                     <span>Add Op</span>
                   </Button>
                 )}
+                {general.machine_type !== "turning" && (
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{importing ? "Importing..." : "Import"}</span>
+                  </Button>
+                )}
                 <Button size="default" onClick={() => setMode("edit")} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Edit3 className="w-4 h-4" />
                   Edit
