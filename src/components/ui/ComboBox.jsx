@@ -27,12 +27,11 @@ export default function ComboBox({ value, onChange, options, placeholder = "Sele
       : { label: o.label ?? o.value ?? String(o), value: o.value ?? o.label ?? String(o) }
   );
 
-  // Initialize input text when opening
+  // Clear input text when opening so the user can type from scratch
   useEffect(() => {
     if (open) {
       committedRef.current = false;
-      const current = flatOptions.find(o => o.value === value);
-      setInput(current ? current.label : (value || ""));
+      setInput("");
       setHighlighted(0);
     }
   }, [open]); // eslint-disable-line
@@ -56,11 +55,17 @@ export default function ComboBox({ value, onChange, options, placeholder = "Sele
     if (committedRef.current) return;
     committedRef.current = true;
 
+    const trimmed = input.trim();
+    if (!trimmed) {
+      // Nothing typed — keep original value
+      setOpen(false);
+      return;
+    }
+
     if (filtered.length > 0) {
       onChange(filtered[safeHL].value);
     } else if (allowFreeText) {
-      const trimmed = input.trim();
-      if (trimmed) onChange(trimmed);
+      onChange(trimmed);
     }
     setOpen(false);
   }, [filtered, safeHL, input, onChange]); // eslint-disable-line
