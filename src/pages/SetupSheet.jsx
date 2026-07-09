@@ -516,7 +516,7 @@ export default function SetupSheet() {
                           </button>
                           <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-                            <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <Printer className="w-4 h-4 shrink-0 text-muted-foreground" />
                             Print
                           </button>
                           <button onClick={() => { navigate(`/sheet/${id}/print-tools`); setMobileMenuOpen(false); }}
@@ -533,6 +533,40 @@ export default function SetupSheet() {
                           )}
                           <div className="my-1 h-px bg-border" />
                         </>
+                      )}
+                      {mode === "edit" && (
+                        <div className="md:hidden">
+                          <button onClick={() => { handleSaveAndExit(); setMobileMenuOpen(false); }}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            View
+                          </button>
+                          {general.machine_type !== "turning" && (
+                            <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }}
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                              <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
+                              Import
+                            </button>
+                          )}
+                          <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            <Printer className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            Print
+                          </button>
+                          <button onClick={() => { navigate(`/sheet/${id}/print-tools`); setMobileMenuOpen(false); }}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            <Wrench className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            Tool List
+                          </button>
+                          {general.folder_id && (
+                            <button onClick={() => { setShowAddOp(true); setMobileMenuOpen(false); }}
+                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                              <Plus className="w-4 h-4 shrink-0 text-muted-foreground" />
+                              Add Op
+                            </button>
+                          )}
+                          <div className="my-1 h-px bg-border" />
+                        </div>
                       )}
                       <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
