@@ -54,6 +54,7 @@ export default function SetupSheet() {
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const latestData = useRef({});
+  const fieldsetRef = useRef(null);
 
   // Load existing sheet
   useEffect(() => {
@@ -410,6 +411,42 @@ export default function SetupSheet() {
     setMode("view");
   };
 
+  // Hide empty field wrappers in view mode for a clean read-only display
+  useEffect(() => {
+    const fs = fieldsetRef.current;
+    if (!fs) return;
+
+    // Clear any hidden styles from previous run
+    fs.querySelectorAll('[data-view-hidden="true"]').forEach(el => {
+      el.style.display = '';
+      el.removeAttribute('data-view-hidden');
+    });
+
+    if (mode !== "view") return;
+
+    // Find all text inputs and textareas with no value
+    const inputs = fs.querySelectorAll('input[type="text"], input:not([type]), textarea');
+    inputs.forEach(input => {
+      if (input.value && input.value.trim()) return;
+
+      // Walk up to the closest field wrapper (a div that contains a label)
+      let el = input.parentElement;
+      while (el && el !== fs) {
+        if (el.querySelector('label')) {
+          // Only hide if no filled text inputs/textareas exist in this wrapper
+          const allInputs = el.querySelectorAll('input[type="text"], input:not([type]), textarea');
+          const hasFilled = Array.from(allInputs).some(i => i.value && i.value.trim());
+          if (!hasFilled) {
+            el.style.display = 'none';
+            el.setAttribute('data-view-hidden', 'true');
+          }
+          break;
+        }
+        el = el.parentElement;
+      }
+    });
+  }, [mode, general, tools, operations, partZero, photos, fixturingNotes, turningTools, turningChuck]);
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -451,69 +488,68 @@ export default function SetupSheet() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
 
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => navigate(`/sheet/${id}/print`)} title="Print View">
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => navigate(`/sheet/${id}/print-tools`)} title="Print Tool List">
+              <Wrench className="w-4 h-4" />
+            </Button>
+            {general.folder_id && (
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setShowAddOp(true)} title="Add Operation">
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+
             {mode === "edit" ? (
-              <Button size="sm" onClick={handleSaveAndExit} disabled={saving} className="h-8 text-xs gap-1.5">
-                {saving ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                {saving ? "Saving…" : "Save"}
+              <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="h-10 px-5 text-sm font-bold gap-1.5 ml-1 shrink-0">
+                {saving ? <Check className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {saving ? "Saving…" : "View"}
               </Button>
             ) : (
-              <Button size="sm" onClick={() => setMode("edit")} className="h-8 text-xs gap-1.5">
-                <Edit3 className="w-3.5 h-3.5" />
+              <Button size="default" onClick={() => setMode("edit")} className="h-10 px-5 text-sm font-bold gap-1.5 ml-1 shrink-0">
+                <Edit3 className="w-4 h-4" />
                 Edit
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setMobileMenuOpen(v => !v)}>
-              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </Button>
+
+            <div className="relative shrink-0">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMobileMenuOpen(v => !v)}>
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </Button>
+              {mobileMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-popover border border-border rounded-lg shadow-xl no-print">
+                    <div className="py-1.5 flex flex-col gap-0.5">
+                      {mode === "edit" && general.machine_type !== "turning" && (
+                        <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                          <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
+                          {importing ? "Importing..." : "Import File"}
+                        </button>
+                      )}
+                      <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                        <Save className="w-4 h-4 shrink-0 text-muted-foreground" />
+                        Save Revision
+                      </button>
+                      <button onClick={() => { setShowHistory(true); setMobileMenuOpen(false); }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                        <History className="w-4 h-4 shrink-0 text-muted-foreground" />
+                        History
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
-
-      {/* Action menu dropdown */}
-      {mobileMenuOpen && (
-        <div className="sticky top-[57px] z-40 bg-background border-b border-border shadow-md no-print">
-          <div className="px-4 py-2 flex flex-col gap-1">
-            {mode === "edit" && general.machine_type !== "turning" && (
-              <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-                <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
-                {importing ? "Importing..." : "Import File"}
-              </button>
-            )}
-            <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-              <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />
-              Print View
-            </button>
-            <button onClick={() => { navigate(`/sheet/${id}/print-tools`); setMobileMenuOpen(false); }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-              <Wrench className="w-4 h-4 shrink-0 text-muted-foreground" />
-              Print Tool List
-            </button>
-            <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-              <Save className="w-4 h-4 shrink-0 text-muted-foreground" />
-              Save Revision
-            </button>
-            <button onClick={() => { setShowHistory(true); setMobileMenuOpen(false); }}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-              <History className="w-4 h-4 shrink-0 text-muted-foreground" />
-              History
-            </button>
-            {general.folder_id && (
-              <button onClick={() => { setShowAddOp(true); setMobileMenuOpen(false); }}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-                <Plus className="w-4 h-4 shrink-0 text-muted-foreground" />
-                Add Operation
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
@@ -566,7 +602,7 @@ export default function SetupSheet() {
       )}
 
       {/* Content */}
-      <fieldset disabled={mode === "view"} className={mode === "view" ? "view-mode-fieldset" : ""}>
+      <fieldset ref={fieldsetRef} disabled={mode === "view"} className={mode === "view" ? "view-mode-fieldset" : ""}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
           <ImportBanner message={importError} onClose={() => setImportError(null)} />

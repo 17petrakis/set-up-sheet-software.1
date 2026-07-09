@@ -107,9 +107,13 @@
   color: hsl(var(--foreground)) !important;
   cursor: default !important;
   box-shadow: none !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
 }
 .view-mode-fieldset input[type="checkbox"] {
   opacity: 0.5 !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
 }
 .view-mode-fieldset label {
   cursor: default !important;
@@ -128,6 +132,8 @@
   cursor: default !important;
   box-shadow: none !important;
   pointer-events: none !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
 }
 /* Dim Radix checkboxes */
 .view-mode-fieldset button[role="checkbox"] {
@@ -138,6 +144,16 @@
 /* Hide drag handles */
 .view-mode-fieldset .cursor-grab,
 .view-mode-fieldset .cursor-grabbing {
+  display: none !important;
+}
+/* Hide all chevron icons in view mode */
+.view-mode-fieldset .lucide-chevron-down,
+.view-mode-fieldset .lucide-chevron-right,
+.view-mode-fieldset .lucide-chevron-up {
+  display: none !important;
+}
+/* Hide field wrappers whose only inputs are empty (JS adds data-view-hidden) */
+.view-mode-fieldset [data-view-hidden="true"] {
   display: none !important;
 }
 
