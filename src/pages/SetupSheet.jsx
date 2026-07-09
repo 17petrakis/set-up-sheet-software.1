@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { ViewModeContext } from "@/lib/viewModeContext";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
 import TurningGeneralInfo from "@/components/setup-sheet/TurningGeneralInfo";
@@ -416,7 +417,6 @@ export default function SetupSheet() {
     const fs = fieldsetRef.current;
     if (!fs) return;
 
-    // Clear any hidden styles from previous run
     fs.querySelectorAll('[data-view-hidden="true"]').forEach(el => {
       el.style.display = '';
       el.removeAttribute('data-view-hidden');
@@ -424,26 +424,23 @@ export default function SetupSheet() {
 
     if (mode !== "view") return;
 
-    // Find all text inputs and textareas with no value
-    const inputs = fs.querySelectorAll('input[type="text"], input:not([type]), textarea');
-    inputs.forEach(input => {
-      if (input.value && input.value.trim()) return;
-
-      // Walk up to the closest field wrapper (a div that contains a label)
-      let el = input.parentElement;
-      while (el && el !== fs) {
-        if (el.querySelector('label')) {
-          // Only hide if no filled text inputs/textareas exist in this wrapper
-          const allInputs = el.querySelectorAll('input[type="text"], input:not([type]), textarea');
-          const hasFilled = Array.from(allInputs).some(i => i.value && i.value.trim());
-          if (!hasFilled) {
-            el.style.display = 'none';
-            el.setAttribute('data-view-hidden', 'true');
-          }
-          break;
-        }
-        el = el.parentElement;
-      }
+    // Hide leaf-level field wrappers (divs with a direct label/heading) that have no content
+    fs.querySelectorAll('div > label, div > span.uppercase').forEach(label => {
+      const wrapper = label.parentElement;
+      if (!wrapper || wrapper === fs || wrapper.hasAttribute('data-view-hidden')) return;
+      if (wrapper.querySelector('img')) return;
+      const hasFilledInput = Array.from(wrapper.querySelectorAll('input[type="text"], input:not([type]), textarea')).some(i => i.value && i.value.trim());
+      if (hasFilledInput) return;
+      const hasCheckedBox = wrapper.querySelector('input[type="checkbox"]:checked, button[role="checkbox"][data-state="checked"]');
+      if (hasCheckedBox) return;
+      const hasFilledSelect = Array.from(wrapper.querySelectorAll('button[role="combobox"], button.view-display')).some(b => {
+        const text = b.textContent?.trim();
+        return text && !['Select…', 'Select or type…', '—', 'N/A'].includes(text);
+      });
+      if (hasFilledSelect) return;
+      if (wrapper.querySelectorAll('label, span.uppercase').length > 1) return;
+      wrapper.style.display = 'none';
+      wrapper.setAttribute('data-view-hidden', 'true');
     });
   }, [mode, general, tools, operations, partZero, photos, fixturingNotes, turningTools, turningChuck]);
 
@@ -492,25 +489,34 @@ export default function SetupSheet() {
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
 
-            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => navigate(`/sheet/${id}/print`)} title="Print View">
-              <Eye className="w-4 h-4" />
+            {mode === "edit" && general.machine_type !== "turning" && (
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-9 gap-1.5 shrink-0">
+                <Upload className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">{importing ? "Importing..." : "Import"}</span>
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-9 gap-1.5 shrink-0">
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Print View</span>
             </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => navigate(`/sheet/${id}/print-tools`)} title="Print Tool List">
-              <Wrench className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-9 gap-1.5 shrink-0">
+              <Wrench className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Tool List</span>
             </Button>
             {general.folder_id && (
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setShowAddOp(true)} title="Add Operation">
-                <Plus className="w-4 h-4" />
+              <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="h-9 gap-1.5 shrink-0">
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline">Add Op</span>
               </Button>
             )}
 
             {mode === "edit" ? (
-              <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="h-10 px-5 text-sm font-bold gap-1.5 ml-1 shrink-0">
+              <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                 {saving ? <Check className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 {saving ? "Saving…" : "View"}
               </Button>
             ) : (
-              <Button size="default" onClick={() => setMode("edit")} className="h-10 px-5 text-sm font-bold gap-1.5 ml-1 shrink-0">
+              <Button size="default" onClick={() => setMode("edit")} className="h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                 <Edit3 className="w-4 h-4" />
                 Edit
               </Button>
@@ -525,13 +531,6 @@ export default function SetupSheet() {
                   <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                   <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-popover border border-border rounded-lg shadow-xl no-print">
                     <div className="py-1.5 flex flex-col gap-0.5">
-                      {mode === "edit" && general.machine_type !== "turning" && (
-                        <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
-                          <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
-                          {importing ? "Importing..." : "Import File"}
-                        </button>
-                      )}
                       <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                         <Save className="w-4 h-4 shrink-0 text-muted-foreground" />
@@ -602,6 +601,7 @@ export default function SetupSheet() {
       )}
 
       {/* Content */}
+      <ViewModeContext.Provider value={mode === "view"}>
       <fieldset ref={fieldsetRef} disabled={mode === "view"} className={mode === "view" ? "view-mode-fieldset" : ""}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
@@ -656,15 +656,20 @@ export default function SetupSheet() {
 
         {general.machine_type !== "turning" && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
-            <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+            {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
+              <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+            )}
           </motion.div>
         )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
-          <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
+          {(mode === "edit" || Object.values(photos).some(v => typeof v === "string" && v)) && (
+            <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
+          )}
         </motion.div>
       </main>
       </fieldset>
+      </ViewModeContext.Provider>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -135,8 +136,22 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
 }
 
 export default function PartZero({ data, onChange, machineType }) {
+  const viewMode = useContext(ViewModeContext);
   const update = (field) => (e) => onChange({ ...data, [field]: e.target.value });
   const isTurning = machineType === "turning";
+
+  const hasPartZeroData = (d) => {
+    if (!d) return false;
+    for (const [key, val] of Object.entries(d)) {
+      if (key === "offsets") {
+        if (Array.isArray(val) && val.some(o => o && Object.entries(o).some(([k, v]) => k !== "g_code" && v && String(v).trim()))) return true;
+      } else if (typeof val === "string" && val.trim()) {
+        return true;
+      }
+    }
+    return false;
+  };
+  if (viewMode && !hasPartZeroData(data)) return null;
 
   // Offsets array for turning
   const offsets = (data.offsets && data.offsets.length > 0)

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,11 +25,14 @@ const hasData = (ops) =>
   ops && ops.some(op => Object.values(op).some(v => v && String(v).trim()));
 
 export default function OperationsList({ operations, onChange }) {
+  const viewMode = useContext(ViewModeContext);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (hasData(operations)) setOpen(true);
   }, [operations]);
+
+  if (viewMode && !hasData(operations)) return null;
 
   const addRow = () => {
     onChange([...(operations || []), { ...emptyOperation }]);

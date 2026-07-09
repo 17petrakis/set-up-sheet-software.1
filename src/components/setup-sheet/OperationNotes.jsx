@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { ClipboardList, ChevronDown } from "lucide-react";
 
 export default function OperationNotes({ value, onChange, machineType }) {
+  const viewMode = useContext(ViewModeContext);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (value && value.trim()) setOpen(true);
   }, [value]);
+
+  if (viewMode && (!value || !value.trim())) return null;
 
   return (
     <Card className="border-border/50 shadow-sm">

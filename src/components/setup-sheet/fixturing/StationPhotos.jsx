@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, X, Loader2 } from "lucide-react";
@@ -13,8 +14,11 @@ export default function StationPhotos({ photos, onChange }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const viewMode = useContext(ViewModeContext);
 
   const photosArr = photos || [];
+
+  if (viewMode && photosArr.length === 0) return null;
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];

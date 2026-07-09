@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { base44 } from "@/api/base44Client";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,27 +23,32 @@ const MACHINES = [
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
 
-const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, hrs, onHrsChange }) => (
-  <div className={className}>
-    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-      {label}
-      {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
-    </Label>
-    {time ? (
-      <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} />
-    ) : (
-      <Input
-        type={type}
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-      />
-    )}
-  </div>
-);
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, hrs, onHrsChange }) => {
+  const viewMode = useContext(ViewModeContext);
+  if (viewMode && !value && !hrs) return null;
+  return (
+    <div className={className}>
+      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+        {label}
+        {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
+      </Label>
+      {time ? (
+        <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} />
+      ) : (
+        <Input
+          type={type}
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+        />
+      )}
+    </div>
+  );
+};
 
 export default function GeneralInfo({ data, onChange, onReplace, machineType }) {
+  const viewMode = useContext(ViewModeContext);
   const update = (field) => (value) => onChange(field, value);
 
   const [customerNames, setCustomerNames] = useState([]);
@@ -82,6 +88,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         {/* Row 1: Customer, Part Number, Rev */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+          {(!viewMode || data.customer) && (
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Customer
@@ -94,6 +101,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               className="h-9 text-sm px-3 w-full"
             />
           </div>
+          )}
 
           <Field label="Part Number" value={data.part_number} onChange={update("part_number")} />
           <Field label="Rev" value={data.revision} onChange={(v) => update("revision")(v.slice(0, 5))} />
@@ -101,6 +109,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
         {/* Row 2: Machine, Machinist, Part Name */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
+          {(!viewMode || data.machine) && (
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine
@@ -113,6 +122,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               className="w-full"
             />
           </div>
+          )}
 
           <Field label="Machinist" value={data.programmer} onChange={update("programmer")} />
           <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
@@ -129,6 +139,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <Field label="Program #" value={data.program} onChange={update("program")} />
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
+          {(!viewMode || data.program_software) && (
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               CAM
@@ -141,6 +152,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               className="w-full"
             />
           </div>
+          )}
         </div>
 
         {/* Row 5: Cycle Time, Program Desc., Date */}
@@ -158,6 +170,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         </div>
 
         {/* Stops */}
+        {(!viewMode || (data.stops && data.stops.length > 0)) && (
         <div className="mb-3">
           {(data.stops || []).map((stop, i) => (
             <div key={i} className="flex items-start gap-2 mt-2">
@@ -197,8 +210,10 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             Add Program Stop
           </button>
         </div>
+        )}
 
         {/* Deburring / Finishing checkbox */}
+        {(!viewMode || showDeburring || data.deburring_time || data.finishing_time || data.wash_time || data.deburring_notes || data.finishing_notes || data.wash_notes) && (
         <div className="mt-4 border border-border/50 rounded-lg overflow-hidden">
           <label className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer select-none">
             <input
@@ -266,6 +281,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             </div>
           )}
         </div>
+        )}
 
       </CardContent>
     </Card>

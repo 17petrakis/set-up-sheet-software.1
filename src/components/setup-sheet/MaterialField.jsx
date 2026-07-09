@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { Input } from "@/components/ui/input";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import ComboBox from "@/components/ui/ComboBox";
@@ -11,7 +13,10 @@ import {
 import { MATERIAL_OPTIONS, MATERIAL_CONDITIONS } from "@/lib/materialOptions";
 
 export default function MaterialField({ data, onChange, materialSpan = "sm:col-span-4", hideExtras = false }) {
+  const viewMode = useContext(ViewModeContext);
   const update = (field) => (value) => onChange(field, value);
+
+  if (viewMode && !data.material && !data.material_color && !data.material_condition) return null;
 
   return (
     <>
@@ -20,6 +25,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Material
           </Label>
+          {(!viewMode || data.material_color_enabled || data.material_color) && (
           <label className="flex items-center gap-1 cursor-pointer select-none">
             <Checkbox
               checked={!!data.material_color_enabled}
@@ -27,6 +33,8 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
             />
             <span className="text-xs text-muted-foreground">Color</span>
           </label>
+          )}
+          {(!viewMode || data.material_condition_enabled || data.material_condition) && (
           <label className="flex items-center gap-1 cursor-pointer select-none">
             <Checkbox
               checked={!!data.material_condition_enabled}
@@ -34,6 +42,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
             />
             <span className="text-xs text-muted-foreground">Condition</span>
           </label>
+          )}
         </div>
         <ComboBox
           value={data.material || ""}

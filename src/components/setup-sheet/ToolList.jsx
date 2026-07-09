@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { RefreshCw } from "lucide-react";
 
 export default function ToolList({ tools, onChange, machine }) {
   const { toast } = useToast();
+  const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
   const [syncing, setSyncing] = useState(false);
 
@@ -94,6 +96,8 @@ export default function ToolList({ tools, onChange, machine }) {
     }
   };
 
+  if (viewMode && !tools.some(t => Object.values(t).some(v => v && String(v).trim()))) return null;
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
@@ -157,7 +161,7 @@ export default function ToolList({ tools, onChange, machine }) {
                             </div>
 
                             {/* Dynamic fields */}
-                            {TOOL_FIELDS.filter(f => visible[f.key]).map(f => {
+                            {TOOL_FIELDS.filter(f => visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
                               const options = getFieldOptions(f.key, tool.tool_type);
                               const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
