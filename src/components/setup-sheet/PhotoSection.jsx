@@ -13,12 +13,14 @@ const DEFAULT_SLOTS = [
   { key: "final_part_2", label: "Final Part 2" },
 ];
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, large }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, large, readOnly = false }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
 
   const isPdf = url && (url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("application/pdf") || url.includes("pdf"));
+
+  if (readOnly && !url) return null;
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -45,7 +47,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-foreground uppercase tracking-widest">{label}</span>
-        {url && (
+        {url && !readOnly && (
           <button
             onClick={() => setShowNote((v) => !v)}
             className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
@@ -82,6 +84,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
                   onClick={() => setLightbox(true)}
                 />
               )}
+              {!readOnly && (
               <div className="absolute top-2 right-2 flex gap-1.5 no-print">
                 <label
                   htmlFor={replaceId}
@@ -99,6 +102,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
+              )}
             </>
           ) : (
             <label
@@ -142,7 +146,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
   );
 }
 
-export default function PhotoSection({ photos = {}, onChange }) {
+export default function PhotoSection({ photos = {}, onChange, readOnly = false }) {
   // Extra slots beyond the defaults, stored as array of { key, label } in photos.__extra_slots
   const extraSlots = photos.__extra_slots || [];
 
@@ -185,6 +189,7 @@ export default function PhotoSection({ photos = {}, onChange }) {
           <Camera className="w-4 h-4 text-primary" />
           Photos
         </h2>
+        {!readOnly && (
         <button
           onClick={addSlot}
           className="no-print flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
@@ -192,6 +197,7 @@ export default function PhotoSection({ photos = {}, onChange }) {
           <Plus className="w-3.5 h-3.5" />
           Add Photo
         </button>
+        )}
       </div>
       <div className="border-b border-border mb-5" />
       <div className="grid grid-cols-1 gap-8">
@@ -208,6 +214,7 @@ export default function PhotoSection({ photos = {}, onChange }) {
               onRemove={() => (isExtra ? removeExtraSlot(key) : handleRemove(key))}
               onNoteChange={(note) => handleNoteChange(key, note)}
               large={key === "work_holding"}
+              readOnly={readOnly}
             />
           );
         })}

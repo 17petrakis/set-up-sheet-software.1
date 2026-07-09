@@ -90,6 +90,57 @@
   }
 }
 
+/* View mode — clean read-only display */
+.view-mode-fieldset {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+.view-mode-fieldset input,
+.view-mode-fieldset textarea,
+.view-mode-fieldset select {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  color: hsl(var(--foreground)) !important;
+  cursor: default !important;
+  box-shadow: none !important;
+}
+.view-mode-fieldset input[type="checkbox"] {
+  opacity: 0.5 !important;
+}
+.view-mode-fieldset label {
+  cursor: default !important;
+}
+/* Hide action buttons (plain buttons without roles) */
+.view-mode-fieldset button:not([role]):not([aria-expanded]):not(.view-display) {
+  display: none !important;
+}
+/* Make dropdown/collapsible triggers look like plain text */
+.view-mode-fieldset button[role="combobox"],
+.view-mode-fieldset button[aria-expanded],
+.view-mode-fieldset button.view-display {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  opacity: 1 !important;
+  cursor: default !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+/* Dim Radix checkboxes */
+.view-mode-fieldset button[role="checkbox"] {
+  opacity: 0.6 !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+/* Hide drag handles */
+.view-mode-fieldset .cursor-grab,
+.view-mode-fieldset .cursor-grabbing {
+  display: none !important;
+}
+
 @media print {
   body {
     background: white !important;

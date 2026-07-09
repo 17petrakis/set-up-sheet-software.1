@@ -84,7 +84,7 @@ export default function TreeCascadingDropdown({ value, onChange, options, placeh
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="h-8 w-full flex items-center justify-between px-2 rounded-md border border-border/60 bg-background text-xs hover:border-primary/40 transition-colors"
+        className="h-8 w-full flex items-center justify-between px-2 rounded-md border border-border/60 bg-background text-xs hover:border-primary/40 transition-colors view-display"
       >
         <span className={`truncate ${selectedLabel ? "text-foreground" : "text-muted-foreground"}`}>
           {selectedLabel || placeholder}

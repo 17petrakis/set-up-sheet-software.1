@@ -73,7 +73,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     });
     onSheetsChange([...sheets, newSheet]);
     setShowAddOp(false);
-    navigate(`/sheet/${newSheet.id}`);
+    navigate(`/sheet/${newSheet.id}?mode=edit`);
   };
 
   const handleDragEnd = async (result) => {

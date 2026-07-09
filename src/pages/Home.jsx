@@ -143,7 +143,7 @@ export default function Home() {
   };
 
   const handleCreated = (sheet) => {
-    navigate(`/sheet/${sheet.id}`);
+    navigate(`/sheet/${sheet.id}?mode=edit`);
   };
 
   const switchNav = (nav) => {

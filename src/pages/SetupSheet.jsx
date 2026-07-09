@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Check } from "lucide-react";
 import { motion } from "framer-motion";
 
 import GeneralInfo from "@/components/setup-sheet/GeneralInfo";
@@ -46,6 +46,10 @@ export default function SetupSheet() {
   const [showHistory, setShowHistory] = useState(false);
   const [showAddOp, setShowAddOp] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mode, setMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("mode") === "edit" ? "edit" : "view";
+  });
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
@@ -381,6 +385,31 @@ export default function SetupSheet() {
     setImportError(null);
   };
 
+  const handleSaveAndExit = async () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      setSaving(true);
+      try {
+        await base44.entities.SetupSheet.update(id, {
+          ...generalRef.current,
+          tools: toolsRef.current,
+          turning_tools: turningToolsRef.current,
+          part_zero: partZeroRef.current,
+          operations: operationsRef.current,
+          photos: photosRef.current,
+          fixturing_notes: fixturingNotesRef.current,
+          turning_chuck: turningChuckRef.current,
+        });
+      } catch (err) {
+        // ignore
+      } finally {
+        setSaving(false);
+      }
+    }
+    setMode("view");
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -426,51 +455,29 @@ export default function SetupSheet() {
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
 
-            {/* Desktop action buttons */}
-            <div className="hidden md:flex items-center gap-2">
-              {general.machine_type !== "turning" && (
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-8 text-xs gap-1.5">
-                  <Upload className="w-3.5 h-3.5" />
-                  {importing ? "Importing..." : "Import File"}
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-8 text-xs gap-1.5">
-                <Eye className="w-3.5 h-3.5" />
-                Print View
+            {mode === "edit" ? (
+              <Button size="sm" onClick={handleSaveAndExit} disabled={saving} className="h-8 text-xs gap-1.5">
+                {saving ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                {saving ? "Saving…" : "Save"}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-8 text-xs gap-1.5">
-                <Wrench className="w-3.5 h-3.5" />
-                Print Tool List
+            ) : (
+              <Button size="sm" onClick={() => setMode("edit")} className="h-8 text-xs gap-1.5">
+                <Edit3 className="w-3.5 h-3.5" />
+                Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={() => saveRevision()} className="h-8 text-xs gap-1.5">
-                <Save className="w-3.5 h-3.5" />
-                Save Revision
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="h-8 text-xs gap-1.5">
-                <History className="w-3.5 h-3.5" />
-                History
-              </Button>
-              {general.folder_id && (
-                <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="h-8 text-xs gap-1.5">
-                  <Plus className="w-3.5 h-3.5" />
-                  Add Operation
-                </Button>
-              )}
-            </div>
-
-            {/* Mobile hamburger */}
-            <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden" onClick={() => setMobileMenuOpen(v => !v)}>
+            )}
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setMobileMenuOpen(v => !v)}>
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Mobile action menu dropdown */}
+      {/* Action menu dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden sticky top-[57px] z-40 bg-background border-b border-border shadow-md no-print">
+        <div className="sticky top-[57px] z-40 bg-background border-b border-border shadow-md no-print">
           <div className="px-4 py-2 flex flex-col gap-1">
-            {general.machine_type !== "turning" && (
+            {mode === "edit" && general.machine_type !== "turning" && (
               <button onClick={() => { fileInputRef.current?.click(); setMobileMenuOpen(false); }} disabled={importing}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                 <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
@@ -553,12 +560,13 @@ export default function SetupSheet() {
               sort_order: Date.now(),
             });
             setShowAddOp(false);
-            navigate(`/sheet/${newSheet.id}`);
+            navigate(`/sheet/${newSheet.id}?mode=edit`);
           }}
         />
       )}
 
       {/* Content */}
+      <fieldset disabled={mode === "view"} className={mode === "view" ? "view-mode-fieldset" : ""}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
           <ImportBanner message={importError} onClose={() => setImportError(null)} />
@@ -617,9 +625,10 @@ export default function SetupSheet() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
-          <PhotoSection photos={photos} onChange={handlePhotosChange} />
+          <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
         </motion.div>
       </main>
+      </fieldset>
     </div>
   );
 }

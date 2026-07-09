@@ -58,7 +58,7 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="h-9 w-full flex items-center justify-between px-3 rounded-md border border-border/60 bg-background text-sm hover:border-primary/40 transition-colors"
+        className="h-9 w-full flex items-center justify-between px-3 rounded-md border border-border/60 bg-background text-sm hover:border-primary/40 transition-colors view-display"
       >
         <span className={selectedLabel ? "text-foreground" : "text-muted-foreground"}>{selectedLabel || placeholder}</span>
         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
