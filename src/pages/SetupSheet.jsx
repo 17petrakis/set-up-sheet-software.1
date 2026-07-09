@@ -409,10 +409,12 @@ export default function SetupSheet() {
             )}
             <div>
               <div className="flex items-center gap-2">
-                <InlineEditTitle value={general.part_number} onChange={(val) => handleGeneralChange("part_number", val)} />
-                {general.operation_number > 1 && (
-                  <span className="text-sm font-medium text-muted-foreground">— Op {general.operation_number}</span>
-                )}
+                <span className="text-sm md:text-lg font-bold tracking-tight text-foreground">{general.part_number}</span>
+                <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground">—</span>
+                <InlineEditTitle
+                  value={general.operation_name || `Op ${general.operation_number || 1}`}
+                  onChange={(val) => handleGeneralChange("operation_name", val)}
+                />
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
@@ -512,40 +514,36 @@ export default function SetupSheet() {
         <AddOperationDialog
           onClose={() => setShowAddOp(false)}
           nextOpNumber={(general.operation_number || 1) + 1}
-          onAdd={async (machineType) => {
+          onAdd={async (machineType, opName) => {
             const isTurning = machineType === "turning";
-            const sameType = general.machine_type === machineType;
+            // Fields to exclude from general info carry-over (cycle time & operation-specific fields)
+            const EXCLUDE_FIELDS = [
+              "cycle_time", "cycle_time_hrs", "handling_time", "total_cycle_time",
+              "total_additional_time", "deburring_time", "finishing_time", "wash_time",
+              "has_deburring", "deburring_notes", "finishing_notes", "wash_notes",
+              "operation_description", "operation_notes", "work_holding_notes",
+              "operation_name",
+            ];
+            const carriedGeneral = Object.fromEntries(
+              Object.entries(general).filter(([k]) => !EXCLUDE_FIELDS.includes(k))
+            );
+
             // Find the max operation_number among siblings
             const siblings = await base44.entities.SetupSheet.filter({ folder_id: general.folder_id });
             const maxOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0);
 
-            let createData;
-            if (sameType) {
-              // Same type: copy everything from current sheet
-              createData = {
-                ...general,
-                tools: tools,
-                turning_tools: turningTools,
-                part_zero: partZero,
-                operations: operations,
-                photos: photos,
-                fixturing_notes: fixturingNotes,
-                turning_chuck: turningChuck,
-                operation_description: "",
-                operation_notes: "",
-                work_holding_notes: "",
-              };
-            } else {
-              // Different type: only copy shared general info fields
-              const SHARED_FIELDS = ["job_number", "programmer", "revision", "date", "quantity", "material", "units", "status", "program", "program_software", "program_location", "machine", "photos"];
-              createData = { ...emptyGeneral, machine_type: machineType };
-              SHARED_FIELDS.forEach(k => { if (general[k]) createData[k] = general[k]; });
-              createData.tools = isTurning ? [] : [{ ...emptyTool }];
-              createData.turning_tools = isTurning ? { ...emptyTurningTools } : undefined;
-              createData.part_zero = { ...emptyPartZero };
-              createData.operations = isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }];
-              createData.turning_chuck = isTurning ? { ...emptyTurningChuck } : undefined;
-            }
+            const createData = {
+              ...emptyGeneral,
+              ...carriedGeneral,
+              machine_type: machineType,
+              operation_name: opName,
+              tools: isTurning ? [] : [{ ...emptyTool }],
+              turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+              part_zero: { ...emptyPartZero },
+              operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
+              fixturing_notes: isTurning ? undefined : fixturingNotes,
+              turning_chuck: isTurning ? turningChuck : undefined,
+            };
 
             const newSheet = await base44.entities.SetupSheet.create({
               ...createData,

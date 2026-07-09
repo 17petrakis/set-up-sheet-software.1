@@ -217,6 +217,10 @@
       "type": "number",
       "description": "Operation sequence number within the folder",
       "default": 1
+    },
+    "operation_name": {
+      "type": "string",
+      "description": "Editable name for this operation (e.g. Op 10, Face & Drill)"
     }
   },
   "required": [

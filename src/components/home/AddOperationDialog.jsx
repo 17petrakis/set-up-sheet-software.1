@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 
 export default function AddOperationDialog({ onClose, onAdd, nextOpNumber }) {
   const [machineType, setMachineType] = useState("milling");
+  const [opName, setOpName] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleAdd = async () => {
     setSaving(true);
-    await onAdd(machineType);
+    await onAdd(machineType, opName.trim());
     setSaving(false);
   };
 
@@ -23,6 +25,19 @@ export default function AddOperationDialog({ onClose, onAdd, nextOpNumber }) {
           </Button>
         </div>
         <div className="px-5 py-4 space-y-4">
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Operation Name
+            </Label>
+            <Input
+              autoFocus
+              value={opName}
+              onChange={e => setOpName(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleAdd(); }}
+              placeholder="e.g. Op 10, Face & Drill…"
+              className="h-9 text-sm"
+            />
+          </div>
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               Machine Type
