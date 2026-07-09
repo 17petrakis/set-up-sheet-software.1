@@ -31,6 +31,28 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
       const data = await base44.entities.CMMSheet.list("-updated_date", 200);
       setSheets(data);
       setLoading(false);
+
+      // Open the CMM folder immediately when returning from a CMM sheet
+      const params = new URLSearchParams(window.location.search);
+      const cmmFolder = params.get("cmm_folder");
+      const pn = params.get("pn");
+      if (cmmFolder || pn) {
+        const folderKey = cmmFolder || `legacy__${pn || ""}__${params.get("cu") || ""}`;
+        const folderSheets = data.filter(s =>
+          (cmmFolder && s.folder_id === cmmFolder) ||
+          (!cmmFolder && s.part_number === pn)
+        );
+        if (folderSheets.length > 0) {
+          const f = folderSheets[0];
+          setOpenFolder({
+            key: folderKey,
+            partNumber: f.part_number || pn || "Unnamed",
+            customer: f.customer || params.get("cu") || "",
+            sheets: folderSheets,
+          });
+        }
+        window.history.replaceState({}, "", "/");
+      }
     })();
   }, []);
 

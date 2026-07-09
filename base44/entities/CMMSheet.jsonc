@@ -64,6 +64,11 @@
     },
     "program_notes": {
       "type": "string"
+    },
+    "operation_number": {
+      "type": "number",
+      "description": "Operation sequence number within the folder",
+      "default": 1
     }
   },
   "required": [

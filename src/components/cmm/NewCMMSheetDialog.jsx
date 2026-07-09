@@ -29,6 +29,7 @@ export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers
       customer: customer.trim(),
       folder_id: folderId,
       description: opName.trim() || "",
+      operation_number: 1,
       units: "in",
       fixturing: [],
       work_holding: [{ _id: "first", note: "", photo_url: "" }],

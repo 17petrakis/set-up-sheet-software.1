@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, ClipboardList, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, ClipboardList, Trash2, GripVertical } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -15,11 +17,21 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
-  const sorted = [...(folder.sheets || [])].sort((a, b) => {
-    const ad = a.created_date ? new Date(a.created_date).getTime() : 0;
-    const bd = b.created_date ? new Date(b.created_date).getTime() : 0;
-    return ad - bd;
-  });
+  const sorted = [...(folder.sheets || [])].sort((a, b) => (a.operation_number || 1) - (b.operation_number || 1));
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination || result.source.index === result.destination.index) return;
+    const fromIndex = result.source.index;
+    const toIndex = result.destination.index;
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    const updates = reordered.map((s, i) => ({ ...s, operation_number: i + 1 }));
+    onSheetsChange(updates);
+    await base44.entities.CMMSheet.bulkUpdate(
+      updates.map(s => ({ id: s.id, operation_number: s.operation_number }))
+    );
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -32,11 +44,13 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const handleAddOperation = async (opName) => {
     const base = folder.sheets[0] || {};
     const folderId = base.folder_id || `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const nextOp = (folder.sheets || []).reduce((m, s) => Math.max(m, s.operation_number || 1), 0) + 1;
     const sheet = await base44.entities.CMMSheet.create({
       part_number: folder.partNumber,
       customer: folder.customer,
       folder_id: folderId,
       description: opName,
+      operation_number: nextOp,
       machine: base.machine,
       material: base.material,
       units: base.units || "in",
@@ -68,36 +82,65 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sorted.map(sheet => (
-          <div
-            key={sheet.id}
-            className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-emerald-400/40 transition-all group"
-            onClick={() => navigate(`/cmm-sheet/${sheet.id}`)}
-          >
-            {sorted.length > 1 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <div className="flex items-start gap-3 mb-2">
-              <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                <ClipboardList className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-foreground">{sheet.part_number}</p>
-                {sheet.description && <p className="text-xs text-muted-foreground mt-0.5 truncate italic">{sheet.description}</p>}
-              </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="cmm-operations">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            >
+              {sorted.map((sheet, index) => (
+                <Draggable key={sheet.id} draggableId={sheet.id} index={index}>
+                  {(dragProvided, snapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className={cn(
+                        "relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-emerald-400/40 transition-all group",
+                        snapshot.isDragging && "shadow-lg border-emerald-400/60 ring-2 ring-emerald-400/20"
+                      )}
+                      onClick={() => navigate(`/cmm-sheet/${sheet.id}`)}
+                    >
+                      {sorted.length > 1 && (
+                        <>
+                          <div
+                            {...dragProvided.dragHandleProps}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
+                            title="Drag to reorder"
+                          >
+                            <GripVertical className="w-3.5 h-3.5" />
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                          <ClipboardList className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-foreground">{sheet.part_number}</p>
+                          {sheet.description && <p className="text-xs text-muted-foreground mt-0.5 truncate italic">{sheet.description}</p>}
+                        </div>
+                      </div>
+                      {sheet.updated_date && (
+                        <p className="text-[11px] text-muted-foreground">{format(new Date(sheet.updated_date), "MMM d, yyyy")}</p>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
-            {sheet.updated_date && (
-              <p className="text-[11px] text-muted-foreground">{format(new Date(sheet.updated_date), "MMM d, yyyy")}</p>
-            )}
-          </div>
-        ))}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>

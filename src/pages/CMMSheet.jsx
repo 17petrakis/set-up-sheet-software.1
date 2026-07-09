@@ -12,6 +12,7 @@ import CMMNotesSection from "@/components/cmm/CMMNotesSection";
 import CMMPrintView from "@/pages/CMMPrintView";
 import TimeInput from "@/components/ui/TimeInput";
 import AddCMMOperationDialog from "@/components/cmm/AddCMMOperationDialog";
+import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 
 function FieldGroup({ label, children }) {
   return (
@@ -76,16 +77,26 @@ export default function CMMSheet() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => navigate("/?tab=quality_control")}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
+            navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
+          }}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
             <FileSpreadsheet className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none">
-              {sheet.part_number}{sheet.description ? ` — ${sheet.description}` : " — CMM Setup Sheet"}
-            </h1>
+            <div className="flex items-center gap-2 leading-none">
+              <span className="text-sm md:text-lg font-bold tracking-tight text-foreground">
+                {sheet.part_number}
+              </span>
+              <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground">—</span>
+              <InlineEditTitle
+                value={sheet.description}
+                onChange={(val) => update("description", val)}
+                placeholder="CMM Setup Sheet"
+              />
+            </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : sheet.customer || "Quality Control"}
             </p>
@@ -187,11 +198,14 @@ export default function CMMSheet() {
         <AddCMMOperationDialog
           onClose={() => setShowAddOp(false)}
           onAdd={async (opName) => {
+            const siblings = await base44.entities.CMMSheet.filter({ folder_id: sheet.folder_id });
+            const nextOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0) + 1;
             const newSheet = await base44.entities.CMMSheet.create({
               part_number: sheet.part_number,
               customer: sheet.customer,
               folder_id: sheet.folder_id,
               description: opName,
+              operation_number: nextOp,
               machine: sheet.machine,
               material: sheet.material,
               units: sheet.units,
