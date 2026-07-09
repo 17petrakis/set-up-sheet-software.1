@@ -14,14 +14,15 @@ import {
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 
+const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
+
 export default function PartFolderView({ partNumber, customer, sheets, onBack, onSheetsChange }) {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
-  const sorted = [...sheets].sort((a, b) => (a.operation_number || 1) - (b.operation_number || 1));
+  const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));
   const folderId = sorted[0]?.folder_id;
-  const nextOpNumber = sorted.length > 0 ? Math.max(...sorted.map(s => s.operation_number || 1)) + 1 : 2;
 
   // Fields shared between milling and turning general info
   const SHARED_GENERAL_FIELDS = [
@@ -32,7 +33,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   // Fields to never copy
   const SYSTEM_FIELDS = ["id", "created_date", "updated_date", "created_by_id"];
 
-  const handleAddOperation = async (machineType) => {
+  const handleAddOperation = async (machineType, opName) => {
     const isTurning = machineType === "turning";
     const lastSheet = sorted[sorted.length - 1];
     const sameType = lastSheet && lastSheet.machine_type === machineType;
@@ -45,15 +46,18 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       SYSTEM_FIELDS.forEach(k => delete copy[k]);
       delete copy.operation_number;
       delete copy.folder_id;
+      delete copy.sort_order;
       copy.operation_description = "";
       copy.operation_notes = "";
       copy.work_holding_notes = "";
+      copy.operation_name = opName;
       createData = copy;
     } else if (lastSheet && !sameType) {
       // Different type: only copy shared general info fields
       createData = {
         ...emptyGeneral,
         machine_type: machineType,
+        operation_name: opName,
       };
       SHARED_GENERAL_FIELDS.forEach(k => {
         if (lastSheet[k] !== undefined && lastSheet[k] !== null && lastSheet[k] !== "") {
@@ -71,6 +75,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       createData = {
         ...emptyGeneral,
         machine_type: machineType,
+        operation_name: opName,
         tools: isTurning ? [] : [{ ...emptyTool }],
         turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
         part_zero: { ...emptyPartZero },
@@ -84,7 +89,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       part_number: partNumber,
       customer: customer,
       folder_id: folderId,
-      operation_number: nextOpNumber,
+      sort_order: Date.now(),
     });
     onSheetsChange([...sheets, newSheet]);
     setShowAddOp(false);
@@ -93,15 +98,15 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   const handleDragEnd = async (result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
-    const fromIndex = result.source.index;
-    const toIndex = result.destination.index;
     const reordered = [...sorted];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    const updates = reordered.map((s, i) => ({ ...s, operation_number: i + 1 }));
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    // Reassign sort_order based on new positions, using timestamps to keep gaps
+    const now = Date.now();
+    const updates = reordered.map((s, i) => ({ ...s, sort_order: now + i }));
     onSheetsChange(updates);
     await base44.entities.SetupSheet.bulkUpdate(
-      updates.map(s => ({ id: s.id, operation_number: s.operation_number }))
+      updates.map(s => ({ id: s.id, sort_order: s.sort_order }))
     );
   };
 
@@ -111,6 +116,8 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     onSheetsChange(sheets.filter(s => s.id !== deleteTarget.id));
     setDeleteTarget(null);
   };
+
+  const opLabel = (sheet) => sheet.operation_name || "Operation";
 
   return (
     <div>
@@ -179,7 +186,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-foreground">Operation {sheet.operation_number || 1}</p>
+                          <p className="font-bold text-sm text-foreground truncate">{opLabel(sheet)}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
                         </div>
                       </div>
@@ -212,16 +219,15 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         <AddOperationDialog
           onClose={() => setShowAddOp(false)}
           onAdd={handleAddOperation}
-          nextOpNumber={nextOpNumber}
         />
       )}
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Operation {deleteTarget?.operation_number}?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteTarget && opLabel(deleteTarget)}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>Operation {deleteTarget?.operation_number}</strong>? This cannot be undone.
+              Are you sure you want to delete <strong>{deleteTarget && opLabel(deleteTarget)}</strong>? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

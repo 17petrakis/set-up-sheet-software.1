@@ -100,8 +100,8 @@ export default function PrintView() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
                 {general.part_number || "CNC Setup Sheet"}
-                {(general.operation_name || general.operation_number > 1) && (
-                  <span className="text-gray-500 font-medium"> — {general.operation_name || `Op ${general.operation_number}`}</span>
+                {general.operation_name && (
+                  <span className="text-gray-500 font-medium"> — {general.operation_name}</span>
                 )}
               </h1>
               {general.customer && <p className="text-sm text-gray-600 mt-0.5">{general.customer}</p>}

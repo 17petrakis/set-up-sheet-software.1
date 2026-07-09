@@ -69,6 +69,10 @@
       "type": "number",
       "description": "Operation sequence number within the folder",
       "default": 1
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Manual sort order within the folder; defaults to creation time"
     }
   },
   "required": [

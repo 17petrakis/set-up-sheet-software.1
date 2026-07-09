@@ -412,7 +412,7 @@ export default function SetupSheet() {
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
                 <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
                 <InlineEditTitle
-                  value={general.operation_name || `Op ${general.operation_number || 1}`}
+                  value={general.operation_name || "Operation"}
                   onChange={(val) => handleGeneralChange("operation_name", val)}
                 />
               </div>
@@ -513,7 +513,6 @@ export default function SetupSheet() {
       {showAddOp && (
         <AddOperationDialog
           onClose={() => setShowAddOp(false)}
-          nextOpNumber={(general.operation_number || 1) + 1}
           onAdd={async (machineType, opName) => {
             const isTurning = machineType === "turning";
             // Fields to exclude from general info carry-over (cycle time, fixturing & operation-specific fields)
@@ -533,10 +532,6 @@ export default function SetupSheet() {
             const carriedPhotos = {};
             CARRY_PHOTOS.forEach(k => { if (photos[k]) carriedPhotos[k] = photos[k]; });
 
-            // Find the max operation_number among siblings
-            const siblings = await base44.entities.SetupSheet.filter({ folder_id: general.folder_id });
-            const maxOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0);
-
             const createData = {
               ...emptyGeneral,
               ...carriedGeneral,
@@ -555,7 +550,7 @@ export default function SetupSheet() {
               part_number: general.part_number,
               customer: general.customer,
               folder_id: general.folder_id,
-              operation_number: maxOp + 1,
+              sort_order: Date.now(),
             });
             setShowAddOp(false);
             navigate(`/sheet/${newSheet.id}`);

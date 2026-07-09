@@ -12,24 +12,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import AddCMMOperationDialog from "./AddCMMOperationDialog";
 
+const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
+
 export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
-  const sorted = [...(folder.sheets || [])].sort((a, b) => (a.operation_number || 1) - (b.operation_number || 1));
+  const sorted = [...(folder.sheets || [])].sort((a, b) => getSortKey(a) - getSortKey(b));
 
   const handleDragEnd = async (result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
-    const fromIndex = result.source.index;
-    const toIndex = result.destination.index;
     const reordered = [...sorted];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    const updates = reordered.map((s, i) => ({ ...s, operation_number: i + 1 }));
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    const now = Date.now();
+    const updates = reordered.map((s, i) => ({ ...s, sort_order: now + i }));
     onSheetsChange(updates);
     await base44.entities.CMMSheet.bulkUpdate(
-      updates.map(s => ({ id: s.id, operation_number: s.operation_number }))
+      updates.map(s => ({ id: s.id, sort_order: s.sort_order }))
     );
   };
 
@@ -44,13 +45,12 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const handleAddOperation = async (opName) => {
     const base = folder.sheets[0] || {};
     const folderId = base.folder_id || `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const nextOp = (folder.sheets || []).reduce((m, s) => Math.max(m, s.operation_number || 1), 0) + 1;
     const sheet = await base44.entities.CMMSheet.create({
       part_number: folder.partNumber,
       customer: folder.customer,
       folder_id: folderId,
       description: opName,
-      operation_number: nextOp,
+      sort_order: Date.now(),
       machine: base.machine,
       material: base.material,
       units: base.units || "in",

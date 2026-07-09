@@ -221,6 +221,10 @@
     "operation_name": {
       "type": "string",
       "description": "Editable name for this operation (e.g. Op 10, Face & Drill)"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Manual sort order within the folder; defaults to creation time"
     }
   },
   "required": [
