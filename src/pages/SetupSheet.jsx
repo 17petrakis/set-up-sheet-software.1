@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3 } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Printer } from "lucide-react";
 import { motion } from "framer-motion";
 import { ViewModeContext } from "@/lib/viewModeContext";
 
