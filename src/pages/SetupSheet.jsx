@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Check } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ViewModeContext } from "@/lib/viewModeContext";
 
@@ -56,6 +56,7 @@ export default function SetupSheet() {
   const saveTimer = useRef(null);
   const latestData = useRef({});
   const fieldsetRef = useRef(null);
+  const menuRef = useRef(null);
 
   // Load existing sheet
   useEffect(() => {
@@ -412,6 +413,18 @@ export default function SetupSheet() {
     setMode("view");
   };
 
+  // Close hamburger menu on outside click
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [mobileMenuOpen]);
+
   // Hide empty field wrappers in view mode for a clean read-only display
   useEffect(() => {
     const fs = fieldsetRef.current;
@@ -429,7 +442,7 @@ export default function SetupSheet() {
       const wrapper = label.parentElement;
       if (!wrapper || wrapper === fs || wrapper.hasAttribute('data-view-hidden')) return;
       if (wrapper.querySelector('img')) return;
-      const hasFilledInput = Array.from(wrapper.querySelectorAll('input[type="text"], input:not([type]), textarea')).some(i => i.value && i.value.trim());
+      const hasFilledInput = Array.from(wrapper.querySelectorAll('input[type="text"], input[type="number"], input:not([type]), textarea')).some(i => i.value && i.value.trim());
       if (hasFilledInput) return;
       const hasCheckedBox = wrapper.querySelector('input[type="checkbox"]:checked, button[role="checkbox"][data-state="checked"]');
       if (hasCheckedBox) return;
@@ -512,8 +525,8 @@ export default function SetupSheet() {
 
             {mode === "edit" ? (
               <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
-                {saving ? <Check className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {saving ? "Saving…" : "View"}
+                <Eye className="w-4 h-4" />
+                View
               </Button>
             ) : (
               <Button size="default" onClick={() => setMode("edit")} className="h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
@@ -522,13 +535,12 @@ export default function SetupSheet() {
               </Button>
             )}
 
-            <div className="relative shrink-0">
+            <div ref={menuRef} className="relative shrink-0">
               <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMobileMenuOpen(v => !v)}>
                 {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               </Button>
               {mobileMenuOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                   <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-popover border border-border rounded-lg shadow-xl no-print">
                     <div className="py-1.5 flex flex-col gap-0.5">
                       <button onClick={() => { saveRevision(); setMobileMenuOpen(false); }}
