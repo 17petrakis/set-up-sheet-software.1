@@ -47,15 +47,18 @@ export default function Home() {
     }
     // Open the part folder immediately when returning from a setup sheet,
     // so the dashboard doesn't flash before the folder loads.
-    const folderId = params.get("folder");
-    const pn = params.get("pn");
-    if (folderId || pn) {
-      setOpenFolder({
-        partNumber: pn || "Unnamed",
-        customer: params.get("cu") || "",
-        folderId: folderId || undefined,
-      });
-      window.history.replaceState({}, "", "/");
+    // Skip for quality_control tab — CMM params (cmm_folder/pn/cu) are handled by CMMDashboardContent.
+    if (params.get("tab") !== "quality_control") {
+      const folderId = params.get("folder");
+      const pn = params.get("pn");
+      if (folderId || pn) {
+        setOpenFolder({
+          partNumber: pn || "Unnamed",
+          customer: params.get("cu") || "",
+          folderId: folderId || undefined,
+        });
+        window.history.replaceState({}, "", "/");
+      }
     }
   }, []);
 
