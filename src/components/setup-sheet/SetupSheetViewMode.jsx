@@ -92,7 +92,8 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ["Material", gen.material],
               ...(gen.material_color_enabled && gen.material_color ? [["Material Color", gen.material_color]] : []),
               ...(gen.material_condition_enabled && gen.material_condition ? [["Material Condition", gen.material_condition]] : []),
-              ["Stock", gen.stock],
+              ...(isTurning && gen.stock ? [["Stock", gen.stock]] : []),
+              ...(isTurning && gen.consumed_per_part ? [["Length/1pc", gen.consumed_per_part]] : []),
               ["Qty", gen.quantity],
               ["Program #", gen.program],
               ["Program Desc", gen.program_description],
@@ -126,7 +127,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </div>
             );
           })()}
-          {!isTurning && (gen.stops || []).filter(Boolean).length > 0 && (
+          {(gen.stops || []).filter(Boolean).length > 0 && (
             <div className="mt-2 border border-gray-200 rounded p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Program Stops</p>
               <ul className="text-xs text-gray-800 space-y-0.5">

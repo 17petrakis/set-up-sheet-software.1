@@ -138,13 +138,18 @@ export default function PrintView() {
                 ["Material", general.material],
                 ...(general.material_color_enabled && general.material_color ? [["Material Color", general.material_color]] : []),
                 ...(general.material_condition_enabled && general.material_condition ? [["Material Condition", general.material_condition]] : []),
-                ["Stock", general.stock],
+                ...(isTurning && general.stock ? [["Stock", general.stock]] : []),
+                ...(isTurning && general.consumed_per_part ? [["Length/1pc", general.consumed_per_part]] : []),
                 ["Qty", general.quantity],
                 ["Program #", general.program],
                 ["Program Desc", general.program_description],
-                ["Cycle Time", general.cycle_time],
-                ["Handling Time", general.handling_time],
-                ["Total Cycle", general.total_cycle_time],
+                ...(general.program_location ? [["Program Location", general.program_location]] : []),
+                ...(general.cycle_time ? [["Cycle Time", general.cycle_time]] : []),
+                ...(general.handling_time ? [["Handling Time", general.handling_time]] : []),
+                ...(general.total_cycle_time ? [["Total Cycle", general.total_cycle_time]] : []),
+                ...(general.automation ? [["Automated", general.automation]] : []),
+                ...(general.units ? [["Units", general.units]] : []),
+                ...(general.date ? [["Date", general.date]] : []),
               ].filter(([, v]) => v);
               const rows = [];
               for (let i = 0; i < fields.length; i += 2) {
@@ -167,9 +172,9 @@ export default function PrintView() {
               </div>
               );
             })()}
-            {!isTurning && (general.stops || []).filter(Boolean).length > 0 && (
+            {(general.stops || []).filter(Boolean).length > 0 && (
               <div className="mt-2 border border-gray-200 rounded p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Stops</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Program Stops</p>
                 <ul className="text-xs text-gray-800 space-y-0.5">
                   {(general.stops || []).filter(Boolean).map((s, i) => (
                     <li key={i}>#{i + 1}: {s}</li>
@@ -177,7 +182,7 @@ export default function PrintView() {
                 </ul>
               </div>
             )}
-            {!isTurning && general.has_deburring && (
+            {general.has_deburring && (
               <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Additional Handling</p>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-1.5">
