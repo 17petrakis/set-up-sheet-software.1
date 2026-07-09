@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft } from "lucide-react";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import TurningToolsView, { hasTurningToolsData } from "@/components/setup-sheet/TurningToolsView";
 
 export default function ToolListPrint() {
   const { id } = useParams();
@@ -97,66 +98,11 @@ export default function ToolListPrint() {
 
         {/* Tool Table */}
         {sheet.machine_type === "turning" ? (
-          <>
-            {/* Axial Tools */}
-            {sheet.turning_tools?.axial?.length > 0 && (
-              <div className="mb-8">
-                <h2 className="print-section-title">Axial Tools</h2>
-                <table className="print-table w-full">
-                  <thead>
-                    <tr>{["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"].map((h) => (
-                      <th key={h}>{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody>
-                    {sheet.turning_tools.axial.map((tool, idx) => (
-                      <tr key={idx}>
-                        <td>{tool.tool_number || ""}</td>
-                        <td>{tool.description || ""}</td>
-                        <td>{tool.type || ""}</td>
-                        <td>{tool.diameter_radius || ""}</td>
-                        <td>{tool.angle || ""}</td>
-                        <td>{tool.holder || ""}</td>
-                        <td>{tool.stickout || ""}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Radial Tools */}
-            {sheet.turning_tools?.radial?.length > 0 && (
-              <div className="mb-8">
-                <h2 className="print-section-title">Radial Tools</h2>
-                <table className="print-table w-full">
-                  <thead>
-                    <tr>{["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"].map((h) => (
-                      <th key={h}>{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody>
-                    {sheet.turning_tools.radial.map((tool, idx) => (
-                      <tr key={idx}>
-                        <td>{tool.tool_number || ""}</td>
-                        <td>{tool.description || ""}</td>
-                        <td>{tool.type || ""}</td>
-                        <td>{tool.diameter_radius || ""}</td>
-                        <td>{tool.angle_insert || ""}</td>
-                        <td>{tool.holder || ""}</td>
-                        <td>{tool.stickout || ""}</td>
-                        <td>{tool.extension || ""}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {!sheet.turning_tools?.axial?.length && !sheet.turning_tools?.radial?.length && (
-              <p className="text-muted-foreground text-center py-12">No tools defined</p>
-            )}
-          </>
+          hasTurningToolsData(sheet.turning_tools) ? (
+            <TurningToolsView turningTools={sheet.turning_tools || { turrets: [] }} tableClass="print-table" />
+          ) : (
+            <p className="text-muted-foreground text-center py-12">No tools defined</p>
+          )
         ) : (
           sheet.tools && sheet.tools.length > 0 ? (() => {
             const alwaysCols = [{ key: "tool_number", label: "Tool #" }, { key: "tool_type", label: "Tool Type" }];
