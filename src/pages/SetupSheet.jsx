@@ -408,9 +408,9 @@ export default function SetupSheet() {
               </div>
             )}
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm md:text-lg font-bold tracking-tight text-foreground">{general.part_number}</span>
-                <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground">—</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
+                <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
                 <InlineEditTitle
                   value={general.operation_name || `Op ${general.operation_number || 1}`}
                   onChange={(val) => handleGeneralChange("operation_name", val)}
@@ -516,17 +516,22 @@ export default function SetupSheet() {
           nextOpNumber={(general.operation_number || 1) + 1}
           onAdd={async (machineType, opName) => {
             const isTurning = machineType === "turning";
-            // Fields to exclude from general info carry-over (cycle time & operation-specific fields)
+            // Fields to exclude from general info carry-over (cycle time, fixturing & operation-specific fields)
             const EXCLUDE_FIELDS = [
               "cycle_time", "cycle_time_hrs", "handling_time", "total_cycle_time",
               "total_additional_time", "deburring_time", "finishing_time", "wash_time",
               "has_deburring", "deburring_notes", "finishing_notes", "wash_notes",
               "operation_description", "operation_notes", "work_holding_notes",
-              "operation_name",
+              "fixturing_notes", "operation_name",
             ];
             const carriedGeneral = Object.fromEntries(
               Object.entries(general).filter(([k]) => !EXCLUDE_FIELDS.includes(k))
             );
+
+            // Carry over only drawing, material stock, ISO view, and final part photos
+            const CARRY_PHOTOS = ["drawing", "material_stock", "iso", "final_part", "final_part_2"];
+            const carriedPhotos = {};
+            CARRY_PHOTOS.forEach(k => { if (photos[k]) carriedPhotos[k] = photos[k]; });
 
             // Find the max operation_number among siblings
             const siblings = await base44.entities.SetupSheet.filter({ folder_id: general.folder_id });
@@ -541,7 +546,7 @@ export default function SetupSheet() {
               turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
               part_zero: { ...emptyPartZero },
               operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
-              fixturing_notes: isTurning ? undefined : fixturingNotes,
+              photos: carriedPhotos,
               turning_chuck: isTurning ? turningChuck : undefined,
             };
 

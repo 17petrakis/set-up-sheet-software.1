@@ -27,7 +27,7 @@ export default function InlineEditTitle({ value, onChange, placeholder = "CNC Se
           if (e.key === "Enter") commit();
           if (e.key === "Escape") { setDraft(value || ""); setEditing(false); }
         }}
-        className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none bg-transparent border-b border-primary outline-none max-w-[220px]"
+        className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none bg-transparent border-b border-primary outline-none w-[180px] shrink-0"
       />
     );
   }
@@ -35,7 +35,7 @@ export default function InlineEditTitle({ value, onChange, placeholder = "CNC Se
   return (
     <button
       onClick={() => setEditing(true)}
-      className="group flex items-center gap-1.5 text-sm md:text-lg font-bold tracking-tight text-foreground leading-none"
+      className="group flex items-center gap-1.5 text-sm md:text-lg font-bold tracking-tight text-foreground leading-none shrink-0 whitespace-nowrap"
     >
       <span>{value || placeholder}</span>
       <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
