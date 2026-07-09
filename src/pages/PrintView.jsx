@@ -64,7 +64,7 @@ export default function PrintView() {
     const visibleKeys = new Set();
     tools.forEach(t => {
       const vis = getEffectiveVisibleFields(t);
-      TOOL_FIELDS.forEach(f => { if (vis[f.key]) visibleKeys.add(f.key); });
+      TOOL_FIELDS.forEach(f => { if (vis[f.key] && t[f.key]) visibleKeys.add(f.key); });
     });
     const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
     return [...alwaysCols, ...dynamicCols];
@@ -74,6 +74,7 @@ export default function PrintView() {
   const partZero = data.part_zero && Object.keys(data.part_zero).length ? { ...emptyPartZero, ...data.part_zero } : emptyPartZero;
   const partZeroHasData = Object.values(partZero).some(v => v !== "" && v !== null && v !== undefined);
   const operations = data.operations?.length ? data.operations : [];
+  const opsHasData = operations.some(op => Object.values(op).some(v => v !== "" && v !== null && v !== undefined));
   const photos = data.photos || {};
   const extraSlots = photos.__extra_slots || [];
   const allPhotoSlots = [...DEFAULT_PHOTO_SLOTS, ...extraSlots].filter(({ key }) => photos[key]);
@@ -434,7 +435,7 @@ export default function PrintView() {
               )}
 
               {/* Turning Operations */}
-              {operations.length > 0 && (
+              {opsHasData && (
                 <section>
                   <h2 className="print-section-title">Operations</h2>
                   <table className="print-table w-full">
@@ -504,7 +505,7 @@ export default function PrintView() {
               )}
 
               {/* Operations */}
-              {operations.length > 0 && (
+              {opsHasData && (
                 <section>
                   <h2 className="print-section-title">Operations</h2>
                   <table className="print-table w-full">

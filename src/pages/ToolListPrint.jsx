@@ -101,25 +101,23 @@ export default function ToolListPrint() {
             {/* Axial Tools */}
             {sheet.turning_tools?.axial?.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-lg font-bold text-foreground mb-3 pb-2 border-b border-border">Axial Tools</h2>
-                <table className="w-full border-collapse">
+                <h2 className="print-section-title">Axial Tools</h2>
+                <table className="print-table w-full">
                   <thead>
-                    <tr className="border-b-2 border-border">
-                      {["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"].map((h) => (
-                        <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
+                    <tr>{["T#", "Description", "Type", "Dia / Radius", "Angle", "Holder", "Stickout"].map((h) => (
+                      <th key={h}>{h}</th>
+                    ))}</tr>
                   </thead>
                   <tbody>
                     {sheet.turning_tools.axial.map((tool, idx) => (
-                      <tr key={idx} className="border-b border-border">
-                        <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.type || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.diameter_radius || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.angle || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.stickout || "-"}</td>
+                      <tr key={idx}>
+                        <td>{tool.tool_number || ""}</td>
+                        <td>{tool.description || ""}</td>
+                        <td>{tool.type || ""}</td>
+                        <td>{tool.diameter_radius || ""}</td>
+                        <td>{tool.angle || ""}</td>
+                        <td>{tool.holder || ""}</td>
+                        <td>{tool.stickout || ""}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -130,26 +128,24 @@ export default function ToolListPrint() {
             {/* Radial Tools */}
             {sheet.turning_tools?.radial?.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-lg font-bold text-foreground mb-3 pb-2 border-b border-border">Radial Tools</h2>
-                <table className="w-full border-collapse">
+                <h2 className="print-section-title">Radial Tools</h2>
+                <table className="print-table w-full">
                   <thead>
-                    <tr className="border-b-2 border-border">
-                      {["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"].map((h) => (
-                        <th key={h} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
+                    <tr>{["T#", "Description", "Type", "Dia / Radius", "Angle / Insert", "Holder", "Stickout", "Extension"].map((h) => (
+                      <th key={h}>{h}</th>
+                    ))}</tr>
                   </thead>
                   <tbody>
                     {sheet.turning_tools.radial.map((tool, idx) => (
-                      <tr key={idx} className="border-b border-border">
-                        <td className="py-3 px-3 text-foreground font-medium">{tool.tool_number || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.description || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.type || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.diameter_radius || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.angle_insert || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.holder || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.stickout || "-"}</td>
-                        <td className="py-3 px-3 text-foreground">{tool.extension || "-"}</td>
+                      <tr key={idx}>
+                        <td>{tool.tool_number || ""}</td>
+                        <td>{tool.description || ""}</td>
+                        <td>{tool.type || ""}</td>
+                        <td>{tool.diameter_radius || ""}</td>
+                        <td>{tool.angle_insert || ""}</td>
+                        <td>{tool.holder || ""}</td>
+                        <td>{tool.stickout || ""}</td>
+                        <td>{tool.extension || ""}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -167,26 +163,22 @@ export default function ToolListPrint() {
             const visibleKeys = new Set();
             sheet.tools.forEach(t => {
               const vis = getEffectiveVisibleFields(t);
-              TOOL_FIELDS.forEach(f => { if (vis[f.key]) visibleKeys.add(f.key); });
+              TOOL_FIELDS.forEach(f => { if (vis[f.key] && t[f.key]) visibleKeys.add(f.key); });
             });
             const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
             const cols = [...alwaysCols, ...dynamicCols];
             return (
-              <table className="w-full border-collapse">
+              <table className="print-table w-full">
                 <thead>
-                  <tr className="border-b-2 border-border">
-                    {cols.map((c) => (
-                      <th key={c.key} className="text-left py-3 px-3 font-bold text-foreground text-sm uppercase tracking-wider">{c.label}</th>
-                    ))}
-                  </tr>
+                  <tr>{cols.map((c) => (
+                    <th key={c.key}>{c.label}</th>
+                  ))}</tr>
                 </thead>
                 <tbody>
                   {sheet.tools.map((tool, idx) => (
-                    <tr key={idx} className="border-b border-border">
-                      {cols.map(c => (
-                        <td key={c.key} className="py-3 px-3 text-foreground">{tool[c.key] || "-"}</td>
-                      ))}
-                    </tr>
+                    <tr key={idx}>{cols.map(c => (
+                      <td key={c.key}>{tool[c.key] || ""}</td>
+                    ))}</tr>
                   ))}
                 </tbody>
               </table>
@@ -222,6 +214,39 @@ export default function ToolListPrint() {
           .print-container {
             max-width: 100% !important;
           }
+        }
+        .print-section-title {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #374151;
+          margin-bottom: 6px;
+          padding-bottom: 3px;
+          border-bottom: 1px solid #d1d5db;
+        }
+        .print-table {
+          border-collapse: collapse;
+          font-size: 11px;
+        }
+        .print-table th {
+          background: #f3f4f6;
+          border: 1px solid #d1d5db;
+          padding: 4px 8px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #6b7280;
+        }
+        .print-table td {
+          border: 1px solid #e5e7eb;
+          padding: 3px 8px;
+          color: #111827;
+        }
+        .print-table tr:nth-child(even) td {
+          background: #f9fafb;
         }
       `}</style>
     </div>

@@ -46,7 +46,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
     const visibleKeys = new Set();
     millTools.forEach(t => {
       const vis = getEffectiveVisibleFields(t);
-      TOOL_FIELDS.forEach(f => { if (vis[f.key]) visibleKeys.add(f.key); });
+      TOOL_FIELDS.forEach(f => { if (vis[f.key] && t[f.key]) visibleKeys.add(f.key); });
     });
     const dynamicCols = TOOL_FIELDS.filter(f => visibleKeys.has(f.key)).map(f => ({ key: f.key, label: TOOL_FIELD_SHORT[f.key] }));
     return [...alwaysCols, ...dynamicCols];
@@ -56,6 +56,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
   const partZero = pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : emptyPartZero;
   const partZeroHasData = Object.values(partZero).some(v => v !== "" && v !== null && v !== undefined);
   const ops = operations?.length ? operations : [];
+  const opsHasData = ops.some(op => Object.values(op).some(v => v !== "" && v !== null && v !== undefined));
   const ph = photos || {};
   const extraSlots = ph.__extra_slots || [];
   const allPhotoSlots = [...DEFAULT_PHOTO_SLOTS, ...extraSlots].filter(({ key }) => ph[key]);
@@ -87,7 +88,6 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ["Program Desc", gen.program_description],
               ...(gen.program_location ? [["Program Location", gen.program_location]] : []),
               ...(gen.cycle_time ? [["Cycle Time", gen.cycle_time]] : []),
-              ...(gen.cycle_time_hrs ? [["Cycle Time (Hrs)", gen.cycle_time_hrs]] : []),
               ...(gen.handling_time ? [["Handling Time", gen.handling_time]] : []),
               ...(gen.total_cycle_time ? [["Total Cycle", gen.total_cycle_time]] : []),
               ...(gen.automation ? [["Automated", gen.automation]] : []),
@@ -388,7 +388,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {ops.length > 0 && (
+            {opsHasData && (
               <section>
                 <SectionTitle>Operations</SectionTitle>
                 <table className="view-table w-full">
@@ -454,7 +454,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {ops.length > 0 && (
+            {opsHasData && (
               <section>
                 <SectionTitle>Operations</SectionTitle>
                 <table className="view-table w-full">

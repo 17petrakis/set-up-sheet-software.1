@@ -478,7 +478,7 @@ export default function SetupSheet() {
             )}
             <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="h-9 gap-1.5 shrink-0">
               <Eye className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Print View</span>
+              <span className="hidden md:inline">Print</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="h-9 gap-1.5 shrink-0">
               <Wrench className="w-3.5 h-3.5" />
