@@ -128,7 +128,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           })()}
           {!isTurning && (gen.stops || []).filter(Boolean).length > 0 && (
             <div className="mt-2 border border-gray-200 rounded p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Stops</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Program Stops</p>
               <ul className="text-xs text-gray-800 space-y-0.5">
                 {(gen.stops || []).filter(Boolean).map((s, i) => (
                   <li key={i}>#{i + 1}: {s}</li>

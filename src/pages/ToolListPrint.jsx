@@ -73,8 +73,8 @@ export default function ToolListPrint() {
               <p className="text-foreground font-semibold">{sheet.part_number || "N/A"}</p>
             </div>
             <div>
-              <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Job Number</p>
-              <p className="text-foreground font-semibold">{sheet.job_number || "N/A"}</p>
+              <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Machinist</p>
+              <p className="text-foreground font-semibold">{sheet.programmer || "N/A"}</p>
             </div>
             <div>
               <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Machine</p>
