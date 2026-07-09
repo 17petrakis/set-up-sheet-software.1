@@ -18,6 +18,57 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
 
   if (viewMode && !data.material && !data.material_color && !data.material_condition) return null;
 
+  if (viewMode) {
+    return (
+      <>
+        <div className={materialSpan}>
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            Material
+          </Label>
+          <ComboBox
+            value={data.material || ""}
+            onChange={update("material")}
+            options={MATERIAL_OPTIONS}
+            placeholder="Select or type…"
+            className="h-9 text-sm px-3 w-full"
+          />
+        </div>
+        {!hideExtras && data.material_color && (
+          <div className="sm:col-span-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Color
+            </Label>
+            <Input
+              value={data.material_color || ""}
+              onChange={(e) => update("material_color")(e.target.value)}
+              className="h-9 text-sm bg-background border-border/60"
+            />
+          </div>
+        )}
+        {!hideExtras && data.material_condition && (
+          <div className="sm:col-span-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Condition
+            </Label>
+            <Select
+              value={data.material_condition || ""}
+              onValueChange={(v) => onChange("material_condition", v)}
+            >
+              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                <span>{data.material_condition || "Select…"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                {MATERIAL_CONDITIONS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <div className={`${materialSpan} space-y-1.5`}>
@@ -25,7 +76,6 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Material
           </Label>
-          {(!viewMode || data.material_color_enabled || data.material_color) && (
           <label className="flex items-center gap-1 cursor-pointer select-none">
             <Checkbox
               checked={!!data.material_color_enabled}
@@ -33,8 +83,6 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
             />
             <span className="text-xs text-muted-foreground">Color</span>
           </label>
-          )}
-          {(!viewMode || data.material_condition_enabled || data.material_condition) && (
           <label className="flex items-center gap-1 cursor-pointer select-none">
             <Checkbox
               checked={!!data.material_condition_enabled}
@@ -42,7 +90,6 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
             />
             <span className="text-xs text-muted-foreground">Condition</span>
           </label>
-          )}
         </div>
         <ComboBox
           value={data.material || ""}

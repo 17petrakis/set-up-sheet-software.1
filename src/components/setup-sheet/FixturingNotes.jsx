@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import SectionHeader from "./SectionHeader";
 import { Wrench } from "lucide-react";
@@ -8,8 +9,21 @@ import VmcSection from "./fixturing/VmcSection";
 import DrillTapSection from "./fixturing/DrillTapSection";
 import BandsawSection from "./fixturing/BandsawSection";
 
+const hasData = (d) => {
+  if (d === null || d === undefined || d === '') return false;
+  if (typeof d === 'string') return d.trim() !== '';
+  if (typeof d === 'number') return d !== 0;
+  if (typeof d === 'boolean') return d;
+  if (Array.isArray(d)) return d.length > 0 && d.some(hasData);
+  if (typeof d === 'object') return Object.values(d).some(hasData);
+  return false;
+};
+
 export default function FixturingNotes({ data, onChange, machine }) {
+  const viewMode = useContext(ViewModeContext);
   const group = getMachineGroup(machine);
+
+  if (viewMode && !hasData(data)) return null;
 
   return (
     <Card className="border-border/50 shadow-sm">

@@ -33,7 +33,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
         {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
       </Label>
       {time ? (
-        <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} />
+        <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} viewMode={viewMode} />
       ) : (
         <Input
           type={type}
@@ -128,19 +128,15 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <Field label="Part Name" value={data.part_name} onChange={update("part_name")} />
         </div>
 
-        {/* Row 3: Material, Stock, Qty */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+        {/* Rows 3-5 merged: fields flow to fill gaps in view mode */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3" style={{ gridAutoFlow: 'dense' }}>
           <MaterialField data={data} onChange={onChange} />
           <Field label="Stock" note="(size)" value={data.stock} onChange={update("stock")} className={stockQtySpan} />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={stockQtySpan} />
-        </div>
-
-        {/* Row 4: Program #, Program Location, CAM */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-          <Field label="Program #" value={data.program} onChange={update("program")} />
-          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
+          <Field label="Program #" value={data.program} onChange={update("program")} className="sm:col-span-4" />
+          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-4" />
           {(!viewMode || data.program_software) && (
-          <div>
+          <div className="sm:col-span-4">
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
               CAM
             </Label>
@@ -153,10 +149,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             />
           </div>
           )}
-        </div>
-
-        {/* Row 5: Cycle Time, Program Desc., Date */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
           <Field
             label="Cycle Time (Includes Handling)"
             value={data.cycle_time}
@@ -164,9 +156,10 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             time
             hrs={data.cycle_time_hrs}
             onHrsChange={update("cycle_time_hrs")}
+            className="sm:col-span-4"
           />
-          <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
-          <Field label="Date" value={data.date} onChange={update("date")} type="date" />
+          <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} className="sm:col-span-4" />
+          <Field label="Date" value={data.date} onChange={update("date")} type="date" className="sm:col-span-4" />
         </div>
 
         {/* Stops */}

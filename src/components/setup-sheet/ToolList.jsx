@@ -132,7 +132,7 @@ export default function ToolList({ tools, onChange, machine }) {
                           <div
                             ref={prov.innerRef}
                             {...prov.draggableProps}
-                            className="group flex items-end gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/20 border border-transparent hover:border-border/40 transition-colors flex-wrap"
+                            className="group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors flex-wrap"
                           >
                             <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
                               <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />

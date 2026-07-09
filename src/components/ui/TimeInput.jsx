@@ -2,7 +2,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { parseTimeToSeconds } from "@/lib/timeFormat";
 
-export default function TimeInput({ value, onChange, hrs, onHrsChange }) {
+export default function TimeInput({ value, onChange, hrs, onHrsChange, viewMode }) {
   const totalSeconds = parseTimeToSeconds(value);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = Math.round(totalSeconds % 60);
@@ -16,6 +16,16 @@ export default function TimeInput({ value, onChange, hrs, onHrsChange }) {
       onChange(`${m}:${String(s).padStart(2, "0")}`);
     }
   };
+
+  if (viewMode) {
+    return (
+      <div className="flex items-center gap-3 text-sm font-semibold">
+        {onHrsChange && <span className="whitespace-nowrap">Hrs: {hrs || 0}</span>}
+        <span className="whitespace-nowrap">Min: {minutes || 0}</span>
+        <span className="whitespace-nowrap">Sec: {seconds || 0}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center px-2.5 py-1 rounded-md border border-border/60 bg-background w-full">
