@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -18,12 +19,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
 
-  const sorted = [...sheets].sort((a, b) => {
-    const ad = a.created_date ? new Date(a.created_date).getTime() : 0;
-    const bd = b.created_date ? new Date(b.created_date).getTime() : 0;
-    if (ad !== bd) return ad - bd;
-    return (a.operation_number || 1) - (b.operation_number || 1);
-  });
+  const sorted = [...sheets].sort((a, b) => (a.operation_number || 1) - (b.operation_number || 1));
   const folderId = sorted[0]?.folder_id;
   const nextOpNumber = sorted.length > 0 ? Math.max(...sorted.map(s => s.operation_number || 1)) + 1 : 2;
 
@@ -95,6 +91,20 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     navigate(`/sheet/${newSheet.id}`);
   };
 
+  const handleDragEnd = async (result) => {
+    if (!result.destination || result.source.index === result.destination.index) return;
+    const fromIndex = result.source.index;
+    const toIndex = result.destination.index;
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    const updates = reordered.map((s, i) => ({ ...s, operation_number: i + 1 }));
+    onSheetsChange(updates);
+    await base44.entities.SetupSheet.bulkUpdate(
+      updates.map(s => ({ id: s.id, operation_number: s.operation_number }))
+    );
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     await base44.entities.SetupSheet.delete(deleteTarget.id);
@@ -121,53 +131,82 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sorted.map(sheet => (
-          <div
-            key={sheet.id}
-            className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
-            onClick={() => navigate(`/sheet/${sheet.id}`)}
-          >
-            {sorted.length > 1 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-                title="Delete operation"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <div className="flex items-start gap-3 mb-3">
-              {sheet.photos?.iso ? (
-                <img src={sheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
-              ) : (
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-primary" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-foreground">Operation {sheet.operation_number || 1}</p>
-                <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
-              </div>
-            </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="operations">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            >
+              {sorted.map((sheet, index) => (
+                <Draggable key={sheet.id} draggableId={sheet.id} index={index}>
+                  {(dragProvided, snapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className={cn(
+                        "relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group",
+                        snapshot.isDragging && "shadow-lg border-primary/50 ring-2 ring-primary/20"
+                      )}
+                      onClick={() => navigate(`/sheet/${sheet.id}`)}
+                    >
+                      {sorted.length > 1 && (
+                        <>
+                          <div
+                            {...dragProvided.dragHandleProps}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
+                            title="Drag to reorder"
+                          >
+                            <GripVertical className="w-3.5 h-3.5" />
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
+                            title="Delete operation"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                      <div className="flex items-start gap-3 mb-3">
+                        {sheet.photos?.iso ? (
+                          <img src={sheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <FileText className="w-4 h-4 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-foreground">Operation {sheet.operation_number || 1}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
+                        </div>
+                      </div>
 
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
-              {sheet.machine && (
-                <div>
-                  <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
-                  <p className="text-foreground font-medium truncate">{sheet.machine}</p>
-                </div>
-              )}
-              {sheet.updated_date && (
-                <div>
-                  <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Updated</p>
-                  <p className="text-foreground font-medium">{format(new Date(sheet.updated_date), "MMM d")}</p>
-                </div>
-              )}
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                        {sheet.machine && (
+                          <div>
+                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
+                            <p className="text-foreground font-medium truncate">{sheet.machine}</p>
+                          </div>
+                        )}
+                        {sheet.updated_date && (
+                          <div>
+                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Updated</p>
+                            <p className="text-foreground font-medium">{format(new Date(sheet.updated_date), "MMM d")}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {showAddOp && (
         <AddOperationDialog

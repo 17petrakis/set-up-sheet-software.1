@@ -48,11 +48,12 @@ export default function Home() {
     // Open the part folder immediately when returning from a setup sheet,
     // so the dashboard doesn't flash before the folder loads.
     const folderId = params.get("folder");
-    if (folderId) {
+    const pn = params.get("pn");
+    if (folderId || pn) {
       setOpenFolder({
-        partNumber: params.get("pn") || "Unnamed",
+        partNumber: pn || "Unnamed",
         customer: params.get("cu") || "",
-        folderId,
+        folderId: folderId || undefined,
       });
       window.history.replaceState({}, "", "/");
     }

@@ -20,6 +20,7 @@ import TurningOperationsList from "@/components/setup-sheet/TurningOperationsLis
 import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
+import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
@@ -395,11 +396,7 @@ export default function SetupSheet() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
-              if (general.folder_id) {
-                navigate(`/?folder=${general.folder_id}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
-              } else {
-                navigate("/");
-              }
+              navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -411,12 +408,12 @@ export default function SetupSheet() {
               </div>
             )}
             <div>
-              <h1 className="text-sm md:text-lg font-bold tracking-tight text-foreground leading-none">
-                {general.part_number || "CNC Setup Sheet"}
+              <div className="flex items-center gap-2">
+                <InlineEditTitle value={general.part_number} onChange={(val) => handleGeneralChange("part_number", val)} />
                 {general.operation_number > 1 && (
-                  <span className="ml-2 text-sm font-medium text-muted-foreground">— Op {general.operation_number}</span>
+                  <span className="text-sm font-medium text-muted-foreground">— Op {general.operation_number}</span>
                 )}
-              </h1>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
               </p>
