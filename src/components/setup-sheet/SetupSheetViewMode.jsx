@@ -98,7 +98,6 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ...(gen.handling_time ? [["Handling Time", gen.handling_time]] : []),
               ...(gen.total_cycle_time ? [["Total Cycle", gen.total_cycle_time]] : []),
               ...(gen.automation ? [["Automated", gen.automation]] : []),
-              ...(gen.units ? [["Units", gen.units]] : []),
               ...(gen.date ? [["Date", gen.date]] : []),
             ].filter(([, v]) => v);
             if (fields.length === 0) return null;

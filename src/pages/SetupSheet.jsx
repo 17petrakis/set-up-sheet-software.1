@@ -472,16 +472,24 @@ export default function SetupSheet() {
 
             {mode === "edit" && (
               <>
-                {general.machine_type !== "turning" && (
-                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="h-9 gap-1.5 shrink-0">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span className="hidden md:inline">{importing ? "Importing..." : "Import"}</span>
-                  </Button>
-                )}
                 <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Eye className="w-4 h-4" />
                   View
                 </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>Tool List</span>
+                </Button>
+                {general.folder_id && (
+                  <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Op</span>
+                  </Button>
+                )}
               </>
             )}
 

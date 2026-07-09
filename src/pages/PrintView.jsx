@@ -144,7 +144,6 @@ export default function PrintView() {
                 ...(general.handling_time ? [["Handling Time", general.handling_time]] : []),
                 ...(general.total_cycle_time ? [["Total Cycle", general.total_cycle_time]] : []),
                 ...(general.automation ? [["Automated", general.automation]] : []),
-                ...(general.units ? [["Units", general.units]] : []),
                 ...(general.date ? [["Date", general.date]] : []),
               ].filter(([, v]) => v);
               const rows = [];
