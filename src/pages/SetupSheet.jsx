@@ -22,6 +22,7 @@ import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
 import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
+import SetupSheetViewMode from "@/components/setup-sheet/SetupSheetViewMode";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
@@ -55,7 +56,6 @@ export default function SetupSheet() {
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const latestData = useRef({});
-  const fieldsetRef = useRef(null);
   const menuRef = useRef(null);
 
   // Load existing sheet
@@ -425,38 +425,6 @@ export default function SetupSheet() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [mobileMenuOpen]);
 
-  // Hide empty field wrappers in view mode for a clean read-only display
-  useEffect(() => {
-    const fs = fieldsetRef.current;
-    if (!fs) return;
-
-    fs.querySelectorAll('[data-view-hidden="true"]').forEach(el => {
-      el.style.display = '';
-      el.removeAttribute('data-view-hidden');
-    });
-
-    if (mode !== "view") return;
-
-    // Hide leaf-level field wrappers (divs with a direct label/heading) that have no content
-    fs.querySelectorAll('div > label, div > span.uppercase').forEach(label => {
-      const wrapper = label.parentElement;
-      if (!wrapper || wrapper === fs || wrapper.hasAttribute('data-view-hidden')) return;
-      if (wrapper.querySelector('img')) return;
-      const hasFilledInput = Array.from(wrapper.querySelectorAll('input[type="text"], input[type="number"], input:not([type]), textarea')).some(i => i.value && i.value.trim());
-      if (hasFilledInput) return;
-      const hasCheckedBox = wrapper.querySelector('input[type="checkbox"]:checked, button[role="checkbox"][data-state="checked"]');
-      if (hasCheckedBox) return;
-      const hasFilledSelect = Array.from(wrapper.querySelectorAll('button[role="combobox"], button.view-display')).some(b => {
-        const text = b.textContent?.trim();
-        return text && !['Select…', 'Select or type…', '—', 'N/A'].includes(text);
-      });
-      if (hasFilledSelect) return;
-      if (wrapper.querySelectorAll('label, span.uppercase').length > 1) return;
-      wrapper.style.display = 'none';
-      wrapper.setAttribute('data-view-hidden', 'true');
-    });
-  }, [mode, general, tools, operations, partZero, photos, fixturingNotes, turningTools, turningChuck]);
-
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -614,73 +582,86 @@ export default function SetupSheet() {
 
       {/* Content */}
       <ViewModeContext.Provider value={mode === "view"}>
-      <fieldset ref={fieldsetRef} disabled={mode === "view"} className={mode === "view" ? "view-mode-fieldset" : ""}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
           <ImportBanner message={importError} onClose={() => setImportError(null)} />
         )}
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          {general.machine_type === "turning" ? (
-            <TurningGeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
-          ) : (
-            <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} machineType={general.machine_type} />
-          )}
-        </motion.div>
-
-        {general.machine_type === "turning" ? (
-          <>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-              <TurningChuckSection data={turningChuck} onChange={handleTurningChuckChange} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
-              <PartZero data={partZero} onChange={handlePartZeroChange} machineType="turning" />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-              <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-              <TurningOperationsList operations={operations} onChange={handleOperationsChange} />
-            </motion.div>
-          </>
+        {mode === "view" ? (
+          <SetupSheetViewMode
+            general={general}
+            tools={tools}
+            turningTools={turningTools}
+            partZero={partZero}
+            operations={operations}
+            photos={photos}
+            fixturingNotes={fixturingNotes}
+            turningChuck={turningChuck}
+          />
         ) : (
-          <>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.04 }}>
-              <FixturingNotes data={fixturingNotes} onChange={handleFixturingNotesChange} machine={general.machine} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-              <ToolList tools={tools} onChange={handleToolsChange} machine={general.machine} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-              <PartZero data={partZero} onChange={handlePartZeroChange} machineType="milling" />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-              <OperationsList operations={operations} onChange={handleOperationsChange} />
-            </motion.div>
-          </>
-        )}
-
-        {general.machine_type !== "turning" && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
-            {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
-              <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+        <>
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            {general.machine_type === "turning" ? (
+              <TurningGeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} />
+            ) : (
+              <GeneralInfo data={general} onChange={handleGeneralChange} onReplace={handleGeneralReplace} machineType={general.machine_type} />
             )}
           </motion.div>
-        )}
 
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
-          {(mode === "edit" || Object.values(photos).some(v => typeof v === "string" && v)) && (
-            <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
+          {general.machine_type === "turning" ? (
+            <>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+                <TurningChuckSection data={turningChuck} onChange={handleTurningChuckChange} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
+                <PartZero data={partZero} onChange={handlePartZeroChange} machineType="turning" />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+                <TurningOperationsList operations={operations} onChange={handleOperationsChange} />
+              </motion.div>
+            </>
+          ) : (
+            <>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.04 }}>
+                <FixturingNotes data={fixturingNotes} onChange={handleFixturingNotesChange} machine={general.machine} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+                <ToolList tools={tools} onChange={handleToolsChange} machine={general.machine} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                <PartZero data={partZero} onChange={handlePartZeroChange} machineType="milling" />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+                <OperationsList operations={operations} onChange={handleOperationsChange} />
+              </motion.div>
+            </>
           )}
-        </motion.div>
+
+          {general.machine_type !== "turning" && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
+              {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
+                <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+              )}
+            </motion.div>
+          )}
+
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+            {(mode === "edit" || Object.values(photos).some(v => typeof v === "string" && v)) && (
+              <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
+            )}
+          </motion.div>
+        </>
+        )}
       </main>
-      </fieldset>
       </ViewModeContext.Provider>
     </div>
   );
