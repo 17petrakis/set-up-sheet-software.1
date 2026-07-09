@@ -43,7 +43,7 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("tab") === "quality_control") {
       setActiveNav("quality_control");
-      window.history.replaceState({}, "", "/");
+      // Don't strip URL here — CMMDashboardContent reads cmm_folder/pn/cu params itself
     }
     // Open the part folder immediately when returning from a setup sheet,
     // so the dashboard doesn't flash before the folder loads.
