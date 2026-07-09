@@ -108,7 +108,15 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
         onChange(v);
       }
     }}>
-      <SelectTrigger className={`h-7 text-xs px-1.5 [&>span]:line-clamp-none ${className}`}
+      <SelectTrigger
+        onPointerDown={(e) => {
+          if (value) {
+            e.preventDefault();
+            setForcedOther(true);
+            onChange("");
+          }
+        }}
+        className={`h-7 text-xs px-1.5 [&>span]:line-clamp-none ${className}`}
         style={{ width: "fit-content", minWidth: "3rem" }}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
