@@ -24,65 +24,45 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));
   const folderId = sorted[0]?.folder_id;
 
-  // Fields shared between milling and turning general info
-  const SHARED_GENERAL_FIELDS = [
-    "job_number", "programmer", "revision", "date", "quantity",
-    "material", "units", "status", "program", "program_software",
-    "program_location", "machine", "photos",
-  ];
-  // Fields to never copy
-  const SYSTEM_FIELDS = ["id", "created_date", "updated_date", "created_by_id"];
-
   const handleAddOperation = async (machineType, opName) => {
     const isTurning = machineType === "turning";
-    const lastSheet = sorted[sorted.length - 1];
-    const sameType = lastSheet && lastSheet.machine_type === machineType;
+    // Carry part-level info from the FIRST (original) operation, not the last
+    const sourceSheet = sorted[0];
 
-    let createData;
+    // Operation-specific fields that should NOT be carried over
+    const EXCLUDE_FIELDS = [
+      "cycle_time", "cycle_time_hrs", "handling_time", "total_cycle_time",
+      "total_additional_time", "deburring_time", "finishing_time", "wash_time",
+      "has_deburring", "deburring_notes", "finishing_notes", "wash_notes",
+      "operation_description", "operation_notes", "work_holding_notes",
+      "fixturing_notes", "operation_name", "stops",
+      "id", "created_date", "updated_date", "created_by_id",
+      "operation_number", "folder_id", "sort_order",
+    ];
 
-    if (lastSheet && sameType) {
-      // Same type: copy everything except system fields and operation-specific text
-      const copy = { ...lastSheet };
-      SYSTEM_FIELDS.forEach(k => delete copy[k]);
-      delete copy.operation_number;
-      delete copy.folder_id;
-      delete copy.sort_order;
-      copy.operation_description = "";
-      copy.operation_notes = "";
-      copy.work_holding_notes = "";
-      copy.operation_name = opName;
-      createData = copy;
-    } else if (lastSheet && !sameType) {
-      // Different type: only copy shared general info fields
-      createData = {
-        ...emptyGeneral,
-        machine_type: machineType,
-        operation_name: opName,
-      };
-      SHARED_GENERAL_FIELDS.forEach(k => {
-        if (lastSheet[k] !== undefined && lastSheet[k] !== null && lastSheet[k] !== "") {
-          createData[k] = lastSheet[k];
-        }
-      });
-      // Set up defaults for the new type
-      createData.tools = isTurning ? [] : [{ ...emptyTool }];
-      createData.turning_tools = isTurning ? { ...emptyTurningTools } : undefined;
-      createData.part_zero = { ...emptyPartZero };
-      createData.operations = isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }];
-      createData.turning_chuck = isTurning ? { ...emptyTurningChuck } : undefined;
-    } else {
-      // No previous sheet at all
-      createData = {
-        ...emptyGeneral,
-        machine_type: machineType,
-        operation_name: opName,
-        tools: isTurning ? [] : [{ ...emptyTool }],
-        turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
-        part_zero: { ...emptyPartZero },
-        operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
-        turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
-      };
+    const carriedGeneral = sourceSheet
+      ? Object.fromEntries(Object.entries(sourceSheet).filter(([k]) => !EXCLUDE_FIELDS.includes(k)))
+      : {};
+
+    // Carry over only drawing, material stock, ISO view, and final part photos
+    const CARRY_PHOTOS = ["drawing", "material_stock", "iso", "final_part", "final_part_2"];
+    const carriedPhotos = {};
+    if (sourceSheet?.photos) {
+      CARRY_PHOTOS.forEach(k => { if (sourceSheet.photos[k]) carriedPhotos[k] = sourceSheet.photos[k]; });
     }
+
+    const createData = {
+      ...emptyGeneral,
+      ...carriedGeneral,
+      machine_type: machineType,
+      operation_name: opName,
+      tools: isTurning ? [] : [{ ...emptyTool }],
+      turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+      part_zero: { ...emptyPartZero },
+      operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
+      photos: carriedPhotos,
+      turning_chuck: isTurning ? { ...emptyTurningChuck } : undefined,
+    };
 
     const newSheet = await base44.entities.SetupSheet.create({
       ...createData,

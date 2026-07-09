@@ -521,7 +521,7 @@ export default function SetupSheet() {
               "total_additional_time", "deburring_time", "finishing_time", "wash_time",
               "has_deburring", "deburring_notes", "finishing_notes", "wash_notes",
               "operation_description", "operation_notes", "work_holding_notes",
-              "fixturing_notes", "operation_name",
+              "fixturing_notes", "operation_name", "stops",
             ];
             const carriedGeneral = Object.fromEntries(
               Object.entries(general).filter(([k]) => !EXCLUDE_FIELDS.includes(k))
