@@ -162,6 +162,24 @@ export function parseExcel(file) {
         if (!XLSX) { reject(new Error("SheetJS not loaded")); return; }
         const wb = XLSX.read(e.target.result, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
+
+        // Unmerge cells: copy top-left value to all cells in each merge range
+        // so that every row gets its proper value (fixes merged TYPE column, etc.)
+        if (ws['!merges']) {
+          for (const merge of ws['!merges']) {
+            const startCellAddr = XLSX.utils.encode_cell({ r: merge.s.r, c: merge.s.c });
+            const cellValue = ws[startCellAddr];
+            if (cellValue) {
+              for (let r = merge.s.r; r <= merge.e.r; r++) {
+                for (let c = merge.s.c; c <= merge.e.c; c++) {
+                  const addr = XLSX.utils.encode_cell({ r, c });
+                  if (!ws[addr]) ws[addr] = { ...cellValue };
+                }
+              }
+            }
+          }
+        }
+
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
         const general = {};
