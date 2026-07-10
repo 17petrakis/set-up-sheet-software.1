@@ -340,9 +340,7 @@ export function parseExcel(file) {
             const tool = { ...emptyTool, tool_number: toolNumStr };
 
             if (colMap.tool_type !== undefined && dataRow[colMap.tool_type] != null) {
-              const typeStr = String(dataRow[colMap.tool_type]).trim();
-              const correctCase = TOOL_TYPE_LOOKUP[typeStr.toLowerCase()];
-              tool.tool_type = correctCase || typeStr;
+              tool.tool_type = String(dataRow[colMap.tool_type]).trim();
             }
             for (const f of TOOL_FIELDS) {
               if (colMap[f.key] !== undefined && dataRow[colMap[f.key]] != null) {
