@@ -495,6 +495,7 @@ export function parseExcel(file) {
           break;
         }
 
+        console.log("[parseExcel] Parsed tools:", tools.map(t => ({ num: t.tool_number, type: t.tool_type })));
         resolve({ general, tools, partZero, operations });
       } catch (err) {
         reject(err);
