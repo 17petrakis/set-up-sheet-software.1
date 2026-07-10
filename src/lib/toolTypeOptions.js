@@ -5,6 +5,7 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Square", value: "Square" },
       { label: "Corner Radius", value: "Corner Radius" },
       { label: "Ball", value: "Ball" },
+      { label: "BEM", value: "BEM" },
       { label: "Lollipop", value: "Lollipop" },
       { label: "T-Slot", value: "T-Slot" },
       { label: "Chamfer Mill", value: "Chamfer Mill" },
@@ -12,6 +13,8 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Engraving", value: "Engraving" },
       { label: "Woodruff/Keyseat", value: "Woodruff/Keyseat" },
       { label: "Roughing/Corncob", value: "Roughing/Corncob" },
+      { label: "FEM", value: "FEM" },
+      { label: "REM", value: "REM" },
     ]
   },
   {
@@ -40,8 +43,6 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Dovetail Cutter", value: "Dovetail Cutter" },
       { label: "Slitting Saw", value: "Slitting Saw" },
       { label: "Form Tool", value: "Form Tool" },
-      { label: "FEM", value: "FEM" },
-      { label: "REM", value: "REM" },
       { label: "Key Cutter", value: "Key Cutter" },
     ]
   },
@@ -89,8 +90,9 @@ export const TOOL_FIELD_SHORT = {
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
 const ENDMILL_TYPES = [
-  "Square", "Corner Radius", "Ball", "Lollipop", "T-Slot",
+  "Square", "Corner Radius", "Ball", "BEM", "Lollipop", "T-Slot",
   "Chamfer Mill", "Thread Mill", "Engraving", "Woodruff/Keyseat", "Roughing/Corncob",
+  "FEM", "REM",
 ];
 const HOLE_MAKING_TYPES = [
   "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore",

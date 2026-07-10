@@ -23,6 +23,10 @@ export default function ToolList({ tools, onChange, machine }) {
 
   const sortByTNumber = (arr) =>
     [...arr].sort((a, b) => {
+      const aVal = (a.tool_number || "").toString().trim().toUpperCase();
+      const bVal = (b.tool_number || "").toString().trim().toUpperCase();
+      // "N/A" tools are accepted as-is — keep their relative position
+      if (aVal === "N/A" || bVal === "N/A") return 0;
       const aNum = parseInt(a.tool_number, 10);
       const bNum = parseInt(b.tool_number, 10);
       if (isNaN(aNum) && isNaN(bNum)) return 0;

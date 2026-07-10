@@ -300,6 +300,9 @@ export default function SetupSheet() {
         ? { ...general, ...result.general } : general;
       const newTools = result.tools?.length
         ? [...result.tools].sort((a, b) => {
+            const aVal = (a.tool_number || "").toString().trim().toUpperCase();
+            const bVal = (b.tool_number || "").toString().trim().toUpperCase();
+            if (aVal === "N/A" || bVal === "N/A") return 0;
             const aNum = parseInt(a.tool_number) || 0;
             const bNum = parseInt(b.tool_number) || 0;
             return aNum - bNum;
