@@ -296,7 +296,9 @@ export function parseExcel(file) {
           processedRows.add(headerIdx);
 
           // Read data rows
-          const toolFieldCols = ["tool_type", ...TOOL_FIELDS.map(f => f.key)];
+          // tool_type is excluded from continuation row appending to prevent corruption
+          const toolFieldCols = TOOL_FIELDS.map(f => f.key);
+          const allFieldCols = ["tool_type", ...toolFieldCols];
           for (let j = headerIdx + 1; j < rows.length; j++) {
             if (processedRows.has(j)) break;
             const dataRow = rows[j];
@@ -306,8 +308,8 @@ export function parseExcel(file) {
             const toolNum = dataRow[colMap.tool_number];
             const toolNumStr = toolNum != null ? String(toolNum).trim() : "";
 
-            // Check if row has any data in non-number columns
-            const hasOtherData = toolFieldCols.some(f =>
+            // Check if row has any data in non-number columns (including tool_type)
+            const hasOtherData = allFieldCols.some(f =>
               colMap[f] !== undefined && dataRow[colMap[f]] != null && String(dataRow[colMap[f]]).trim() !== ""
             );
 
@@ -328,8 +330,8 @@ export function parseExcel(file) {
               continue;
             }
 
-            // Only import tools with numerical tool numbers
-            if (!/^\d+$/.test(toolNumStr)) continue;
+            // Import tools with numerical tool numbers or "N/A"
+            if (!/^\d+$/.test(toolNumStr) && toolNumStr.toUpperCase() !== "N/A" && toolNumStr.toUpperCase() !== "#N/A") continue;
 
             if (existingToolNumbers.has(toolNumStr)) continue;
             existingToolNumbers.add(toolNumStr);
@@ -340,7 +342,7 @@ export function parseExcel(file) {
             if (colMap.tool_type !== undefined && dataRow[colMap.tool_type] != null) {
               const typeStr = String(dataRow[colMap.tool_type]).trim();
               const correctCase = TOOL_TYPE_LOOKUP[typeStr.toLowerCase()];
-              if (correctCase) tool.tool_type = correctCase;
+              tool.tool_type = correctCase || typeStr;
             }
             for (const f of TOOL_FIELDS) {
               if (colMap[f.key] !== undefined && dataRow[colMap[f.key]] != null) {
