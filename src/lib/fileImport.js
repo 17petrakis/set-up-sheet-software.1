@@ -155,18 +155,17 @@ export function parseExcel(file) {
         const wb = XLSX.read(e.target.result, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
 
-        // Unmerge cells: copy top-left value to all cells in each merge range
-        // so that every row gets its proper value (fixes merged TYPE column, etc.)
+        // Unmerge cells: propagate top-left value DOWN within the same column only.
+        // This fixes vertically merged cells (common in TYPE columns) without
+        // contaminating other columns from wide horizontal/rectangular merges.
         if (ws['!merges']) {
           for (const merge of ws['!merges']) {
             const startCellAddr = XLSX.utils.encode_cell({ r: merge.s.r, c: merge.s.c });
             const cellValue = ws[startCellAddr];
             if (cellValue) {
               for (let r = merge.s.r; r <= merge.e.r; r++) {
-                for (let c = merge.s.c; c <= merge.e.c; c++) {
-                  const addr = XLSX.utils.encode_cell({ r, c });
-                  if (!ws[addr]) ws[addr] = { ...cellValue };
-                }
+                const addr = XLSX.utils.encode_cell({ r, c: merge.s.c });
+                if (!ws[addr]) ws[addr] = { ...cellValue };
               }
             }
           }
@@ -267,6 +266,11 @@ export function parseExcel(file) {
         }
 
         // ── Pass 2: Tool lists ──
+        if (ws['!merges']) {
+          console.log("[import] merge ranges:", JSON.stringify(ws['!merges']));
+        } else {
+          console.log("[import] no merge ranges in worksheet");
+        }
         const existingToolNumbers = new Set();
         const processedRows = new Set();
 
@@ -303,6 +307,8 @@ export function parseExcel(file) {
             }
           }
           if (colMap.tool_number === undefined) continue;
+          console.log("[import] header row:", JSON.stringify(headerRow));
+          console.log("[import] colMap:", JSON.stringify(colMap));
           processedRows.add(headerIdx);
 
           // Read data rows
@@ -487,6 +493,7 @@ export function parseExcel(file) {
           break;
         }
 
+        console.log("[import] parsed tools:", JSON.stringify(tools.map(t => ({ num: t.tool_number, type: t.tool_type }))));
         resolve({ general, tools, partZero, operations });
       } catch (err) {
         reject(err);
