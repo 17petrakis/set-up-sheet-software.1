@@ -266,11 +266,6 @@ export function parseExcel(file) {
         }
 
         // ── Pass 2: Tool lists ──
-        if (ws['!merges']) {
-          console.log("[import] merge ranges:", JSON.stringify(ws['!merges']));
-        } else {
-          console.log("[import] no merge ranges in worksheet");
-        }
         const existingToolNumbers = new Set();
         const processedRows = new Set();
 
@@ -298,17 +293,18 @@ export function parseExcel(file) {
           const headerRow = rows[headerIdx];
           if (!headerRow) continue;
 
-          // Map columns by header text
+          // Map columns by header text — first match wins so duplicate headers
+          // (e.g. "TYPE" appearing in both tool list and operation sections on
+          // the same row) don't overwrite the correct tool column.
           const colMap = {};
           for (let c = 0; c < headerRow.length; c++) {
             const h = normalizeHeader(headerRow[c]);
-            if (toolHeaderMap[h] !== undefined) {
-              colMap[toolHeaderMap[h]] = c;
+            const mapped = toolHeaderMap[h];
+            if (mapped !== undefined && colMap[mapped] === undefined) {
+              colMap[mapped] = c;
             }
           }
           if (colMap.tool_number === undefined) continue;
-          console.log("[import] header row:", JSON.stringify(headerRow));
-          console.log("[import] colMap:", JSON.stringify(colMap));
           processedRows.add(headerIdx);
 
           // Read data rows
@@ -493,7 +489,6 @@ export function parseExcel(file) {
           break;
         }
 
-        console.log("[import] parsed tools:", JSON.stringify(tools.map(t => ({ num: t.tool_number, type: t.tool_type }))));
         resolve({ general, tools, partZero, operations });
       } catch (err) {
         reject(err);
