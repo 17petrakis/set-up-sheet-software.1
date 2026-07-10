@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Pencil } from "lucide-react";
 
 const ACCENT = "#0d9488";
 
@@ -53,9 +53,12 @@ function MenuPanel({ items, value, onSelect, onClose }) {
   );
 }
 
-export default function TreeCascadingDropdown({ value, onChange, options, placeholder = "Select…", className = "" }) {
+export default function TreeCascadingDropdown({ value, onChange, options, placeholder = "Select…", className = "", allowCustom = false }) {
   const [open, setOpen] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
+  const [customText, setCustomText] = useState("");
   const ref = useRef(null);
+  const customInputRef = useRef(null);
 
   const findLabel = (items) => {
     for (const item of items) {
@@ -73,11 +76,28 @@ export default function TreeCascadingDropdown({ value, onChange, options, placeh
     const handleClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpen(false);
+        setCustomMode(false);
       }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  useEffect(() => {
+    if (customMode && customInputRef.current) {
+      customInputRef.current.focus();
+      customInputRef.current.select();
+    }
+  }, [customMode]);
+
+  const commitCustom = () => {
+    const trimmed = customText.trim();
+    if (trimmed) {
+      onChange(trimmed);
+      setOpen(false);
+    }
+    setCustomMode(false);
+  };
 
   return (
     <div ref={ref} className={`relative ${className}`}>
@@ -94,6 +114,45 @@ export default function TreeCascadingDropdown({ value, onChange, options, placeh
       {open && (
         <div className="absolute z-[500] top-full left-0 mt-0.5">
           <MenuPanel items={options} value={value} onSelect={onChange} onClose={() => setOpen(false)} />
+          {allowCustom && (
+            <div className="bg-popover border-t border-border/60 rounded-b-md shadow-xl">
+              {customMode ? (
+                <div className="p-1.5 flex items-center gap-1">
+                  <input
+                    ref={customInputRef}
+                    type="text"
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); commitCustom(); }
+                      if (e.key === "Escape") { setCustomMode(false); setCustomText(""); }
+                    }}
+                    placeholder="Type tool name…"
+                    className="h-7 flex-1 px-2 text-xs rounded border border-border/60 bg-background focus:outline-none focus:border-primary/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={commitCustom}
+                    className="h-7 px-2 text-xs font-medium text-primary hover:bg-primary/10 rounded"
+                  >
+                    OK
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomText(value && !findLabel(options) ? value : "");
+                    setCustomMode(true);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-1.5 hover:bg-muted transition-colors text-muted-foreground"
+                >
+                  <Pencil className="w-3 h-3 shrink-0" />
+                  Custom…
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

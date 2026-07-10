@@ -161,6 +161,7 @@ export default function ToolList({ tools, onChange, machine }) {
                                 options={TOOL_TYPE_OPTIONS}
                                 placeholder="Select…"
                                 className="w-full"
+                                allowCustom
                               />
                             </div>
 
