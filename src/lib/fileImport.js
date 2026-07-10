@@ -1,14 +1,6 @@
 import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
-import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, getDefaultVisibleFields } from "@/lib/toolTypeOptions";
+import { TOOL_FIELDS, getDefaultVisibleFields } from "@/lib/toolTypeOptions";
 import JSZip from 'jszip';
-
-// Build a lookup of valid tool types (lowercase → correct case)
-const TOOL_TYPE_LOOKUP = {};
-TOOL_TYPE_OPTIONS.forEach(group => {
-  group.children.forEach(child => {
-    TOOL_TYPE_LOOKUP[child.value.toLowerCase()] = child.value;
-  });
-});
 
 function normalizeText(text) {
   return String(text || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -163,13 +155,6 @@ export function parseExcel(file) {
         const wb = XLSX.read(e.target.result, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
 
-        console.log("[parseExcel] merges:", JSON.stringify(ws['!merges']));
-        console.log("[parseExcel] Column B BEFORE unmerge:");
-        for (let r = 11; r <= 25; r++) {
-          const addr = XLSX.utils.encode_cell({ r, c: 1 });
-          console.log(addr, ws[addr]?.v);
-        }
-
         // Unmerge cells: copy top-left value to all cells in each merge range
         // so that every row gets its proper value (fixes merged TYPE column, etc.)
         if (ws['!merges']) {
@@ -185,12 +170,6 @@ export function parseExcel(file) {
               }
             }
           }
-        }
-
-        console.log("[parseExcel] Column B AFTER unmerge:");
-        for (let r = 11; r <= 25; r++) {
-          const addr = XLSX.utils.encode_cell({ r, c: 1 });
-          console.log(addr, ws[addr]?.v);
         }
 
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
@@ -508,7 +487,6 @@ export function parseExcel(file) {
           break;
         }
 
-        console.log("[parseExcel] Parsed tools:", tools.map(t => ({ num: t.tool_number, type: t.tool_type })));
         resolve({ general, tools, partZero, operations });
       } catch (err) {
         reject(err);
