@@ -145,6 +145,19 @@ function isToolHeaderRow(row) {
   return hasToolNum && hasToolField;
 }
 
+function isOpsHeaderRow(row) {
+  let hasOpNum = false;
+  let hasOpField = false;
+  for (let c = 0; c < row.length; c++) {
+    const h = normalizeHeader(row[c]);
+    if (h === "operation name") { hasOpField = true; continue; }
+    const mapped = opHeaderMap[h];
+    if (mapped === "op_number") hasOpNum = true;
+    else if (mapped) hasOpField = true;
+  }
+  return hasOpNum && hasOpField;
+}
+
 export function parseExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -367,26 +380,41 @@ export function parseExcel(file) {
         }
 
         // ── Pass 3: Operations ──
+        // Uses its own processed-rows set so that side-by-side layouts (where
+        // tool list and operations share the same rows but different columns)
+        // are not blocked by the tool list parser's processedRows.
+        const processedOpsRows = new Set();
+
         for (let i = 0; i < rows.length; i++) {
-          if (processedRows.has(i)) continue;
+          if (processedOpsRows.has(i)) continue;
           const row = rows[i];
           if (!row) continue;
 
-          let isOpsSection = false;
+          let headerIdx = -1;
+
+          // Check for "OPERATION LIST" / "OPERATIONS" section marker
           for (let c = 0; c < row.length; c++) {
             const norm = normalizeText(row[c]);
             if (norm.includes("operationlist") || norm.includes("operations")) {
-              isOpsSection = true;
+              headerIdx = i + 1;
               break;
             }
           }
-          if (!isOpsSection) continue;
-          processedRows.add(i);
 
-          const headerRow = rows[i + 1];
+          // If no marker, check if this row is itself an operations header row
+          // (handles side-by-side layouts where tool list and ops share a header row)
+          if (headerIdx < 0 && isOpsHeaderRow(row)) {
+            headerIdx = i;
+          }
+
+          if (headerIdx < 0) continue;
+          const headerRow = rows[headerIdx];
           if (!headerRow) continue;
-          processedRows.add(i + 1);
+          processedOpsRows.add(headerIdx);
 
+          // Map columns — last match wins so that when the same header text
+          // appears in both the tool list (left) and operations (right) sections,
+          // the operations column (rightmost) is used.
           const colMap = {};
           for (let c = 0; c < headerRow.length; c++) {
             const h = normalizeHeader(headerRow[c]);
@@ -404,8 +432,8 @@ export function parseExcel(file) {
             "operation_name", "comment", "tool_number", "min_z",
             "cycle_time", "type", "feed", "max_rpm", "cut_time",
           ];
-          for (let j = i + 2; j < rows.length; j++) {
-            if (processedRows.has(j)) break;
+          for (let j = headerIdx + 1; j < rows.length; j++) {
+            if (processedOpsRows.has(j)) break;
             const dataRow = rows[j];
             if (!dataRow) break;
             if (isSectionMarkerRow(dataRow)) break;
@@ -421,7 +449,7 @@ export function parseExcel(file) {
             if (opNumStr === "") {
               if (!hasOtherData) break; // completely empty row — end of section
               // Continuation row — append text to previous operation
-              processedRows.add(j);
+              processedOpsRows.add(j);
               if (operations.length > 0) {
                 const lastOp = operations[operations.length - 1];
                 for (const f of fieldCols) {
@@ -434,7 +462,7 @@ export function parseExcel(file) {
               continue;
             }
 
-            processedRows.add(j);
+            processedOpsRows.add(j);
 
             const op = { ...emptyOperation };
             op.op_number = opNumStr;
