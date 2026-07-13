@@ -21,7 +21,7 @@ const emptyTurningOp = { n_block: "", op_number: "", operation_name: "", comment
 const hasData = (ops) =>
   ops && ops.some(op => Object.values(op).some(v => v && String(v).trim()));
 
-export default function TurningOperationsList({ operations, onChange }) {
+export default function TurningOperationsList({ operations, onChange, includeInView, onIncludeInViewChange }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -44,13 +44,24 @@ export default function TurningOperationsList({ operations, onChange }) {
       <CardContent className="pt-5 pb-5">
         <Collapsible open={open} onOpenChange={setOpen}>
           <div className="flex items-center justify-between mb-4">
-            <CollapsibleTrigger className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Layers className="w-4 h-4 text-primary" />
-              </div>
-              <h2 className="text-base font-semibold text-foreground tracking-tight">Operations</h2>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-            </CollapsibleTrigger>
+            <div className="flex items-center gap-3">
+              <CollapsibleTrigger className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-primary" />
+                </div>
+                <h2 className="text-base font-semibold text-foreground tracking-tight">Operations</h2>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+              </CollapsibleTrigger>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!!includeInView}
+                  onChange={(e) => onIncludeInViewChange?.(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-border accent-primary"
+                />
+                <span className="text-xs font-medium text-muted-foreground">Include in View</span>
+              </label>
+            </div>
             <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
               <Plus className="w-3 h-3" /> Add Operation
             </Button>

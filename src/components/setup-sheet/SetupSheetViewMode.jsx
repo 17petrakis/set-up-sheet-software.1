@@ -350,7 +350,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {opsHasData && (() => {
+            {gen.operations_in_view && opsHasData && (() => {
               const filtered = filterOpColumns(TURNING_OP_COLS, TURNING_OP_KEYS, ops);
               return (
               <section>
@@ -423,7 +423,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {opsHasData && (() => {
+            {gen.operations_in_view && opsHasData && (() => {
               const filtered = filterOpColumns(OP_COLS, OP_KEYS, ops);
               return (
               <section>

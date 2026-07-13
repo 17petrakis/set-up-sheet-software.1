@@ -16,6 +16,7 @@ export const emptyGeneral = {
   total_cycle_time: "",
   work_holding_notes: "",
   operation_notes: "",
+  operations_in_view: false,
   status: "Active",
 };
 

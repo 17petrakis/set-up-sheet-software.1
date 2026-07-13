@@ -189,6 +189,11 @@
         "type": "object"
       }
     },
+    "operations_in_view": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether operations are included in view/print mode"
+    },
     "turning_chuck": {
       "type": "object",
       "description": "Chuck & work holding data for turning sheets"

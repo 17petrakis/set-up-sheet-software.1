@@ -706,7 +706,7 @@ export default function SetupSheet() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-                <TurningOperationsList operations={operations} onChange={handleOperationsChange} />
+                <TurningOperationsList operations={operations} onChange={handleOperationsChange} includeInView={general.operations_in_view} onIncludeInViewChange={(val) => handleGeneralChange("operations_in_view", val)} />
               </motion.div>
             </>
           ) : (
@@ -724,7 +724,7 @@ export default function SetupSheet() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-                <OperationsList operations={operations} onChange={handleOperationsChange} />
+                <OperationsList operations={operations} onChange={handleOperationsChange} includeInView={general.operations_in_view} onIncludeInViewChange={(val) => handleGeneralChange("operations_in_view", val)} />
               </motion.div>
             </>
           )}
