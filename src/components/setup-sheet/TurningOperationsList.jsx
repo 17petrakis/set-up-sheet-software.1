@@ -53,13 +53,13 @@ export default function TurningOperationsList({ operations, onChange, includeInV
                 <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
               </CollapsibleTrigger>
               <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <span className="text-xs font-medium text-muted-foreground">Include in View Mode</span>
                 <input
                   type="checkbox"
                   checked={!!includeInView}
                   onChange={(e) => onIncludeInViewChange?.(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-border accent-primary"
                 />
-                <span className="text-xs font-medium text-muted-foreground">Include in View</span>
               </label>
             </div>
             <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
