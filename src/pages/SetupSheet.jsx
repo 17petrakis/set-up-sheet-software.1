@@ -723,18 +723,16 @@ export default function SetupSheet() {
                 <PartZero data={partZero} onChange={handlePartZeroChange} machineType="milling" />
               </motion.div>
 
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.13 }}>
+                {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
+                  <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+                )}
+              </motion.div>
+
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
                 <OperationsList operations={operations} onChange={handleOperationsChange} includeInView={general.operations_in_view} onIncludeInViewChange={(val) => handleGeneralChange("operations_in_view", val)} />
               </motion.div>
             </>
-          )}
-
-          {general.machine_type !== "turning" && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.18 }}>
-              {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
-                <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
-              )}
-            </motion.div>
           )}
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>

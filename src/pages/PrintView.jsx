@@ -483,6 +483,16 @@ export default function PrintView() {
               </section>
               )}
 
+              {/* Operation Notes */}
+              {general.operation_notes && (
+                <section>
+                  <h2 className="print-section-title">Operation Notes</h2>
+                  <div className="border border-gray-200 rounded p-3">
+                    <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.operation_notes}</p>
+                  </div>
+                </section>
+              )}
+
               {/* Operations */}
               {general.operations_in_view && opsHasData && (() => {
                 const filtered = filterOpColumns(OP_COLS, OP_KEYS, operations);
@@ -504,7 +514,7 @@ export default function PrintView() {
           )}
 
           {/* Operation Notes */}
-          {general.operation_notes && (
+          {isTurning && general.operation_notes && (
             <section>
               <h2 className="print-section-title">Operation Notes</h2>
               <div className="border border-gray-200 rounded p-3">

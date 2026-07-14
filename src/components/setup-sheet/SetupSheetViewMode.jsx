@@ -423,6 +423,15 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
+            {gen.operation_notes && (
+              <section>
+                <SectionTitle>Operation Notes</SectionTitle>
+                <div className="border border-gray-200 rounded p-3">
+                  <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_notes}</p>
+                </div>
+              </section>
+            )}
+
             {gen.operations_in_view && opsHasData && (() => {
               const filtered = filterOpColumns(OP_COLS, OP_KEYS, ops);
               return (
@@ -444,7 +453,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           </>
         )}
 
-        {gen.operation_notes && (
+        {isTurning && gen.operation_notes && (
           <section>
             <SectionTitle>Operation Notes</SectionTitle>
             <div className="border border-gray-200 rounded p-3">
