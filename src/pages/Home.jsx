@@ -26,6 +26,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
+  const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -288,6 +289,16 @@ export default function Home() {
                 </Button>
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-5">{selectedCustomer}</h2>
+              <div className="mb-5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setNewSheetDefaultCustomer(selectedCustomer); setShowNewDialog(true); }}
+                  className="gap-2"
+                >
+                  <FilePlus className="w-4 h-4" /> Add Setup Sheet for Customer
+                </Button>
+              </div>
               {(grouped[selectedCustomer] || []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No sheets for this customer yet.</p>
               ) : (
@@ -430,7 +441,12 @@ export default function Home() {
       </div>
 
       {showNewDialog && (
-        <NewSheetDialog onClose={() => setShowNewDialog(false)} onCreate={handleCreated} existingCustomers={allCustomerNames} />
+        <NewSheetDialog
+          onClose={() => { setShowNewDialog(false); setNewSheetDefaultCustomer(""); }}
+          onCreate={handleCreated}
+          existingCustomers={allCustomerNames}
+          defaultCustomer={newSheetDefaultCustomer}
+        />
       )}
 
       {showAddCustomerDialog && (

@@ -23,6 +23,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
+  const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
   const [deleteFolderTarget, setDeleteFolderTarget] = useState(null);
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
 
@@ -159,6 +160,16 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
           </Button>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-5">{selectedCustomer}</h2>
+        <div className="mb-5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setNewSheetDefaultCustomer(selectedCustomer); setShowNewDialog(true); }}
+            className="gap-2"
+          >
+            <FilePlus className="w-4 h-4" /> Add CMM Sheet for Customer
+          </Button>
+        </div>
         {(grouped[selectedCustomer] || []).length === 0 ? (
           <p className="text-sm text-muted-foreground">No CMM sheets for this customer yet.</p>
         ) : (
@@ -313,9 +324,10 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
 
       {showNewDialog && (
         <NewCMMSheetDialog
-          onClose={() => setShowNewDialog(false)}
+          onClose={() => { setShowNewDialog(false); setNewSheetDefaultCustomer(""); }}
           onCreate={handleCreated}
           existingCustomers={allCustomerNames}
+          defaultCustomer={newSheetDefaultCustomer}
         />
       )}
 

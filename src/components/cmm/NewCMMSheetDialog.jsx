@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import ComboBox from "@/components/ui/ComboBox";
 
-export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
+export default function NewCMMSheetDialog({ onClose, onCreate, existingCustomers = [], defaultCustomer = "" }) {
   const [partNumber, setPartNumber] = useState("");
-  const [customer, setCustomer] = useState("");
+  const [customer, setCustomer] = useState(defaultCustomer);
   const [opName, setOpName] = useState("Op 1");
   const [saving, setSaving] = useState(false);
 

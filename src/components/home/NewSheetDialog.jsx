@@ -7,10 +7,10 @@ import { X } from "lucide-react";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import ComboBox from "@/components/ui/ComboBox";
 
-export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [] }) {
+export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [], defaultCustomer = "" }) {
   const [partNumber, setPartNumber] = useState("");
   const [machineType, setMachineType] = useState("milling");
-  const [customer, setCustomer] = useState("");
+  const [customer, setCustomer] = useState(defaultCustomer);
   const [saving, setSaving] = useState(false);
 
   const handleCreate = async () => {
