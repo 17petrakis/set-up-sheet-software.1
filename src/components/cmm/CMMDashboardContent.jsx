@@ -93,7 +93,15 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
     .slice(0, 8);
 
   const handleCreated = (sheet) => {
-    navigate(`/cmm-sheet/${sheet.id}`);
+    setSheets(prev => [sheet, ...prev]);
+    if (newSheetDefaultCustomer) {
+      // Created via "Add CMM Sheet for Customer" — keep user in the customer folder view
+      // so the new part folder is visible immediately.
+      setShowNewDialog(false);
+      setNewSheetDefaultCustomer("");
+    } else {
+      navigate(`/cmm-sheet/${sheet.id}`);
+    }
   };
 
   const handleDeleteFolder = async () => {
