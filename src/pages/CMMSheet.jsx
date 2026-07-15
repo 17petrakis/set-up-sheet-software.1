@@ -3,7 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, FileSpreadsheet, Settings2, Printer, Plus } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Settings2, Printer, Plus, Menu } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import FixturingSection from "@/components/cmm/FixturingSection";
 import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
@@ -101,14 +104,33 @@ export default function CMMSheet() {
               {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : sheet.customer || "Quality Control"}
             </p>
           </div>
+          {/* Desktop buttons */}
           {sheet.folder_id && (
-            <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="ml-auto gap-1.5 text-xs no-print">
+            <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="ml-auto gap-1.5 text-xs no-print hidden sm:inline-flex">
               <Plus className="w-4 h-4" /> Add Operation
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-1.5 text-xs no-print">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-1.5 text-xs no-print hidden sm:inline-flex">
             <Printer className="w-4 h-4" /> Print
           </Button>
+          {/* Mobile hamburger menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="ml-auto h-8 w-8 no-print sm:hidden">
+                <Menu className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {sheet.folder_id && (
+                <DropdownMenuItem onClick={() => setShowAddOp(true)} className="gap-2">
+                  <Plus className="w-4 h-4" /> Add Operation
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-2">
+                <Printer className="w-4 h-4" /> Print
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
