@@ -148,7 +148,7 @@ export default function CMMSheet() {
               <FieldGroup label="Cycle Time">
                 <TimeInput value={sheet.cycle_time || ""} onChange={v => update("cycle_time", v)} />
               </FieldGroup>
-              <FieldGroup label="Program Name" className="sm:col-span-2">
+              <FieldGroup label="Program Name">
                 <Input value={sheet.program_number || ""} onChange={e => update("program_number", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
               <FieldGroup label="Units">
