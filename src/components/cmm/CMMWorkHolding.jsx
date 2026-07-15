@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Plus, Trash2, Image, ZoomIn, Pencil } from "lucide-react";
+import { Camera, Upload, X, Plus, Trash2, Image, Pencil } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import PhotoMarkupEditor from "@/components/cmm/PhotoMarkupEditor";
 import {
@@ -150,9 +150,6 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
           <div className="flex items-center gap-1">
             {!noteOnly && item.photo_url && (
               <>
-                <button onClick={() => setLightbox(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors">
-                  <ZoomIn className="w-3.5 h-3.5" /> View
-                </button>
                 <button onClick={() => setMarkup(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
                   <Pencil className="w-3.5 h-3.5" /> Markup
                 </button>
