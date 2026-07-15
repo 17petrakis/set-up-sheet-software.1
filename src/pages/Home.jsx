@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
+import NewCMMSheetDialog from "@/components/cmm/NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
 import MobileNav from "@/components/home/MobileNav";
 import PartFolderCard from "@/components/home/PartFolderCard";
@@ -25,6 +26,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showNewCMMDialog, setShowNewCMMDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -252,7 +254,7 @@ export default function Home() {
             alt="Logo"
             className="h-7 w-auto object-contain"
           />
-          <button onClick={() => setShowNewDialog(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={() => activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
             <FilePlus className="w-5 h-5 text-foreground" />
           </button>
         </header>
@@ -462,6 +464,17 @@ export default function Home() {
             setCustomers(prev => [...prev, { name }]);
             setShowAddCustomerDialog(false);
           }}
+        />
+      )}
+
+      {showNewCMMDialog && (
+        <NewCMMSheetDialog
+          onClose={() => setShowNewCMMDialog(false)}
+          onCreate={(sheet) => {
+            setShowNewCMMDialog(false);
+            navigate(`/cmm-sheet/${sheet.id}`);
+          }}
+          existingCustomers={allCustomerNames}
         />
       )}
 
