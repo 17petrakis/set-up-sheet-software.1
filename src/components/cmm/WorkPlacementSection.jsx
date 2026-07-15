@@ -198,7 +198,20 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                   </select>
                 </div>
                 <div className="mb-2">
-                  <label className="text-xs text-muted-foreground block mb-1">Stacked Posts</label>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="text-xs text-muted-foreground">Stacked Posts</label>
+                    {stacked.length < 3 && (
+                      <label className="flex items-center gap-1 text-xs cursor-pointer shrink-0 ml-auto">
+                        <input
+                          type="checkbox"
+                          checked={false}
+                          onChange={() => toggleStacked(idx, stacked.length)}
+                          className="w-4 h-4 rounded border-input accent-primary"
+                        />
+                        <span className="text-muted-foreground">add</span>
+                      </label>
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {stacked.map((sz, sIdx) => (
                       <div key={sIdx} className="flex items-center gap-0.5 shrink-0">
@@ -219,17 +232,6 @@ export default function WorkPlacementSection({ items = [], onChange }) {
                         </button>
                       </div>
                     ))}
-                    {stacked.length < 3 && (
-                      <label className="flex items-center gap-1 text-xs cursor-pointer shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={false}
-                          onChange={() => toggleStacked(idx, stacked.length)}
-                          className="w-4 h-4 rounded border-input accent-primary"
-                        />
-                        <span className="text-muted-foreground">add</span>
-                      </label>
-                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
