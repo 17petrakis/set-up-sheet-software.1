@@ -246,16 +246,16 @@ export default function Home() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
-          <button onClick={() => setMobileNavOpen(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-            <Menu className="w-5 h-5 text-foreground" />
+          <button onClick={() => setMobileNavOpen(true)} className="p-2.5 -ml-2.5 rounded-lg hover:bg-muted transition-colors">
+            <Menu className="w-6 h-6 text-foreground" />
           </button>
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
             alt="Logo"
             className="h-7 w-auto object-contain"
           />
-          <button onClick={() => activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-            <FilePlus className="w-5 h-5 text-foreground" />
+          <button onClick={() => activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true)} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
+            <FilePlus className="w-6 h-6 text-foreground" />
           </button>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-8">

@@ -442,7 +442,12 @@ export default function SetupSheet() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
+            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 sm:hidden" onClick={() => {
+              navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
+            }}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1 hidden sm:inline-flex" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-4 h-4" />
@@ -526,7 +531,10 @@ export default function SetupSheet() {
             )}
 
             <div ref={menuRef} className="relative shrink-0">
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMobileMenuOpen(v => !v)}>
+              <Button variant="ghost" size="icon" className="h-10 w-10 -mr-1 sm:hidden" onClick={() => setMobileMenuOpen(v => !v)}>
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setMobileMenuOpen(v => !v)}>
                 {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               </Button>
               {mobileMenuOpen && (

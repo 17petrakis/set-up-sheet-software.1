@@ -80,7 +80,12 @@ export default function CMMSheet() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => {
+          <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 sm:hidden" onClick={() => {
+            navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
+          }}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1 hidden sm:inline-flex" onClick={() => {
             navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
           }}>
             <ArrowLeft className="w-4 h-4" />
@@ -116,8 +121,8 @@ export default function CMMSheet() {
           {/* Mobile hamburger menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="ml-auto h-8 w-8 no-print sm:hidden">
-                <Menu className="w-4 h-4" />
+              <Button variant="outline" size="icon" className="ml-auto h-10 w-10 no-print sm:hidden">
+                <Menu className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
