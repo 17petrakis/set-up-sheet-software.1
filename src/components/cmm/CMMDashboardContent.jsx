@@ -209,6 +209,15 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {showNewDialog && (
+          <NewCMMSheetDialog
+            onClose={() => { setShowNewDialog(false); setNewSheetDefaultCustomer(""); }}
+            onCreate={handleCreated}
+            existingCustomers={allCustomerNames}
+            defaultCustomer={newSheetDefaultCustomer}
+          />
+        )}
       </div>
     );
   }
