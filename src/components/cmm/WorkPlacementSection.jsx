@@ -7,9 +7,9 @@ const POST_SIZES = ["1.5 in.", "1.75 in.", "2.75 in.", "3.5 in."];
 const DEFAULT_STACKED_SIZE = "1.5 in.";
 
 const STANDARD_POSTS = [
-  { size: "1.5 in.", x: "18", y: "4" },
-  { size: "1.5 in.", x: "14", y: "6" },
-  { size: "1.5 in.", x: "14", y: "12" },
+  { size: "1.5 in.", x: "16", y: "30" },
+  { size: "1.5 in.", x: "16", y: "36" },
+  { size: "1.5 in.", x: "19", y: "38" },
 ];
 
 function isStandardConfig(items) {
