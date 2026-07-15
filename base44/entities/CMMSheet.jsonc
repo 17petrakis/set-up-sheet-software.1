@@ -65,6 +65,10 @@
     "program_notes": {
       "type": "string"
     },
+    "general_notes": {
+      "type": "string",
+      "description": "General notes for the CMM setup sheet"
+    },
     "operation_number": {
       "type": "number",
       "description": "Operation sequence number within the folder",

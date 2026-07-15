@@ -14,6 +14,7 @@ import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
 import CMMNotesSection from "@/components/cmm/CMMNotesSection";
 import CMMPrintView from "@/pages/CMMPrintView";
 import TimeInput from "@/components/ui/TimeInput";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import AddCMMOperationDialog from "@/components/cmm/AddCMMOperationDialog";
 import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 
@@ -187,6 +188,16 @@ export default function CMMSheet() {
                   <option value="in">in (inches)</option>
                   <option value="mm">mm (millimeters)</option>
                 </select>
+              </FieldGroup>
+            </div>
+            <div className="mt-5">
+              <FieldGroup label="General Notes">
+                <AutoResizeTextarea
+                  value={sheet.general_notes || ""}
+                  onChange={e => update("general_notes", e.target.value)}
+                  placeholder="Add general notes…"
+                  className="w-full text-sm"
+                />
               </FieldGroup>
             </div>
           </div>
