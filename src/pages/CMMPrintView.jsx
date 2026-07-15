@@ -93,9 +93,8 @@ export default function CMMPrintView() {
               <FieldRow label="Units" value={sheet.units === "mm" ? "mm" : "in"} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-6 mt-2">
-            <FieldRow label="Program #" value={sheet.program_number} />
-            <FieldRow label="Program Location" value={sheet.program_location} />
+          <div className="mt-2">
+            <FieldRow label="Program Name" value={sheet.program_number} />
           </div>
         </section>
 

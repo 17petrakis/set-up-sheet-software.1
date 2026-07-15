@@ -14,9 +14,9 @@ import TimeInput from "@/components/ui/TimeInput";
 import AddCMMOperationDialog from "@/components/cmm/AddCMMOperationDialog";
 import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 
-function FieldGroup({ label, children }) {
+function FieldGroup({ label, children, className }) {
   return (
-    <div>
+    <div className={className}>
       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">{label}</label>
       {children}
     </div>
@@ -148,11 +148,8 @@ export default function CMMSheet() {
               <FieldGroup label="Cycle Time">
                 <TimeInput value={sheet.cycle_time || ""} onChange={v => update("cycle_time", v)} />
               </FieldGroup>
-              <FieldGroup label="Program #">
+              <FieldGroup label="Program Name" className="sm:col-span-2">
                 <Input value={sheet.program_number || ""} onChange={e => update("program_number", e.target.value)} className="h-9 text-sm" />
-              </FieldGroup>
-              <FieldGroup label="Program Location">
-                <Input value={sheet.program_location || ""} onChange={e => update("program_location", e.target.value)} className="h-9 text-sm" />
               </FieldGroup>
               <FieldGroup label="Units">
                 <select
