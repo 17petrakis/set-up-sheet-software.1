@@ -153,6 +153,12 @@ export default function Home() {
     setOpenFolder(null);
     setCustomerSearch("");
     setSearch("");
+    // Record the active tab in the URL so the browser back button returns to
+    // the same tab (Home remounts on back and reads this param on mount).
+    const params = new URLSearchParams();
+    if (nav !== "dashboard") params.set("tab", nav);
+    const qs = params.toString();
+    window.history.replaceState({}, "", qs ? `/?${qs}` : "/");
   };
 
   // Get sheets for the open folder

@@ -52,7 +52,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
             sheets: folderSheets,
           });
         }
-        window.history.replaceState({}, "", "/");
+        window.history.replaceState({}, "", "/?tab=quality_control");
       }
     })();
   }, []);
