@@ -51,13 +51,22 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       CARRY_PHOTOS.forEach(k => { if (sourceSheet.photos[k]) carriedPhotos[k] = sourceSheet.photos[k]; });
     }
 
+    const sourceIsTurning = sourceSheet?.machine_type === "turning";
+    // Copy tool list from the source operation when the machine type matches
+    const carriedTools = (!isTurning && !sourceIsTurning && sourceSheet?.tools?.length)
+      ? sourceSheet.tools.map(t => ({ ...t }))
+      : (isTurning ? [] : [{ ...emptyTool }]);
+    const carriedTurningTools = (isTurning && sourceIsTurning && sourceSheet?.turning_tools)
+      ? JSON.parse(JSON.stringify(sourceSheet.turning_tools))
+      : (isTurning ? { ...emptyTurningTools } : undefined);
+
     const createData = {
       ...emptyGeneral,
       ...carriedGeneral,
       machine_type: machineType,
       operation_name: opName,
-      tools: isTurning ? [] : [{ ...emptyTool }],
-      turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+      tools: carriedTools,
+      turning_tools: carriedTurningTools,
       part_zero: { ...emptyPartZero },
       operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
       photos: carriedPhotos,
