@@ -645,13 +645,22 @@ export default function SetupSheet() {
             const carriedPhotos = {};
             CARRY_PHOTOS.forEach(k => { if (photos[k]) carriedPhotos[k] = photos[k]; });
 
+            const sourceIsTurning = general.machine_type === "turning";
+            // Copy tool list from the current operation when the machine type matches
+            const carriedTools = (!isTurning && !sourceIsTurning && tools?.length)
+              ? tools.map(t => ({ ...t }))
+              : (isTurning ? [] : [{ ...emptyTool }]);
+            const carriedTurningTools = (isTurning && sourceIsTurning && turningTools)
+              ? JSON.parse(JSON.stringify(turningTools))
+              : (isTurning ? { ...emptyTurningTools } : undefined);
+
             const createData = {
               ...emptyGeneral,
               ...carriedGeneral,
               machine_type: machineType,
               operation_name: opName,
-              tools: isTurning ? [] : [{ ...emptyTool }],
-              turning_tools: isTurning ? { ...emptyTurningTools } : undefined,
+              tools: carriedTools,
+              turning_tools: carriedTurningTools,
               part_zero: { ...emptyPartZero },
               operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
               photos: carriedPhotos,
