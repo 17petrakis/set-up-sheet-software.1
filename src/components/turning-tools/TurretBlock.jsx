@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { Trash2, ChevronDown, ChevronRight, GripVertical, Copy } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
+} from "@/components/ui/context-menu";
 import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -42,6 +45,15 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
 
   const removeTool = (i) => {
     setField("tools", (turret.tools || []).filter((_, idx) => idx !== i));
+  };
+
+  const duplicateTool = (i) => {
+    const original = turret.tools[i];
+    if (!original) return;
+    const copy = { ...JSON.parse(JSON.stringify(original)), _id: Date.now() + Math.random(), tool_number: "" };
+    const tools = [...(turret.tools || [])];
+    tools.splice(i + 1, 0, copy);
+    setField("tools", tools);
   };
 
   const onDragEnd = (result) => {
@@ -91,13 +103,22 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
                             <div {...provided.dragHandleProps} className="mt-2 p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
                               <GripVertical className="w-4 h-4" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <ToolRow
-                                tool={tool}
-                                onUpdate={(updated) => updateTool(i, updated)}
-                                onRemove={() => removeTool(i)}
-                              />
-                            </div>
+                            <ContextMenu>
+                              <ContextMenuTrigger asChild>
+                                <div className="flex-1 min-w-0">
+                                  <ToolRow
+                                    tool={tool}
+                                    onUpdate={(updated) => updateTool(i, updated)}
+                                    onRemove={() => removeTool(i)}
+                                  />
+                                </div>
+                              </ContextMenuTrigger>
+                              <ContextMenuContent>
+                                <ContextMenuItem onClick={() => duplicateTool(i)} className="gap-2">
+                                  <Copy className="w-3.5 h-3.5" /> Duplicate Tool
+                                </ContextMenuItem>
+                              </ContextMenuContent>
+                            </ContextMenu>
                           </div>
                         </div>
                       )}

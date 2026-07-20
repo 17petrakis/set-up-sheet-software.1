@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2, Pencil, GripVertical } from "lucide-react";
+import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
@@ -13,7 +13,9 @@ import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
-import { RefreshCw } from "lucide-react";
+import {
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
+} from "@/components/ui/context-menu";
 
 export default function ToolList({ tools, onChange, machine }) {
   const { toast } = useToast();
@@ -37,6 +39,12 @@ export default function ToolList({ tools, onChange, machine }) {
 
   const addRow = () => onChange([...tools, { ...emptyTool }]);
   const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
+  const duplicateRow = (i) => {
+    const copy = { ...tools[i], tool_number: "" };
+    const updated = [...tools];
+    updated.splice(i + 1, 0, copy);
+    onChange(updated);
+  };
   const updateCell = (i, key, val) => {
     const updated = [...tools];
     updated[i] = { ...updated[i], [key]: val };
@@ -133,6 +141,8 @@ export default function ToolList({ tools, onChange, machine }) {
                     return (
                       <Draggable key={i} draggableId={`tool-${i}`} index={i}>
                         {(prov) => (
+                          <ContextMenu>
+                          <ContextMenuTrigger asChild>
                           <div
                             ref={prov.innerRef}
                             {...prov.draggableProps}
@@ -203,6 +213,13 @@ export default function ToolList({ tools, onChange, machine }) {
                               </Button>
                             </div>
                           </div>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem onClick={() => duplicateRow(i)} className="gap-2">
+                              <Copy className="w-3.5 h-3.5" /> Duplicate Tool
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                          </ContextMenu>
                         )}
                       </Draggable>
                     );
