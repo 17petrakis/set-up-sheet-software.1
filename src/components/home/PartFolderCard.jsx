@@ -3,9 +3,14 @@ import { FileText, ChevronRight, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
+
 export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
+  // First operation in display order; use its ISO image, then its drawing as the part icon
+  const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
+  const iconImage = firstSheet?.photos?.iso || firstSheet?.photos?.drawing || primarySheet?.photos?.iso || primarySheet?.photos?.drawing;
 
   return (
     <div
@@ -21,8 +26,8 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
       </button>
 
       <div className="flex items-start gap-3 mb-3">
-        {primarySheet?.photos?.iso ? (
-          <img src={primarySheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+        {iconImage ? (
+          <img src={iconImage} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
         ) : (
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <FileText className="w-4 h-4 text-primary" />
