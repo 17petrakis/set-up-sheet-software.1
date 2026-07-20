@@ -44,8 +44,8 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       ? Object.fromEntries(Object.entries(sourceSheet).filter(([k]) => !EXCLUDE_FIELDS.includes(k)))
       : {};
 
-    // Carry over only drawing, material stock, ISO view, and final part photos
-    const CARRY_PHOTOS = ["drawing", "material_stock", "iso", "final_part", "final_part_2"];
+    // Carry over only the ISO view photo
+    const CARRY_PHOTOS = ["iso"];
     const carriedPhotos = {};
     if (sourceSheet?.photos) {
       CARRY_PHOTOS.forEach(k => { if (sourceSheet.photos[k]) carriedPhotos[k] = sourceSheet.photos[k]; });
