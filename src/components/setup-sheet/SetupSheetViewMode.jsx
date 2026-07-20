@@ -4,6 +4,7 @@ import { getMachineGroup } from "@/lib/machineGroups";
 import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
 import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
+import ViewPhoto from "./ViewPhoto";
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -181,7 +182,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                     <div className="space-y-3 mt-1.5">
                       {fix.photos.map((p, pi) => (
                         <div key={pi}>
-                          <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                          <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                           {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                         </div>
                       ))}
@@ -273,7 +274,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                               <div className="space-y-3 mt-1.5">
                                 {s.photos.map((p, pi) => (
                                   <div key={pi}>
-                                    <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                     {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                                   </div>
                                 ))}
@@ -469,9 +470,9 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               {allPhotoSlots.map(({ key, label }) => (
                 <div key={key} className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{label}</p>
-                  <img
-                    src={ph[key]}
-                    alt={label}
+                  <ViewPhoto
+                    url={ph[key]}
+                    label={label}
                     className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"
                     style={{ maxHeight: "600px" }}
                   />
