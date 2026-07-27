@@ -107,6 +107,11 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   };
 
   const opLabel = (sheet) => sheet.operation_name || "Operation";
+  const tileTitle = (sheet) => {
+    const parts = [sheet.part_number, opLabel(sheet)];
+    if (sheet.part_name) parts.push(sheet.part_name);
+    return parts.filter(Boolean).join(" - ");
+  };
 
   return (
     <div>
@@ -119,7 +124,9 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">{partNumber}</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            {partNumber}{sorted[0]?.part_name ? ` - ${sorted[0].part_name}` : ""}
+          </h2>
           {customer && <p className="text-sm text-muted-foreground mt-0.5">{customer}</p>}
         </div>
         <Button onClick={() => setShowAddOp(true)} className="gap-2" size="sm">
@@ -177,7 +184,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-foreground truncate">{opLabel(sheet)}</p>
+                          <p className="font-bold text-sm text-foreground truncate">{tileTitle(sheet)}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
                         </div>
                       </div>
