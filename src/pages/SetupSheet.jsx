@@ -296,8 +296,13 @@ export default function SetupSheet() {
     try {
       const [result, isoResult] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
 
+      const fileNameLower = file.name.toLowerCase();
+      const camFromName = fileNameLower.startsWith("set up sheet.g") ? "Gibbscam"
+        : fileNameLower.startsWith("set up sheet.m") ? "Mastercam" : null;
+
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
+      if (camFromName) newGen.program_software = camFromName;
       const newTools = result.tools?.length
         ? [...result.tools].sort((a, b) => {
             const aVal = (a.tool_number || "").toString().trim().toUpperCase();
