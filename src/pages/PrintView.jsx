@@ -137,7 +137,7 @@ export default function PrintView() {
                 ...(isTurning && general.stock ? [["Stock", general.stock]] : []),
                 ...(isTurning && general.consumed_per_part ? [["Length/1pc", general.consumed_per_part]] : []),
                 ["Qty", general.quantity],
-                ["Program #", general.program],
+                ["File Name", general.program],
                 ["Program Desc", general.program_description],
                 ...(general.program_location ? [["Program Location", general.program_location]] : []),
                 ...(general.cycle_time ? [["Cycle Time", general.cycle_time]] : []),

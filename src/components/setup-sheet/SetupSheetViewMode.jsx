@@ -92,7 +92,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ...(isTurning && gen.stock ? [["Stock", gen.stock]] : []),
               ...(isTurning && gen.consumed_per_part ? [["Length/1pc", gen.consumed_per_part]] : []),
               ["Qty", gen.quantity],
-              ["Program #", gen.program],
+              ["File Name", gen.program],
               ["Program Desc", gen.program_description],
               ...(gen.program_location ? [["Program Location", gen.program_location]] : []),
               ...(gen.cycle_time ? [["Cycle Time", gen.cycle_time]] : []),

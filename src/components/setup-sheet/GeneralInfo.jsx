@@ -133,7 +133,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <MaterialField data={data} onChange={onChange} />
           <Field label="Stock" note="(size)" value={data.stock} onChange={update("stock")} className={stockQtySpan} />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className={stockQtySpan} />
-          <Field label="Program #" value={data.program} onChange={update("program")} className="sm:col-span-4" />
+          <Field label="File Name" value={data.program} onChange={update("program")} className="sm:col-span-4" />
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-4" />
           {(!viewMode || data.program_software) && (
           <div className="sm:col-span-4">
