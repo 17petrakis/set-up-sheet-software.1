@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import { CLAMP_TYPES_HMC } from "@/lib/fixturingOptions";
@@ -27,6 +28,14 @@ export default function CustomFixtureFields({ data, onChange }) {
       </div>
       <FixturingField label="Clamp Type">
         <FixturingSelect value={data.clamp_type || ""} onChange={(v) => update("clamp_type", v)} options={CLAMP_TYPES_HMC} />
+      </FixturingField>
+      <FixturingField label="Notes">
+        <AutoResizeTextarea
+          value={data.fixture_note || ""}
+          onChange={(e) => update("fixture_note", e.target.value)}
+          placeholder="Fixture-specific notes…"
+          className="min-h-[60px] text-sm bg-background border-border/60"
+        />
       </FixturingField>
     </div>
   );

@@ -228,16 +228,16 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                   });
                 }
                 if (s.fixture_type === "Fixture Plate") {
-                  rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type]);
+                  rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type], ["Notes", s.fixture_note]);
                 }
                 if (s.fixture_type === "Vacuum Plate") {
-                  rows.push(["Plate ID/Size", s.plate_id]);
+                  rows.push(["Plate ID/Size", s.plate_id], ["Notes", s.fixture_note]);
                 }
                 if (s.fixture_type === "Collet Chuck") {
-                  rows.push(["Collet Size", s.collet_size]);
+                  rows.push(["Collet Size", s.collet_size], ["Part Stick-out", s.part_stickout]);
                 }
                 if (s.fixture_type === "Tallon Grip") {
-                  rows.push(["Grip Size", s.grip_size]);
+                  rows.push(["Notes", s.fixture_note]);
                 }
                 if (s.fixture_type === "Soft Jaw Pocket") {
                   rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set]);
@@ -245,7 +245,6 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               }
               if (s.work_stop) rows.push(["Work Stop", "Yes"]);
               if (s.workholding_note) rows.push(["Note", s.workholding_note]);
-              if (fGroup !== "hmc" && s.fixture_type === "Collet Chuck") rows.push(["Stickout", s.part_stickout]);
               return rows;
             };
 

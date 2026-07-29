@@ -46,7 +46,7 @@ export default function DrillTapStationCard({ station, index, onChange, onRemove
         <TallonGripFields data={station} onChange={onChange} />
       )}
 
-      <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" showStickout={station.fixture_type === "Collet Chuck"} />
+      <CommonStationFields data={station} onChange={onChange} showStickout={false} />
       <StationPhotos photos={station.photos || []} onChange={(photos) => onChange({ ...station, photos })} />
     </div>
   );
