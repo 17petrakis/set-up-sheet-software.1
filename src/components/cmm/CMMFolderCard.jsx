@@ -29,7 +29,7 @@ export default function CMMFolderCard({ folder, onOpen, onDelete }) {
       </div>
 
       {sheet?.description && (
-        <p className="text-xs text-muted-foreground truncate mb-2 italic">{sheet.description}</p>
+        <p className="text-xs text-muted-foreground truncate mb-2">{sheet.description}</p>
       )}
 
       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
