@@ -266,11 +266,14 @@ export default function PrintView() {
                      });
                    }
                    if (s.workholding_type === "Custom Fixture Block") {
-                   rows.push(["Notes", s.fixture_note]);
-                   }
-                   if (s.workholding_type === "Soft Jaw Pocket") {
-                     rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set]);
-                   }
+                    rows.push(["Notes", s.fixture_note]);
+                    }
+                    if (s.workholding_type === "Collet Chuck") {
+                      rows.push(["Collet Size", s.collet_size], ["Part Stick-out", s.part_stickout]);
+                    }
+                    if (s.workholding_type === "Soft Jaw Pocket") {
+                      rows.push(["Notes", s.fixture_note]);
+                    }
                 } else {
                   rows.push(["Fixture Type", s.fixture_type]);
                   if (s.fixture_type === "Vise") {
@@ -296,7 +299,7 @@ export default function PrintView() {
                     rows.push(["Notes", s.fixture_note]);
                   }
                   if (s.fixture_type === "Soft Jaw Pocket") {
-                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set]);
+                    rows.push(["Notes", s.fixture_note]);
                   }
                   }
                   if (s.work_stop) rows.push(["Work Stop", "Yes"]);

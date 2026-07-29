@@ -6,13 +6,14 @@ import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import StationPhotos from "./StationPhotos";
 import ViseFields from "./ViseFields";
+import ColletChuckFields from "./ColletChuckFields";
 import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
 import CommonStationFields from "./CommonStationFields";
 import WorkholdingNoteField from "./WorkholdingNoteField";
 import { HMC_TOMBSTONE_TYPES, HMC_FIXTURE_TYPES, HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
-const NOTE_WORKHOLDING_TYPES = ["Mitee-Bite / Edge Clamp", "Direct Clamp", "Dovetail Fixture", "Collet / Chuck"];
+const NOTE_WORKHOLDING_TYPES = ["Mitee-Bite / Edge Clamp", "Direct Clamp", "Dovetail Fixture"];
 
 const NO_TOMBSTONE_MACHINES = ["matsuuramx330", "matsuuramx520"];
 const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -83,6 +84,9 @@ export default function HmcStationCard({ station, index, machine, onChange, onRe
           )}
           {station.workholding_type === "Custom Fixture Block" && (
             <CustomFixtureFields data={station} onChange={onChange} />
+          )}
+          {station.workholding_type === "Collet Chuck" && (
+            <ColletChuckFields data={station} onChange={onChange} />
           )}
           {station.workholding_type === "Soft Jaw Pocket" && (
             <SoftJawPocketFields data={station} onChange={onChange} />

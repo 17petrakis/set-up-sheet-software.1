@@ -32,7 +32,7 @@ export default function CommonStationFields({ data, onChange, stickoutLabel = "P
         <AutoResizeTextarea
           value={data.notes || ""}
           onChange={(e) => update("notes", e.target.value)}
-          placeholder="Fixture-specific notes…"
+          placeholder="Workholding specific notes…"
           className="min-h-[60px] text-sm bg-background border-border/60"
         />
       </FixturingField>

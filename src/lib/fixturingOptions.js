@@ -25,7 +25,7 @@ export const HMC_WORKHOLDING = [
   "Soft Jaw Pocket",
   "Direct Clamp",
   "Dovetail Fixture",
-  "Collet / Chuck",
+  "Collet Chuck",
   "None",
 ];
 
