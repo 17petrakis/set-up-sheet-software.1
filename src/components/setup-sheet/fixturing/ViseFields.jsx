@@ -73,16 +73,7 @@ function SingleViseFields({ viseData, onChangeVise, trailing }) {
           </div>
         </FixturingField>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <FixturingField label="Work Offset">
-          <Input
-            value={viseData.work_offset || ""}
-            onChange={(e) => onChangeVise({ ...viseData, work_offset: e.target.value })}
-            className="h-9 text-sm bg-background border-border/60"
-          />
-        </FixturingField>
-        {trailing && <div className="flex items-end">{trailing}</div>}
-      </div>
+      {trailing && <div className="flex items-end">{trailing}</div>}
     </div>
   );
 }
