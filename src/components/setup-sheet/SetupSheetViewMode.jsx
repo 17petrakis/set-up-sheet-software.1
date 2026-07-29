@@ -259,7 +259,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                         const header = `Station ${i + 1}`;
                         return (
                           <div key={i} className="border border-gray-200 rounded p-2 bg-white">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
+                            {fGroup === "hmc" && <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                               {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                             </div>

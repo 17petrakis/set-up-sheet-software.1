@@ -311,11 +311,11 @@ export default function PrintView() {
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing Stations</p>
                       <div className="space-y-3">
                         {stations.map((s, i) => {
-                          const rows = renderStationRows(s, fGroup === "hmc");
-                          const header = `Station ${i + 1}`;
-                          return (
-                            <div key={i} className="border border-gray-200 rounded p-2 bg-white">
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
+                           const rows = renderStationRows(s, fGroup === "hmc");
+                           const header = `Station ${i + 1}`;
+                           return (
+                             <div key={i} className="border border-gray-200 rounded p-2 bg-white">
+                               {fGroup === "hmc" && <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
                                 {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                               </div>

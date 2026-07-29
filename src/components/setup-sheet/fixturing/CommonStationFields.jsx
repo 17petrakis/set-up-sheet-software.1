@@ -28,7 +28,7 @@ export default function CommonStationFields({ data, onChange, stickoutLabel = "P
           </span>
         </div>
       </FixturingField>
-      <FixturingField label="Fixture Note">
+      <FixturingField label="Workholding Note">
         <AutoResizeTextarea
           value={data.notes || ""}
           onChange={(e) => update("notes", e.target.value)}

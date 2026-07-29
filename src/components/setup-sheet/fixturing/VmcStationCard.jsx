@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import StationPhotos from "./StationPhotos";
@@ -10,25 +8,11 @@ import CustomFixtureFields from "./CustomFixtureFields";
 import CommonStationFields from "./CommonStationFields";
 import { VMC_FIXTURE_TYPES } from "@/lib/fixturingOptions";
 
-export default function VmcStationCard({ station, index, onChange, onRemove }) {
+export default function VmcStationCard({ station, onChange }) {
   const update = (field, val) => onChange({ ...station, [field]: val });
 
   return (
     <div className="border border-border/60 rounded-lg p-3 space-y-3 bg-muted/10">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Station {index + 1}
-        </span>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={onRemove}
-          className="h-7 w-7 text-destructive hover:text-destructive"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </Button>
-      </div>
-
       <FixturingField label="Fixture Type">
         <FixturingSelect
           value={station.fixture_type || ""}
