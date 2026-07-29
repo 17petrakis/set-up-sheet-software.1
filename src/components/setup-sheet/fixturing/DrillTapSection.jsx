@@ -1,7 +1,8 @@
 import DrillTapStationCard from "./DrillTapStationCard";
+import { emptyDrillTapStation } from "@/lib/fixturingOptions";
 
 export default function DrillTapSection({ data, onChange }) {
-  const stations = data.stations || [];
+  const stations = data.stations?.length ? data.stations : [{ ...emptyDrillTapStation }];
 
   const updateStation = (i, updated) => {
     const next = [...stations];

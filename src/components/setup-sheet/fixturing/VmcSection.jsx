@@ -1,7 +1,8 @@
 import VmcStationCard from "./VmcStationCard";
+import { emptyVmcStation } from "@/lib/fixturingOptions";
 
 export default function VmcSection({ data, onChange }) {
-  const stations = data.stations || [];
+  const stations = data.stations?.length ? data.stations : [{ ...emptyVmcStation }];
 
   const updateStation = (i, updated) => {
     const next = [...stations];
