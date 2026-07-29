@@ -67,6 +67,7 @@ function isSectionMarkerRow(row) {
 const generalLabels = [
   { label: "program location", field: "program_location" },
   { label: "file name", field: "program" },
+  { label: "machinist", field: "programmer" },
   { label: "programmer", field: "programmer" },
   { label: "program", field: "program" },
   { label: "prog", field: "program" },
