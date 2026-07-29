@@ -66,6 +66,7 @@ function isSectionMarkerRow(row) {
 // ── General info labels (order doesn't matter; findLabelInCell prevents partial matches) ──
 const generalLabels = [
   { label: "program location", field: "program_location" },
+  { label: "file name", field: "program" },
   { label: "programmer", field: "programmer" },
   { label: "program", field: "program" },
   { label: "prog", field: "program" },
