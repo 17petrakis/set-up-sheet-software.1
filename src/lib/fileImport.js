@@ -194,6 +194,14 @@ export function parseExcel(file) {
         let cycleTimeSeconds = 0;
         let hasCycleTime = false;
 
+        // ── Detect CAM from "Set Up Sheet.G" / "Set Up Sheet.M" in cell A1 ──
+        const firstCellText = normalizeText(rows[0]?.[0]);
+        if (firstCellText.startsWith("setupsheetg")) {
+          general.program_software = "Gibbscam";
+        } else if (firstCellText.startsWith("setupsheetm")) {
+          general.program_software = "Mastercam";
+        }
+
         // ── Pass 1: General info, CYCLE TIME, TIME ──
         rows.forEach((row) => {
           if (!row) return;
