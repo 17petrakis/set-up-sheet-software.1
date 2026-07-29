@@ -447,7 +447,7 @@ export default function SetupSheet() {
             }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 mr-1 hidden sm:inline-flex" onClick={() => {
+            <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:inline-flex" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-4 h-4" />

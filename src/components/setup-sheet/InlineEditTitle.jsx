@@ -35,10 +35,10 @@ export default function InlineEditTitle({ value, onChange, placeholder = "CNC Se
   return (
     <button
       onClick={() => setEditing(true)}
-      className="group flex items-center gap-1.5 text-sm md:text-lg font-bold tracking-tight text-foreground leading-none shrink-0 whitespace-nowrap view-display"
+      className="group relative flex items-center text-sm md:text-lg font-bold tracking-tight text-foreground leading-none shrink-0 whitespace-nowrap view-display"
     >
       <span>{value || placeholder}</span>
-      <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute -right-5 top-1/2 -translate-y-1/2" />
     </button>
   );
 }
