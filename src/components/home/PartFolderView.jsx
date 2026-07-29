@@ -119,7 +119,12 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">{partNumber}</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            {partNumber}
+            {sorted[0]?.part_name && sorted[0].part_name.trim() && (
+              <span className="text-muted-foreground"> — {sorted[0].part_name}</span>
+            )}
+          </h2>
           {customer && <p className="text-sm text-muted-foreground mt-0.5">{customer}</p>}
         </div>
         <Button onClick={() => setShowAddOp(true)} className="gap-2" size="sm">

@@ -467,6 +467,12 @@ export default function SetupSheet() {
                   value={general.operation_name || "Operation"}
                   onChange={(val) => handleGeneralChange("operation_name", val)}
                 />
+                {general.part_name && general.part_name.trim() && (
+                  <>
+                    <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
+                    <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.part_name}</span>
+                  </>
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
