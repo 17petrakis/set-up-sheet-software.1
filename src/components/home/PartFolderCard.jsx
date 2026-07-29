@@ -49,14 +49,13 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
       </div>
 
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide bg-slate-100 text-slate-600">
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wide bg-slate-100 text-slate-600 shrink-0">
           {opCount} {opCount === 1 ? "Operation" : "Operations"}
         </span>
+        {primarySheet?.part_name && primarySheet.part_name.trim() && (
+          <span className="text-xs text-foreground font-medium truncate">{primarySheet.part_name}</span>
+        )}
       </div>
-
-      {primarySheet?.part_name && primarySheet.part_name.trim() && (
-        <p className="text-xs text-foreground font-medium truncate mb-3">{primarySheet.part_name}</p>
-      )}
 
       <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
         {primarySheet?.job_number && (
