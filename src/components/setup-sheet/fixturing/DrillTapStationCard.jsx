@@ -6,6 +6,9 @@ import StationPhotos from "./StationPhotos";
 import ViseFields from "./ViseFields";
 import ColletChuckFields from "./ColletChuckFields";
 import TallonGripFields from "./TallonGripFields";
+import FixturePlateFields from "./FixturePlateFields";
+import VacuumPlateFields from "./VacuumPlateFields";
+import CustomFixtureFields from "./CustomFixtureFields";
 import CommonStationFields from "./CommonStationFields";
 import { DT_FIXTURE_TYPES, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
@@ -44,6 +47,15 @@ export default function DrillTapStationCard({ station, index, onChange, onRemove
       )}
       {station.fixture_type === "Tallon Grip" && (
         <TallonGripFields data={station} onChange={onChange} />
+      )}
+      {station.fixture_type === "Fixture Plate" && (
+        <FixturePlateFields data={station} onChange={onChange} />
+      )}
+      {station.fixture_type === "Vacuum Plate" && (
+        <VacuumPlateFields data={station} onChange={onChange} />
+      )}
+      {station.fixture_type === "Custom" && (
+        <CustomFixtureFields data={station} onChange={onChange} />
       )}
 
       <CommonStationFields data={station} onChange={onChange} showStickout={false} />

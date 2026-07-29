@@ -6,6 +6,7 @@ import StationPhotos from "./StationPhotos";
 import ViseFields from "./ViseFields";
 import FixturePlateFields from "./FixturePlateFields";
 import VacuumPlateFields from "./VacuumPlateFields";
+import CustomFixtureFields from "./CustomFixtureFields";
 import CommonStationFields from "./CommonStationFields";
 import { VMC_FIXTURE_TYPES } from "@/lib/fixturingOptions";
 
@@ -44,6 +45,9 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
       )}
       {station.fixture_type === "Vacuum Plate" && (
         <VacuumPlateFields data={station} onChange={onChange} />
+      )}
+      {station.fixture_type === "Custom" && (
+        <CustomFixtureFields data={station} onChange={onChange} />
       )}
 
       <CommonStationFields data={station} onChange={onChange} stickoutLabel="Part Stick-out" showStickout={false} />
