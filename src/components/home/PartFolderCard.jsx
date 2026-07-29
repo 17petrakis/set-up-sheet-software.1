@@ -54,6 +54,10 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
         </span>
       </div>
 
+      {primarySheet?.part_name && primarySheet.part_name.trim() && (
+        <p className="text-xs text-foreground font-medium truncate mb-3">{primarySheet.part_name}</p>
+      )}
+
       <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[11px]">
         {primarySheet?.job_number && (
           <div>
