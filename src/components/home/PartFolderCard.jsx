@@ -61,12 +61,7 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
             <p className="text-foreground font-medium truncate">{primarySheet.job_number}</p>
           </div>
         )}
-        {primarySheet?.part_name ? (
-          <div>
-            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Part Name</p>
-            <p className="text-foreground font-medium truncate">{primarySheet.part_name}</p>
-          </div>
-        ) : primarySheet?.machine && (
+        {primarySheet?.machine && (
           <div>
             <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
             <p className="text-foreground font-medium truncate">{primarySheet.machine}</p>
