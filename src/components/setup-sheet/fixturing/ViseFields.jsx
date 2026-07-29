@@ -84,7 +84,7 @@ export default function ViseFields({ data, onChange }) {
   const addVise = () => {
     const lastVise = additionalVises.length > 0
       ? additionalVises[additionalVises.length - 1]
-      : { vise_model: data.vise_model, vise_model_other: data.vise_model_other, jaw_type: data.jaw_type, parallels: data.parallels, parallel_height: data.parallel_height, work_offset: data.work_offset };
+      : { vise_model: data.vise_model, vise_model_other: data.vise_model_other, jaw_type: data.jaw_type, parallels: data.parallels, parallel_height: data.parallel_height };
     const newVise = { ...lastVise };
     onChange({ ...data, additional_vises: [...additionalVises, newVise] });
   };

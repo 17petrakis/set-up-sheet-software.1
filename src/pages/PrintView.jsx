@@ -256,49 +256,47 @@ export default function PrintView() {
                 if (isHmc) {
                   rows.push(["Pallet Note", s.pallet_note], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
                   if (s.workholding_type === "Vise") {
-                    rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["Work Offset", s.work_offset]);
-                    (s.additional_vises || []).forEach((v, vi) => {
-                      rows.push(
-                        [`Vise ${vi + 2} Model`, v.vise_model === "Other" ? (v.vise_model_other || "Other") : v.vise_model],
-                        [`Vise ${vi + 2} Jaw Type`, v.jaw_type],
-                        [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"],
-                        [`Vise ${vi + 2} Work Offset`, v.work_offset]
-                      );
-                    });
-                  }
-                  if (s.workholding_type === "Custom Fixture Block") {
-                    rows.push(["Block ID", s.fixture_block_id], ["Clamp Type", s.clamp_type], ["Parts/Face", s.parts_per_face], ["Work Offset", s.work_offset]);
-                  }
-                  if (s.workholding_type === "Soft Jaw Pocket") {
-                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
-                  }
+                     rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"]);
+                     (s.additional_vises || []).forEach((v, vi) => {
+                       rows.push(
+                         [`Vise ${vi + 2} Model`, v.vise_model === "Other" ? (v.vise_model_other || "Other") : v.vise_model],
+                         [`Vise ${vi + 2} Jaw Type`, v.jaw_type],
+                         [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"]
+                       );
+                     });
+                   }
+                   if (s.workholding_type === "Custom Fixture Block") {
+                     rows.push(["Block ID", s.fixture_block_id], ["Clamp Type", s.clamp_type], ["Parts/Face", s.parts_per_face]);
+                   }
+                   if (s.workholding_type === "Soft Jaw Pocket") {
+                     rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set]);
+                   }
                 } else {
                   rows.push(["Fixture Type", s.fixture_type]);
                   if (s.fixture_type === "Vise") {
-                    rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["# Vises", s.num_vises], ["Work Offset", s.work_offset]);
+                    rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["# Vises", s.num_vises]);
                     (s.additional_vises || []).forEach((v, vi) => {
                       rows.push(
                         [`Vise ${vi + 2} Model`, v.vise_model === "Other" ? (v.vise_model_other || "Other") : v.vise_model],
                         [`Vise ${vi + 2} Jaw Type`, v.jaw_type],
-                        [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"],
-                        [`Vise ${vi + 2} Work Offset`, v.work_offset]
+                        [`Vise ${vi + 2} Parallels`, v.parallels ? `Yes${v.parallel_height ? ` (${v.parallel_height})` : ""}` : "No"]
                       );
                     });
                   }
                   if (s.fixture_type === "Fixture Plate") {
-                    rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type], ["Work Offset", s.work_offset]);
+                    rows.push(["Plate ID", s.fixture_plate_id], ["Clamp Type", s.clamp_type]);
                   }
                   if (s.fixture_type === "Vacuum Plate") {
-                    rows.push(["Plate ID/Size", s.plate_id], ["Work Offset", s.work_offset]);
+                    rows.push(["Plate ID/Size", s.plate_id]);
                   }
                   if (s.fixture_type === "Collet Chuck") {
-                    rows.push(["Collet Size", s.collet_size], ["Work Offset", s.work_offset]);
+                    rows.push(["Collet Size", s.collet_size]);
                   }
                   if (s.fixture_type === "Tallon Grip") {
-                    rows.push(["Grip Size", s.grip_size], ["Work Offset", s.work_offset]);
+                    rows.push(["Grip Size", s.grip_size]);
                   }
                   if (s.fixture_type === "Soft Jaw Pocket") {
-                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
+                    rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set]);
                   }
                 }
                 if (s.work_stop) rows.push(["Work Stop", "Yes"]);

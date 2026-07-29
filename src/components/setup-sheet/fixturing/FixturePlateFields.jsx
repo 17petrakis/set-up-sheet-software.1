@@ -18,13 +18,6 @@ export default function FixturePlateFields({ data, onChange }) {
       <FixturingField label="Clamp Type">
         <ChipGroup value={data.clamp_type || ""} onChange={(v) => update("clamp_type", v)} options={CLAMP_TYPES_VMC} />
       </FixturingField>
-      <FixturingField label="Work Offset">
-        <Input
-          value={data.work_offset || ""}
-          onChange={(e) => update("work_offset", e.target.value)}
-          className="h-9 text-sm bg-background border-border/60"
-        />
-      </FixturingField>
     </div>
   );
 }

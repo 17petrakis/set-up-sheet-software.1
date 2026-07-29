@@ -28,13 +28,6 @@ export default function SoftJawPocketFields({ data, onChange }) {
           />
         </FixturingField>
       </div>
-      <FixturingField label="Work Offset">
-        <Input
-          value={data.work_offset || ""}
-          onChange={(e) => update("work_offset", e.target.value)}
-          className="h-9 text-sm bg-background border-border/60"
-        />
-      </FixturingField>
     </div>
   );
 }
