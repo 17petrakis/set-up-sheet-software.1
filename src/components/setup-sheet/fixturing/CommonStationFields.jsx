@@ -17,32 +17,22 @@ export default function CommonStationFields({ data, onChange, stickoutLabel = "P
           />
         </FixturingField>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <FixturingField label="Work Coordinate System">
-          <Input
-            value={data.work_coordinate_system || ""}
-            onChange={(e) => update("work_coordinate_system", e.target.value)}
-            placeholder="i.e. Fixed jaw center of part"
-            className="h-9 text-sm bg-background border-border/60"
+      <FixturingField label="Work Stop">
+        <div className="flex items-center gap-2 h-9">
+          <Checkbox
+            checked={!!data.work_stop}
+            onCheckedChange={(v) => update("work_stop", !!v)}
           />
-        </FixturingField>
-        <FixturingField label="Work Stop">
-          <div className="flex items-center gap-2 h-9">
-            <Checkbox
-              checked={!!data.work_stop}
-              onCheckedChange={(v) => update("work_stop", !!v)}
-            />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {data.work_stop ? "Yes" : "No"}
-            </span>
-          </div>
-        </FixturingField>
-      </div>
-      <FixturingField label="Station Notes">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {data.work_stop ? "Yes" : "No"}
+          </span>
+        </div>
+      </FixturingField>
+      <FixturingField label="Fixture Note">
         <AutoResizeTextarea
           value={data.notes || ""}
           onChange={(e) => update("notes", e.target.value)}
-          placeholder="Station-specific notes…"
+          placeholder="Fixture-specific notes…"
           className="min-h-[60px] text-sm bg-background border-border/60"
         />
       </FixturingField>

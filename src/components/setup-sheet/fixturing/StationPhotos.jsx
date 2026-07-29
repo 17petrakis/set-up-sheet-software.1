@@ -2,6 +2,7 @@ import React, { useState, useRef, useContext } from "react";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Plus, X, Loader2 } from "lucide-react";
 import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
 
@@ -47,17 +48,19 @@ export default function StationPhotos({ photos, onChange }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Photos</span>
-        <button
+        <Button
           type="button"
+          size="sm"
+          variant="outline"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 disabled:opacity-50 transition-colors"
+          className="h-8 px-3 text-xs gap-1.5"
         >
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-          Add photo
-        </button>
+          Add Photo
+        </Button>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       </div>
       {photosArr.map((p, i) => (

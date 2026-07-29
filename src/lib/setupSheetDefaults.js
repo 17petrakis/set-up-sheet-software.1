@@ -51,6 +51,7 @@ export const emptyPartZero = {
   z_min: "",
   coordinate_system: "",
   overall_depth_range: "",
+  work_coordinate_system: "",
 };
 
 export const emptyOperation = {

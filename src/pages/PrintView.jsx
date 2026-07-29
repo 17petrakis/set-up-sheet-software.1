@@ -254,7 +254,7 @@ export default function PrintView() {
               const renderStationRows = (s, isHmc) => {
                 const rows = [];
                 if (isHmc) {
-                  rows.push(["Pallet", s.pallet_id], ["Face", s.face_label], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
+                  rows.push(["Pallet Note", s.pallet_note], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
                   if (s.workholding_type === "Vise") {
                     rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["Work Offset", s.work_offset]);
                     (s.additional_vises || []).forEach((v, vi) => {
@@ -273,7 +273,7 @@ export default function PrintView() {
                     rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
                   }
                 } else {
-                  rows.push(["Station", s.station_label], ["Fixture Type", s.fixture_type]);
+                  rows.push(["Fixture Type", s.fixture_type]);
                   if (s.fixture_type === "Vise") {
                     rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"], ["# Vises", s.num_vises], ["Work Offset", s.work_offset]);
                     (s.additional_vises || []).forEach((v, vi) => {
@@ -301,7 +301,6 @@ export default function PrintView() {
                     rows.push(["Jaw Material", s.jaw_material], ["Pocket Depth", s.pocket_depth], ["Parts/Jaw Set", s.parts_per_jaw_set], ["Work Offset", s.work_offset]);
                   }
                 }
-                if (s.work_coordinate_system) rows.push(["Work Coord Sys", s.work_coordinate_system]);
                 if (s.work_stop) rows.push(["Work Stop", "Yes"]);
                 if (s.workholding_note) rows.push(["Note", s.workholding_note]);
                 if (fGroup !== "hmc" && s.fixture_type === "Collet Chuck") rows.push(["Stickout", s.part_stickout]);
@@ -316,9 +315,7 @@ export default function PrintView() {
                       <div className="space-y-3">
                         {stations.map((s, i) => {
                           const rows = renderStationRows(s, fGroup === "hmc");
-                          const header = fGroup === "hmc"
-                            ? `Station ${i + 1}${s.face_label ? ` — ${s.face_label}` : s.pallet_id ? ` — ${s.pallet_id}` : ""}`
-                            : (s.station_label || `Station ${i + 1}`);
+                          const header = `Station ${i + 1}`;
                           return (
                             <div key={i} className="border border-gray-200 rounded p-2 bg-white">
                               <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
@@ -460,25 +457,8 @@ export default function PrintView() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">
                     <InfoRow label="Coordinate System" value={partZero.coordinate_system} />
                     <InfoRow label="Overall Depth Range" value={partZero.overall_depth_range} />
+                    <InfoRow label="Work Coordinate System" value={partZero.work_coordinate_system} />
                   </div>
-                  {partZero.part_zero_enabled && (
-                    <table className="print-table w-full" style={{ maxWidth: "220px" }}>
-                      <thead><tr><th>Axis</th><th>Max</th><th>Min</th></tr></thead>
-                      <tbody>
-                        {[
-                          { axis: "X", max: partZero.x_max, min: partZero.x_min },
-                          { axis: "Y", max: partZero.y_max, min: partZero.y_min },
-                          { axis: "Z", max: partZero.z_max, min: partZero.z_min },
-                        ].map(({ axis, max, min }) => (
-                          <tr key={axis}>
-                            <td className="font-bold font-mono">{axis}</td>
-                            <td className="font-mono">{max}</td>
-                            <td className="font-mono">{min}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
                 </div>
               </section>
               )}

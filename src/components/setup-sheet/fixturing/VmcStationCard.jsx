@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import FixturingField from "./FixturingField";
@@ -17,7 +16,7 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
     <div className="border border-border/60 rounded-lg p-3 space-y-3 bg-muted/10">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          {station.station_label || `Station ${index + 1}`}
+          Station {index + 1}
         </span>
         <Button
           size="icon"
@@ -27,17 +26,6 @@ export default function VmcStationCard({ station, index, onChange, onRemove }) {
         >
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
-      </div>
-
-      <div className="sm:max-w-xs">
-        <FixturingField label="Station Label">
-          <Input
-            value={station.station_label || ""}
-            onChange={(e) => update("station_label", e.target.value)}
-            placeholder="Vise 1, Fixture"
-            className="h-9 text-sm bg-background border-border/60"
-          />
-        </FixturingField>
       </div>
 
       <FixturingField label="Fixture Type">

@@ -219,60 +219,15 @@ export default function PartZero({ data, onChange, machineType }) {
               </div>
             </div>
 
-            {/* PART ZERO checkbox */}
-            <div className="mt-4 border border-border/50 rounded-lg overflow-hidden">
-              <label className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={!!data.part_zero_enabled}
-                  onChange={(e) => onChange({ ...data, part_zero_enabled: e.target.checked })}
-                  className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-                />
-                <span className="text-sm font-medium text-foreground">Part Zero</span>
-              </label>
-
-              {data.part_zero_enabled && (
-                <div className="px-4 py-4">
-                  <div className="border border-border/50 rounded-lg overflow-hidden">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-muted/40 border-b border-border/50">
-                          <th className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-left py-2 px-3 w-16">Axis</th>
-                          <th className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-left py-2 px-3">MAX</th>
-                          <th className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-left py-2 px-3">MIN</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          { axis: "X", maxKey: "x_max", minKey: "x_min" },
-                          { axis: "Y", maxKey: "y_max", minKey: "y_min" },
-                          { axis: "Z", maxKey: "z_max", minKey: "z_min" },
-                        ].map(({ axis, maxKey, minKey }) => (
-                          <tr key={axis} className="border-b border-border/30 last:border-0">
-                            <td className="py-1.5 px-3 font-mono font-semibold text-sm text-foreground">{axis}</td>
-                            <td className="py-1 px-2">
-                              <Input
-                                value={data[maxKey] || ""}
-                                onChange={(e) => onChange({ ...data, [maxKey]: e.target.value })}
-                                placeholder="0.000"
-                                className="h-8 text-xs font-mono bg-transparent border-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                              />
-                            </td>
-                            <td className="py-1 px-2">
-                              <Input
-                                value={data[minKey] || ""}
-                                onChange={(e) => onChange({ ...data, [minKey]: e.target.value })}
-                                placeholder="0.000"
-                                className="h-8 text-xs font-mono bg-transparent border-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+            {/* Work Coordinate System */}
+            <div className="mt-4">
+              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Work Coordinate System</Label>
+              <AutoResizeTextarea
+                value={data.work_coordinate_system ?? ""}
+                onChange={(e) => onChange({ ...data, work_coordinate_system: e.target.value })}
+                placeholder="i.e. Fixed jaw center of part"
+                className="text-sm bg-background border-border/60 min-h-[60px]"
+              />
             </div>
           </>
         )}

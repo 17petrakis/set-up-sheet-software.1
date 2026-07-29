@@ -20,7 +20,7 @@ const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 export default function HmcStationCard({ station, index, machine, onChange, onRemove }) {
   const [collapsed, setCollapsed] = useState(false);
   const update = (field, val) => onChange({ ...station, [field]: val });
-  const summary = [station.pallet_id, station.face_label].filter(Boolean).join(" — ");
+  const summary = station.pallet_note || "";
   const noTombstone = NO_TOMBSTONE_MACHINES.includes(norm(machine));
   const structureOptions = noTombstone ? HMC_FIXTURE_TYPES : HMC_TOMBSTONE_TYPES;
 
@@ -48,20 +48,12 @@ export default function HmcStationCard({ station, index, machine, onChange, onRe
       </div>
       {!collapsed && (
         <div className="px-3 pb-3 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <FixturingField label="Pallet ID">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FixturingField label="Pallet Note">
               <Input
-                value={station.pallet_id || ""}
-                onChange={(e) => update("pallet_id", e.target.value)}
-                placeholder="01, A"
-                className="h-9 text-sm bg-background border-border/60"
-              />
-            </FixturingField>
-            <FixturingField label="Face / Station Label">
-              <Input
-                value={station.face_label || ""}
-                onChange={(e) => update("face_label", e.target.value)}
-                placeholder="Face 1, Station A"
+                value={station.pallet_note || ""}
+                onChange={(e) => update("pallet_note", e.target.value)}
+                placeholder="Pallet / face info"
                 className="h-9 text-sm bg-background border-border/60"
               />
             </FixturingField>

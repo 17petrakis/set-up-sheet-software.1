@@ -59,8 +59,7 @@ export const BANDSAW_BLADE_TPI = ["3/4", "6/10", "8/12", "10/14", "14"];
 
 // ── Empty station defaults ──
 export const emptyHmcStation = {
-  pallet_id: "",
-  face_label: "",
+  pallet_note: "",
   tombstone_structure: "",
   workholding_type: "",
   vise_model: "Kurt Vise",
