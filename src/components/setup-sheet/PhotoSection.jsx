@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Image, Plus, MessageSquare } from "lucide-react";
+import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import PhotoLightbox from "./PhotoLightbox";
 
@@ -13,7 +13,7 @@ const DEFAULT_SLOTS = [
   { key: "final_part_2", label: "Final Part 2" },
 ];
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, large, readOnly = false }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, large, readOnly = false }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
@@ -47,17 +47,29 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-foreground uppercase tracking-widest">{label}</span>
-        {url && !readOnly && (
-          <button
-            onClick={() => setShowNote((v) => !v)}
-            className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
-              showNote ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <MessageSquare className="w-3 h-3" />
-            {showNote ? "Hide note" : "Add note"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {url && !readOnly && (
+            <button
+              onClick={() => setShowNote((v) => !v)}
+              className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
+                showNote ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <MessageSquare className="w-3 h-3" />
+              {showNote ? "Hide note" : "Add note"}
+            </button>
+          )}
+          {onDeleteSlot && !readOnly && (
+            <button
+              onClick={onDeleteSlot}
+              className="no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted-foreground hover:text-destructive transition-colors"
+              title="Delete photo field"
+            >
+              <Trash2 className="w-3 h-3" />
+              Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Photo + note */}
@@ -149,6 +161,8 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 export default function PhotoSection({ photos = {}, onChange, readOnly = false }) {
   // Extra slots beyond the defaults, stored as array of { key, label } in photos.__extra_slots
   const extraSlots = photos.__extra_slots || [];
+  const addFileInputRef = useRef(null);
+  const [addingSlot, setAddingSlot] = useState(false);
 
   const handleUpload = (key, url) => onChange({ ...photos, [key]: url });
 
@@ -164,12 +178,23 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     onChange({ ...photos, [`${key}__note`]: note });
   };
 
-  const addSlot = () => {
-    const idx = extraSlots.length + 1;
-    const newKey = `extra_${Date.now()}`;
-    const newLabel = `Photo ${DEFAULT_SLOTS.length + idx}`;
-    const newExtra = [...extraSlots, { key: newKey, label: newLabel }];
-    onChange({ ...photos, __extra_slots: newExtra });
+  const handleAddPhotoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAddingSlot(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const idx = extraSlots.length + 1;
+      const newKey = `extra_${Date.now()}`;
+      const newLabel = `Photo ${DEFAULT_SLOTS.length + idx}`;
+      const newExtra = [...extraSlots, { key: newKey, label: newLabel }];
+      onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
+    } catch (err) {
+      alert("Upload failed: " + (err?.message || "Unknown error"));
+    } finally {
+      setAddingSlot(false);
+      e.target.value = "";
+    }
   };
 
   const removeExtraSlot = (key) => {
@@ -190,13 +215,21 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
           Photos
         </h2>
         {!readOnly && (
-        <button
-          onClick={addSlot}
-          className="no-print flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add Photo
-        </button>
+        <>
+          <button
+            onClick={() => addFileInputRef.current?.click()}
+            disabled={addingSlot}
+            className="no-print flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+          >
+            {addingSlot ? (
+              <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            ) : (
+              <Plus className="w-3.5 h-3.5" />
+            )}
+            Add Photo
+          </button>
+          <input ref={addFileInputRef} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleAddPhotoFile} />
+        </>
         )}
       </div>
       <div className="border-b border-border mb-5" />
@@ -212,6 +245,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
               note={photos[`${key}__note`]}
               onUpload={(url) => handleUpload(key, url)}
               onRemove={() => (isExtra ? removeExtraSlot(key) : handleRemove(key))}
+              onDeleteSlot={isExtra ? () => removeExtraSlot(key) : undefined}
               onNoteChange={(note) => handleNoteChange(key, note)}
               large={key === "work_holding"}
               readOnly={readOnly}
