@@ -17,7 +17,7 @@ import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
 } from "@/components/ui/context-menu";
 
-export default function ToolList({ tools, onChange, machine, slotCount }) {
+export default function ToolList({ tools, onChange, machine, slotCount, sheetId }) {
   const navigate = useNavigate();
   const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -73,7 +73,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
     if (!machine) return;
     const match = MACHINES.find(m => m.name === machine);
     if (match) {
-      navigate(`/machine-tool-lists/${encodeURIComponent(match.name)}`);
+      navigate(`/machine-tool-sync/${sheetId}`);
     }
   };
 
