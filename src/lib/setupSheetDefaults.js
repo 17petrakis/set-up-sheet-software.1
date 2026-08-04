@@ -23,7 +23,6 @@ export const emptyGeneral = {
 export const emptyTool = {
   tool_number: "",
   tool_type: "",
-  locked: false,
   angle: "",
   name: "",
   diameter: "",

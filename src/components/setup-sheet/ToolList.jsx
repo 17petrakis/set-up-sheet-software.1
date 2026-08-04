@@ -1,15 +1,10 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw, Lock, Unlock, Filter, FilterX } from "lucide-react";
-import {
-  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
@@ -17,15 +12,16 @@ import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
 import { useToast } from "@/components/ui/use-toast";
+import { base44 } from "@/api/base44Client";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
 } from "@/components/ui/context-menu";
 
-export default function ToolList({ tools, onChange, machine, slotCount }) {
+export default function ToolList({ tools, onChange, machine }) {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [syncing, setSyncing] = useState(false);
 
   const sortByTNumber = (arr) =>
     [...arr].sort((a, b) => {
@@ -41,43 +37,8 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
       return aNum - bNum;
     });
 
-  const isFixedSlots = slotCount != null;
-  const [unlockConfirmIndex, setUnlockConfirmIndex] = useState(null);
-  const [showOnlyFilled, setShowOnlyFilled] = useState(false);
-
-  const isToolEmpty = (tool) => {
-    const { tool_number, locked, visible_fields, ...rest } = tool || {};
-    return !Object.values(rest).some(v => v !== "" && v !== null && v !== undefined);
-  };
-
   const addRow = () => onChange([...tools, { ...emptyTool }]);
-  const toggleLock = (i) => {
-    const updated = [...tools];
-    updated[i] = { ...updated[i], locked: !updated[i].locked };
-    onChange(updated);
-  };
-  const removeRow = (i) => {
-    if (isFixedSlots) {
-      const updated = [...tools];
-      updated[i] = { ...emptyTool, tool_number: String(i + 1) };
-      onChange(updated);
-    } else {
-      onChange(tools.filter((_, idx) => idx !== i));
-    }
-  };
-  const handleRemoveClick = (i) => {
-    if (tools[i]?.locked) {
-      setUnlockConfirmIndex(i);
-    } else {
-      removeRow(i);
-    }
-  };
-  const confirmUnlockAndRemove = () => {
-    if (unlockConfirmIndex !== null) {
-      removeRow(unlockConfirmIndex);
-      setUnlockConfirmIndex(null);
-    }
-  };
+  const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
   const duplicateRow = (i) => {
     const copy = { ...tools[i], tool_number: "" };
     const updated = [...tools];
@@ -87,7 +48,6 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
   const updateCell = (i, key, val) => {
     const updated = [...tools];
     updated[i] = { ...updated[i], [key]: val };
-    if (isFixedSlots && key === "tool_number") return;
     onChange(key === "tool_number" ? sortByTNumber(updated) : updated);
   };
   const updateTool = (i, updated) => {
@@ -103,19 +63,49 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
   };
 
   const onDragEnd = (result) => {
-    if (isFixedSlots || !result.destination) return;
+    if (!result.destination) return;
     const reordered = [...tools];
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
     onChange(reordered);
   };
 
-  const handleGoToMachineList = () => {
+  const handleSync = async () => {
     if (!machine) {
-      toast({ title: "No machine selected", description: "Please select a machine first.", variant: "destructive" });
+      toast({ title: "No machine selected", description: "Please select a machine before syncing.", variant: "destructive" });
       return;
     }
-    navigate(`/machine-tool-lists/${encodeURIComponent(machine)}`);
+    setSyncing(true);
+    try {
+      const payload = {
+        machineId: machine,
+        tools: tools.map(t => ({
+          tool_number: t.tool_number,
+          tool_type: t.tool_type,
+          diameter: t.diameter,
+          holder: t.holder,
+          name: t.name,
+          flutes: t.flutes,
+          stickout_length: t.stickout_length,
+        })),
+      };
+      const res = await base44.functions.invoke('syncToolListToMachine', payload);
+      const data = res.data || res;
+      const t = toast({
+        title: "Machine tool list updated",
+        description: data.message || data.summary || "Sync complete.",
+      });
+      setTimeout(() => t.dismiss(), 30000);
+    } catch (err) {
+      const t = toast({
+        title: "Sync failed",
+        description: err?.response?.data?.error || err?.message || "Could not sync tool list.",
+        variant: "destructive",
+      });
+      setTimeout(() => t.dismiss(), 30000);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   if (viewMode && !tools.some(t => Object.values(t).some(v => v && String(v).trim()))) return null;
@@ -126,18 +116,12 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
         <SectionHeader icon={Wrench} title="Tool List">
           {tools.length > 0 && (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant={showOnlyFilled ? "default" : "outline"} onClick={() => setShowOnlyFilled(!showOnlyFilled)} className="h-7 text-xs gap-1.5">
-                {showOnlyFilled ? <Filter className="w-3 h-3" /> : <FilterX className="w-3 h-3" />}
-                {showOnlyFilled ? "Showing Filled" : "Show Filled Only"}
+              <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-7 text-xs gap-1.5">
+                <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
               </Button>
-              <Button size="sm" variant="outline" onClick={handleGoToMachineList} className="h-7 text-xs gap-1.5">
-                <RefreshCw className="w-3 h-3" /> Machine Tool List
+              <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+                <Plus className="w-3 h-3" /> Add Tool
               </Button>
-              {!isFixedSlots && (
-                <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-                  <Plus className="w-3 h-3" /> Add Tool
-                </Button>
-              )}
             </div>
           )}
         </SectionHeader>
@@ -152,12 +136,10 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             <Droppable droppableId="tool-list">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1">
-                  {tools.map((tool, i) => ({ tool, i }))
-                    .filter(({ tool }) => !showOnlyFilled || !isToolEmpty(tool))
-                    .map(({ tool, i: origIndex }, displayIndex) => {
+                  {tools.map((tool, i) => {
                     const visible = getEffectiveVisibleFields(tool);
                     return (
-                      <Draggable key={origIndex} draggableId={`tool-${origIndex}`} index={showOnlyFilled ? displayIndex : origIndex}>
+                      <Draggable key={i} draggableId={`tool-${i}`} index={i}>
                         {(prov) => (
                           <ContextMenu>
                           <ContextMenuTrigger asChild>
@@ -166,115 +148,76 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                             {...prov.draggableProps}
                             className="group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors flex-wrap"
                           >
-                            {!isFixedSlots && (
-                              <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
-                                <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
-                              </div>
-                            )}
+                            <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
+                              <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
+                            </div>
 
                             {/* T# */}
                             <div className="shrink-0 w-14">
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">T#</span>
-                              {isFixedSlots ? (
-                                <div className="h-8 flex items-center justify-center text-xs font-mono text-muted-foreground">
-                                  {origIndex + 1}
-                                </div>
-                              ) : (
-                                <Input
-                                  value={tool.tool_number || ""}
-                                  onChange={(e) => updateCell(origIndex, "tool_number", e.target.value)}
-                                  className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
-                                />
-                              )}
+                              <Input
+                                value={tool.tool_number || ""}
+                                onChange={(e) => updateCell(i, "tool_number", e.target.value)}
+                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
+                              />
                             </div>
 
-                            {isToolEmpty(tool) ? (
-                              <div className="flex-1 flex items-center gap-2 min-w-0">
-                                <span className="text-xs text-muted-foreground italic">Empty</span>
-                                <Button size="sm" variant="ghost" onClick={() => setEditingIndex(origIndex)} className="h-7 gap-1 text-xs">
-                                  <Plus className="w-3 h-3" /> Add Info
-                                </Button>
-                              </div>
-                            ) : (
-                              <>
-                                {/* Comment */}
-                                <div className="shrink-0 min-w-[120px]" style={{ width: `${Math.max(12, (tool.name || '').length + 2)}ch`, maxWidth: '400px' }}>
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
-                                  <Input
-                                    value={tool.name || ""}
-                                    onChange={(e) => updateCell(origIndex, "name", e.target.value)}
-                                    className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                  />
-                                </div>
+                            {/* Tool Type */}
+                            <div className="shrink-0 w-40">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
+                              <TreeCascadingDropdown
+                                value={tool.tool_type || ""}
+                                onChange={(v) => handleTypeChange(i, v)}
+                                options={TOOL_TYPE_OPTIONS}
+                                placeholder="Select…"
+                                className="w-full"
+                                allowCustom
+                              />
+                            </div>
 
-                                {/* Tool Type */}
-                                <div className="shrink-0 w-40">
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
-                                  <TreeCascadingDropdown
-                                    value={tool.tool_type || ""}
-                                    onChange={(v) => handleTypeChange(origIndex, v)}
-                                    options={TOOL_TYPE_OPTIONS}
-                                    placeholder="Select…"
-                                    className="w-full"
-                                    allowCustom
-                                  />
+                            {/* Dynamic fields */}
+                            {TOOL_FIELDS.filter(f => visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
+                              const options = getFieldOptions(f.key, tool.tool_type);
+                              const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
+                              return (
+                                <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                  {options ? (
+                                    <ComboBox
+                                      value={tool[f.key] || ""}
+                                      onChange={(v) => updateCell(i, f.key, v)}
+                                      options={options}
+                                      placeholder="—"
+                                      className="h-8 text-xs px-2 py-1 w-full"
+                                    />
+                                  ) : (
+                                    <Input
+                                      value={tool[f.key] || ""}
+                                      onChange={(e) => updateCell(i, f.key, e.target.value)}
+                                      className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                    />
+                                  )}
                                 </div>
-
-                                {/* Dynamic fields (excluding Comment/name) */}
-                                {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
-                                  const options = getFieldOptions(f.key, tool.tool_type);
-                                  const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
-                                  return (
-                                    <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
-                                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
-                                      {options ? (
-                                        <ComboBox
-                                          value={tool[f.key] || ""}
-                                          onChange={(v) => updateCell(origIndex, f.key, v)}
-                                          options={options}
-                                          placeholder="—"
-                                          className="h-8 text-xs px-2 py-1 w-full"
-                                        />
-                                      ) : (
-                                        <Input
-                                          value={tool[f.key] || ""}
-                                          onChange={(e) => updateCell(origIndex, f.key, e.target.value)}
-                                          className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                        />
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </>
-                            )}
+                              );
+                            })}
 
                             {/* Actions */}
                             <div className="flex items-end gap-0.5 ml-auto">
-                              {!isToolEmpty(tool) && (
-                                <>
-                                  <Button size="icon" variant="ghost" onClick={() => setEditingIndex(origIndex)}
-                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => toggleLock(origIndex)}
-                                    className={`h-7 w-7 transition-opacity ${tool.locked ? "text-amber-500 opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                                    {tool.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveClick(origIndex)}
-                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
+                              <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)}
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => removeRow(i)}
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
                             </div>
                           </div>
                           </ContextMenuTrigger>
                           <ContextMenuContent>
-                            {!isFixedSlots && (
-                              <ContextMenuItem onClick={() => duplicateRow(origIndex)} className="gap-2">
-                                <Copy className="w-3.5 h-3.5" /> Duplicate Tool
-                              </ContextMenuItem>
-                            )}
+                            <ContextMenuItem onClick={() => duplicateRow(i)} className="gap-2">
+                              <Copy className="w-3.5 h-3.5" /> Duplicate Tool
+                            </ContextMenuItem>
                           </ContextMenuContent>
                           </ContextMenu>
                         )}
@@ -288,7 +231,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
           </DragDropContext>
         )}
 
-        {tools.length > 0 && !isFixedSlots && (
+        {tools.length > 0 && (
           <div className="mt-3 flex justify-start">
             <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
               <Plus className="w-3 h-3" /> Add Tool
@@ -303,21 +246,6 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             onClose={() => setEditingIndex(null)}
           />
         )}
-
-        <AlertDialog open={unlockConfirmIndex !== null} onOpenChange={(open) => !open && setUnlockConfirmIndex(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Unlock and remove tool?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This tool is locked in the machine. Are you sure you want to unlock and remove it?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmUnlockAndRemove}>Unlock & Remove</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </CardContent>
     </Card>
   );
