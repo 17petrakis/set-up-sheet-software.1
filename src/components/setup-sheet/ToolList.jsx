@@ -37,8 +37,18 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
       return aNum - bNum;
     });
 
+  const isFixedSlots = slotCount != null;
+
   const addRow = () => onChange([...tools, { ...emptyTool }]);
-  const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
+  const removeRow = (i) => {
+    if (isFixedSlots) {
+      const updated = [...tools];
+      updated[i] = { ...emptyTool, tool_number: String(i + 1) };
+      onChange(updated);
+    } else {
+      onChange(tools.filter((_, idx) => idx !== i));
+    }
+  };
   const duplicateRow = (i) => {
     const copy = { ...tools[i], tool_number: "" };
     const updated = [...tools];
@@ -48,6 +58,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
   const updateCell = (i, key, val) => {
     const updated = [...tools];
     updated[i] = { ...updated[i], [key]: val };
+    if (isFixedSlots && key === "tool_number") return;
     onChange(key === "tool_number" ? sortByTNumber(updated) : updated);
   };
   const updateTool = (i, updated) => {
@@ -63,7 +74,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
   };
 
   const onDragEnd = (result) => {
-    if (!result.destination) return;
+    if (isFixedSlots || !result.destination) return;
     const reordered = [...tools];
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
@@ -89,9 +100,11 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
               <Button size="sm" variant="outline" onClick={handleGoToMachineList} className="h-7 text-xs gap-1.5">
                 <RefreshCw className="w-3 h-3" /> Machine Tool List
               </Button>
-              <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-                <Plus className="w-3 h-3" /> Add Tool
-              </Button>
+              {!isFixedSlots && (
+                <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+                  <Plus className="w-3 h-3" /> Add Tool
+                </Button>
+              )}
             </div>
           )}
         </SectionHeader>
@@ -118,18 +131,26 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                             {...prov.draggableProps}
                             className="group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors flex-wrap"
                           >
-                            <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
-                              <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
-                            </div>
+                            {!isFixedSlots && (
+                              <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
+                                <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
+                              </div>
+                            )}
 
                             {/* T# */}
                             <div className="shrink-0 w-14">
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">T#</span>
-                              <Input
-                                value={tool.tool_number || ""}
-                                onChange={(e) => updateCell(i, "tool_number", e.target.value)}
-                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
-                              />
+                              {isFixedSlots ? (
+                                <div className="h-8 flex items-center justify-center text-xs font-mono text-muted-foreground">
+                                  {i + 1}
+                                </div>
+                              ) : (
+                                <Input
+                                  value={tool.tool_number || ""}
+                                  onChange={(e) => updateCell(i, "tool_number", e.target.value)}
+                                  className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
+                                />
+                              )}
                             </div>
 
                             {/* Tool Type */}
@@ -185,9 +206,11 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                           </div>
                           </ContextMenuTrigger>
                           <ContextMenuContent>
-                            <ContextMenuItem onClick={() => duplicateRow(i)} className="gap-2">
-                              <Copy className="w-3.5 h-3.5" /> Duplicate Tool
-                            </ContextMenuItem>
+                            {!isFixedSlots && (
+                              <ContextMenuItem onClick={() => duplicateRow(i)} className="gap-2">
+                                <Copy className="w-3.5 h-3.5" /> Duplicate Tool
+                              </ContextMenuItem>
+                            )}
                           </ContextMenuContent>
                           </ContextMenu>
                         )}
@@ -201,7 +224,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
           </DragDropContext>
         )}
 
-        {tools.length > 0 && (
+        {tools.length > 0 && !isFixedSlots && (
           <div className="mt-3 flex justify-start">
             <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
               <Plus className="w-3 h-3" /> Add Tool
