@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Wrench } from "lucide-react";
-import ToolList from "@/components/setup-sheet/ToolList";
+import MachineToolListTable from "@/components/machine-tools/MachineToolListTable";
 import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { MACHINES, getToolSlots } from "@/lib/machines";
@@ -162,7 +162,7 @@ export default function MachineToolList() {
         {machine.type === "lathe" ? (
           <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} />
         ) : (
-          <ToolList tools={tools} onChange={setTools} machine={decodedName} slotCount={getToolSlots(machine)} />
+          <MachineToolListTable tools={tools} onChange={setTools} slotCount={getToolSlots(machine)} machineName={decodedName} />
         )}
       </section>
     </div>
