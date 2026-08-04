@@ -93,23 +93,23 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
             <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
             <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount} slots filled</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-1 max-w-md">
+            <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search tools…"
-                className="h-7 text-xs pl-7 w-40"
+                placeholder="Search tools..."
+                className="h-7 text-xs pl-7"
               />
             </div>
             <Button
               size="sm"
               variant={showOnlyFull ? "default" : "outline"}
               onClick={() => setShowOnlyFull(!showOnlyFull)}
-              className="h-7 text-xs gap-1.5"
+              className="h-7 text-xs gap-1.5 shrink-0"
             >
-              <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Show Only Full"}
+              <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Full only"}
             </Button>
           </div>
         </div>
