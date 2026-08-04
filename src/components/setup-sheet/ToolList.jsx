@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw, Lock, Unlock } from "lucide-react";
+import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw, Lock, Unlock, Filter, FilterX } from "lucide-react";
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
@@ -43,6 +43,8 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
 
   const isFixedSlots = slotCount != null;
   const [unlockConfirmIndex, setUnlockConfirmIndex] = useState(null);
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null);
+  const [showOnlyFilled, setShowOnlyFilled] = useState(false);
 
   const isToolEmpty = (tool) => {
     const { tool_number, locked, visible_fields, ...rest } = tool || {};
@@ -68,13 +70,19 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
     if (tools[i]?.locked) {
       setUnlockConfirmIndex(i);
     } else {
-      removeRow(i);
+      setDeleteConfirmIndex(i);
     }
   };
   const confirmUnlockAndRemove = () => {
     if (unlockConfirmIndex !== null) {
       removeRow(unlockConfirmIndex);
       setUnlockConfirmIndex(null);
+    }
+  };
+  const confirmDelete = () => {
+    if (deleteConfirmIndex !== null) {
+      removeRow(deleteConfirmIndex);
+      setDeleteConfirmIndex(null);
     }
   };
   const duplicateRow = (i) => {
@@ -125,6 +133,10 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
         <SectionHeader icon={Wrench} title="Tool List">
           {tools.length > 0 && (
             <div className="flex items-center gap-2">
+              <Button size="sm" variant={showOnlyFilled ? "default" : "outline"} onClick={() => setShowOnlyFilled(!showOnlyFilled)} className="h-7 text-xs gap-1.5">
+                {showOnlyFilled ? <Filter className="w-3 h-3" /> : <FilterX className="w-3 h-3" />}
+                {showOnlyFilled ? "Showing Filled" : "Show Filled Only"}
+              </Button>
               <Button size="sm" variant="outline" onClick={handleGoToMachineList} className="h-7 text-xs gap-1.5">
                 <RefreshCw className="w-3 h-3" /> Machine Tool List
               </Button>
@@ -147,10 +159,12 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             <Droppable droppableId="tool-list">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1">
-                  {tools.map((tool, i) => {
+                  {tools.map((tool, i) => ({ tool, i }))
+                    .filter(({ tool }) => !showOnlyFilled || !isToolEmpty(tool))
+                    .map(({ tool, i: origIndex }, displayIndex) => {
                     const visible = getEffectiveVisibleFields(tool);
                     return (
-                      <Draggable key={i} draggableId={`tool-${i}`} index={i}>
+                      <Draggable key={origIndex} draggableId={`tool-${origIndex}`} index={showOnlyFilled ? displayIndex : origIndex}>
                         {(prov) => (
                           <ContextMenu>
                           <ContextMenuTrigger asChild>
@@ -170,12 +184,12 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">T#</span>
                               {isFixedSlots ? (
                                 <div className="h-8 flex items-center justify-center text-xs font-mono text-muted-foreground">
-                                  {i + 1}
+                                  {origIndex + 1}
                                 </div>
                               ) : (
                                 <Input
                                   value={tool.tool_number || ""}
-                                  onChange={(e) => updateCell(i, "tool_number", e.target.value)}
+                                  onChange={(e) => updateCell(origIndex, "tool_number", e.target.value)}
                                   className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
                                 />
                               )}
@@ -184,7 +198,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                             {isToolEmpty(tool) ? (
                               <div className="flex-1 flex items-center gap-2 min-w-0">
                                 <span className="text-xs text-muted-foreground italic">Empty</span>
-                                <Button size="sm" variant="ghost" onClick={() => setEditingIndex(i)} className="h-7 gap-1 text-xs">
+                                <Button size="sm" variant="ghost" onClick={() => setEditingIndex(origIndex)} className="h-7 gap-1 text-xs">
                                   <Plus className="w-3 h-3" /> Add Info
                                 </Button>
                               </div>
@@ -195,7 +209,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
                                   <Input
                                     value={tool.name || ""}
-                                    onChange={(e) => updateCell(i, "name", e.target.value)}
+                                    onChange={(e) => updateCell(origIndex, "name", e.target.value)}
                                     className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
                                   />
                                 </div>
@@ -205,7 +219,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
                                   <TreeCascadingDropdown
                                     value={tool.tool_type || ""}
-                                    onChange={(v) => handleTypeChange(i, v)}
+                                    onChange={(v) => handleTypeChange(origIndex, v)}
                                     options={TOOL_TYPE_OPTIONS}
                                     placeholder="Select…"
                                     className="w-full"
@@ -223,7 +237,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                                       {options ? (
                                         <ComboBox
                                           value={tool[f.key] || ""}
-                                          onChange={(v) => updateCell(i, f.key, v)}
+                                          onChange={(v) => updateCell(origIndex, f.key, v)}
                                           options={options}
                                           placeholder="—"
                                           className="h-8 text-xs px-2 py-1 w-full"
@@ -231,7 +245,7 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                                       ) : (
                                         <Input
                                           value={tool[f.key] || ""}
-                                          onChange={(e) => updateCell(i, f.key, e.target.value)}
+                                          onChange={(e) => updateCell(origIndex, f.key, e.target.value)}
                                           className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
                                         />
                                       )}
@@ -241,33 +255,29 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                               </>
                             )}
 
-                            {/* Actions */}
-                            <div className="flex items-end gap-0.5 ml-auto">
-                              {!isToolEmpty(tool) && (
-                                <>
-                                  <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)}
-                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => toggleLock(i)}
-                                    className={`h-7 w-7 transition-opacity ${tool.locked ? "text-amber-500 opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                                    {tool.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                                  </Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveClick(i)}
-                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
+                            {tool.locked && (
+                              <div className="ml-auto flex items-end pb-1">
+                                <Lock className="w-3.5 h-3.5 text-amber-500" />
+                              </div>
+                            )}
                           </div>
                           </ContextMenuTrigger>
                           <ContextMenuContent>
+                            <ContextMenuItem onClick={() => setEditingIndex(origIndex)} className="gap-2">
+                              <Pencil className="w-3.5 h-3.5" /> Edit Tool
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => toggleLock(origIndex)} className="gap-2">
+                              {tool.locked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                              {tool.locked ? "Unlock Tool" : "Lock Tool"}
+                            </ContextMenuItem>
                             {!isFixedSlots && (
-                              <ContextMenuItem onClick={() => duplicateRow(i)} className="gap-2">
+                              <ContextMenuItem onClick={() => duplicateRow(origIndex)} className="gap-2">
                                 <Copy className="w-3.5 h-3.5" /> Duplicate Tool
                               </ContextMenuItem>
                             )}
+                            <ContextMenuItem onClick={() => handleRemoveClick(origIndex)} className="gap-2 text-destructive focus:text-destructive">
+                              <Trash2 className="w-3.5 h-3.5" /> Delete Tool
+                            </ContextMenuItem>
                           </ContextMenuContent>
                           </ContextMenu>
                         )}
@@ -308,6 +318,21 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmUnlockAndRemove}>Unlock & Remove</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={deleteConfirmIndex !== null} onOpenChange={(open) => !open && setDeleteConfirmIndex(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete tool?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this tool? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
