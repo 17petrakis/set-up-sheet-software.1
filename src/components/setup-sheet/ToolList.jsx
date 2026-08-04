@@ -5,7 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw } from "lucide-react";
+import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw, Lock, Unlock } from "lucide-react";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
@@ -38,8 +42,19 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
     });
 
   const isFixedSlots = slotCount != null;
+  const [unlockConfirmIndex, setUnlockConfirmIndex] = useState(null);
+
+  const isToolEmpty = (tool) => {
+    const { tool_number, locked, visible_fields, ...rest } = tool || {};
+    return !Object.values(rest).some(v => v !== "" && v !== null && v !== undefined);
+  };
 
   const addRow = () => onChange([...tools, { ...emptyTool }]);
+  const toggleLock = (i) => {
+    const updated = [...tools];
+    updated[i] = { ...updated[i], locked: !updated[i].locked };
+    onChange(updated);
+  };
   const removeRow = (i) => {
     if (isFixedSlots) {
       const updated = [...tools];
@@ -47,6 +62,19 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
       onChange(updated);
     } else {
       onChange(tools.filter((_, idx) => idx !== i));
+    }
+  };
+  const handleRemoveClick = (i) => {
+    if (tools[i]?.locked) {
+      setUnlockConfirmIndex(i);
+    } else {
+      removeRow(i);
+    }
+  };
+  const confirmUnlockAndRemove = () => {
+    if (unlockConfirmIndex !== null) {
+      removeRow(unlockConfirmIndex);
+      setUnlockConfirmIndex(null);
     }
   };
   const duplicateRow = (i) => {
@@ -153,55 +181,84 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                               )}
                             </div>
 
-                            {/* Tool Type */}
-                            <div className="shrink-0 w-40">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
-                              <TreeCascadingDropdown
-                                value={tool.tool_type || ""}
-                                onChange={(v) => handleTypeChange(i, v)}
-                                options={TOOL_TYPE_OPTIONS}
-                                placeholder="Select…"
-                                className="w-full"
-                                allowCustom
-                              />
-                            </div>
-
-                            {/* Dynamic fields */}
-                            {TOOL_FIELDS.filter(f => visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
-                              const options = getFieldOptions(f.key, tool.tool_type);
-                              const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
-                              return (
-                                <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
-                                  {options ? (
-                                    <ComboBox
-                                      value={tool[f.key] || ""}
-                                      onChange={(v) => updateCell(i, f.key, v)}
-                                      options={options}
-                                      placeholder="—"
-                                      className="h-8 text-xs px-2 py-1 w-full"
-                                    />
-                                  ) : (
-                                    <Input
-                                      value={tool[f.key] || ""}
-                                      onChange={(e) => updateCell(i, f.key, e.target.value)}
-                                      className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                    />
-                                  )}
+                            {isToolEmpty(tool) ? (
+                              <div className="flex-1 flex items-center gap-2 min-w-0">
+                                <span className="text-xs text-muted-foreground italic">Empty</span>
+                                <Button size="sm" variant="ghost" onClick={() => setEditingIndex(i)} className="h-7 gap-1 text-xs">
+                                  <Plus className="w-3 h-3" /> Add Info
+                                </Button>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Comment */}
+                                <div className="shrink-0 min-w-[120px]" style={{ width: `${Math.max(12, (tool.name || '').length + 2)}ch`, maxWidth: '400px' }}>
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
+                                  <Input
+                                    value={tool.name || ""}
+                                    onChange={(e) => updateCell(i, "name", e.target.value)}
+                                    className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                  />
                                 </div>
-                              );
-                            })}
+
+                                {/* Tool Type */}
+                                <div className="shrink-0 w-40">
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
+                                  <TreeCascadingDropdown
+                                    value={tool.tool_type || ""}
+                                    onChange={(v) => handleTypeChange(i, v)}
+                                    options={TOOL_TYPE_OPTIONS}
+                                    placeholder="Select…"
+                                    className="w-full"
+                                    allowCustom
+                                  />
+                                </div>
+
+                                {/* Dynamic fields (excluding Comment/name) */}
+                                {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
+                                  const options = getFieldOptions(f.key, tool.tool_type);
+                                  const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
+                                  return (
+                                    <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
+                                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                      {options ? (
+                                        <ComboBox
+                                          value={tool[f.key] || ""}
+                                          onChange={(v) => updateCell(i, f.key, v)}
+                                          options={options}
+                                          placeholder="—"
+                                          className="h-8 text-xs px-2 py-1 w-full"
+                                        />
+                                      ) : (
+                                        <Input
+                                          value={tool[f.key] || ""}
+                                          onChange={(e) => updateCell(i, f.key, e.target.value)}
+                                          className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </>
+                            )}
 
                             {/* Actions */}
                             <div className="flex items-end gap-0.5 ml-auto">
-                              <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)}
-                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Pencil className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button size="icon" variant="ghost" onClick={() => removeRow(i)}
-                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
+                              {!isToolEmpty(tool) && (
+                                <>
+                                  <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)}
+                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => toggleLock(i)}
+                                    className={`h-7 w-7 transition-opacity ${tool.locked ? "text-amber-500 opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                                    {tool.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveClick(i)}
+                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                           </ContextMenuTrigger>
@@ -239,6 +296,21 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             onClose={() => setEditingIndex(null)}
           />
         )}
+
+        <AlertDialog open={unlockConfirmIndex !== null} onOpenChange={(open) => !open && setUnlockConfirmIndex(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unlock and remove tool?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This tool is locked in the machine. Are you sure you want to unlock and remove it?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmUnlockAndRemove}>Unlock & Remove</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

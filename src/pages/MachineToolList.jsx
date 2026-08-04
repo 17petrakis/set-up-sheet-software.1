@@ -24,8 +24,11 @@ export default function MachineToolList() {
 
   const cleanTools = (arr) =>
     (arr || []).filter((t) => {
-      const { tool_number, ...rest } = t || {};
+      const { tool_number, locked, visible_fields, ...rest } = t || {};
       return Object.values(rest).some((v) => v !== "" && v !== null && v !== undefined);
+    }).map((t) => {
+      const { locked, ...data } = t;
+      return locked ? { ...data, locked } : data;
     });
 
   const buildSlotTools = (loaded, slotCount) => {
