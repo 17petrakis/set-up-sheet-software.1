@@ -87,31 +87,29 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
-            <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount} slots filled</span>
+        <div className="flex items-center gap-2 mb-3">
+          <Wrench className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
+          <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount} slots filled</span>
+        </div>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="relative flex-1">
+            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tools..."
+              className="h-7 text-xs pl-7"
+            />
           </div>
-          <div className="flex items-center gap-2 flex-1 max-w-md">
-            <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search tools..."
-                className="h-7 text-xs pl-7"
-              />
-            </div>
-            <Button
-              size="sm"
-              variant={showOnlyFull ? "default" : "outline"}
-              onClick={() => setShowOnlyFull(!showOnlyFull)}
-              className="h-7 text-xs gap-1.5 shrink-0"
-            >
-              <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Full only"}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            variant={showOnlyFull ? "default" : "outline"}
+            onClick={() => setShowOnlyFull(!showOnlyFull)}
+            className="h-7 text-xs gap-1.5 shrink-0"
+          >
+            <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Full only"}
+          </Button>
         </div>
 
         <div className="space-y-1">
