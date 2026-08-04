@@ -1,27 +1,26 @@
 import React, { useState, useContext } from "react";
 import { ViewModeContext } from "@/lib/viewModeContext";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, RefreshCw } from "lucide-react";
+import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, ExternalLink } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
-import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+import { MACHINES } from "@/lib/machines";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
 } from "@/components/ui/context-menu";
 
-export default function ToolList({ tools, onChange, machine }) {
-  const { toast } = useToast();
+export default function ToolList({ tools, onChange, machine, slotCount }) {
+  const navigate = useNavigate();
   const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [syncing, setSyncing] = useState(false);
 
   const sortByTNumber = (arr) =>
     [...arr].sort((a, b) => {
@@ -70,41 +69,11 @@ export default function ToolList({ tools, onChange, machine }) {
     onChange(reordered);
   };
 
-  const handleSync = async () => {
-    if (!machine) {
-      toast({ title: "No machine selected", description: "Please select a machine before syncing.", variant: "destructive" });
-      return;
-    }
-    setSyncing(true);
-    try {
-      const payload = {
-        machineId: machine,
-        tools: tools.map(t => ({
-          tool_number: t.tool_number,
-          tool_type: t.tool_type,
-          diameter: t.diameter,
-          holder: t.holder,
-          name: t.name,
-          flutes: t.flutes,
-          stickout_length: t.stickout_length,
-        })),
-      };
-      const res = await base44.functions.invoke('syncToolListToMachine', payload);
-      const data = res.data || res;
-      const t = toast({
-        title: "Machine tool list updated",
-        description: data.message || data.summary || "Sync complete.",
-      });
-      setTimeout(() => t.dismiss(), 30000);
-    } catch (err) {
-      const t = toast({
-        title: "Sync failed",
-        description: err?.response?.data?.error || err?.message || "Could not sync tool list.",
-        variant: "destructive",
-      });
-      setTimeout(() => t.dismiss(), 30000);
-    } finally {
-      setSyncing(false);
+  const handleViewMachineList = () => {
+    if (!machine) return;
+    const match = MACHINES.find(m => m.name === machine);
+    if (match) {
+      navigate(`/machine-tool-lists/${encodeURIComponent(match.name)}`);
     }
   };
 
@@ -116,9 +85,11 @@ export default function ToolList({ tools, onChange, machine }) {
         <SectionHeader icon={Wrench} title="Tool List">
           {tools.length > 0 && (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-7 text-xs gap-1.5">
-                <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
-              </Button>
+              {machine && MACHINES.find(m => m.name === machine) && (
+                <Button size="sm" variant="outline" onClick={handleViewMachineList} className="h-7 text-xs gap-1.5">
+                  <ExternalLink className="w-3 h-3" /> Machine Tool List
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
                 <Plus className="w-3 h-3" /> Add Tool
               </Button>
