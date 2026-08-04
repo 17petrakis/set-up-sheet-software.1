@@ -23,25 +23,14 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Tool Comment (Name) */}
-          <div>
-            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Comment</label>
-            <Input
-              value={tool.name || ""}
-              onChange={(e) => setField("name", e.target.value)}
-              className="h-8 text-xs"
-            />
-          </div>
-
           {/* Tool Number + Type */}
           <div className="grid grid-cols-[80px_1fr] gap-3">
             <div>
               <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Tool #</label>
               <Input
                 value={tool.tool_number || ""}
-                disabled
-                readOnly
-                className="h-8 text-xs text-center font-mono bg-muted/50"
+                onChange={(e) => setField("tool_number", e.target.value)}
+                className="h-8 text-xs text-center font-mono"
               />
             </div>
             <div>
@@ -56,10 +45,10 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
             </div>
           </div>
 
-          {/* All toggleable fields (excluding Comment, shown above) */}
+          {/* All toggleable fields */}
           <div className="space-y-1">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">All Fields — toggle to show/hide in row</p>
-            {TOOL_FIELDS.filter(f => f.key !== "name").map(f => (
+            {TOOL_FIELDS.map(f => (
               <div key={f.key} className="flex items-center gap-2 py-1 border-b border-border/30">
                 <Checkbox
                   checked={!!visible[f.key]}

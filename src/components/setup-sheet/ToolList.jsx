@@ -43,7 +43,6 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
 
   const isFixedSlots = slotCount != null;
   const [unlockConfirmIndex, setUnlockConfirmIndex] = useState(null);
-  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null);
   const [showOnlyFilled, setShowOnlyFilled] = useState(false);
 
   const isToolEmpty = (tool) => {
@@ -70,19 +69,13 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
     if (tools[i]?.locked) {
       setUnlockConfirmIndex(i);
     } else {
-      setDeleteConfirmIndex(i);
+      removeRow(i);
     }
   };
   const confirmUnlockAndRemove = () => {
     if (unlockConfirmIndex !== null) {
       removeRow(unlockConfirmIndex);
       setUnlockConfirmIndex(null);
-    }
-  };
-  const confirmDelete = () => {
-    if (deleteConfirmIndex !== null) {
-      removeRow(deleteConfirmIndex);
-      setDeleteConfirmIndex(null);
     }
   };
   const duplicateRow = (i) => {
@@ -255,29 +248,33 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
                               </>
                             )}
 
-                            {tool.locked && (
-                              <div className="ml-auto flex items-end pb-1">
-                                <Lock className="w-3.5 h-3.5 text-amber-500" />
-                              </div>
-                            )}
+                            {/* Actions */}
+                            <div className="flex items-end gap-0.5 ml-auto">
+                              {!isToolEmpty(tool) && (
+                                <>
+                                  <Button size="icon" variant="ghost" onClick={() => setEditingIndex(origIndex)}
+                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => toggleLock(origIndex)}
+                                    className={`h-7 w-7 transition-opacity ${tool.locked ? "text-amber-500 opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+                                    {tool.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleRemoveClick(origIndex)}
+                                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </div>
                           </ContextMenuTrigger>
                           <ContextMenuContent>
-                            <ContextMenuItem onClick={() => setEditingIndex(origIndex)} className="gap-2">
-                              <Pencil className="w-3.5 h-3.5" /> Edit Tool
-                            </ContextMenuItem>
-                            <ContextMenuItem onClick={() => toggleLock(origIndex)} className="gap-2">
-                              {tool.locked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                              {tool.locked ? "Unlock Tool" : "Lock Tool"}
-                            </ContextMenuItem>
                             {!isFixedSlots && (
                               <ContextMenuItem onClick={() => duplicateRow(origIndex)} className="gap-2">
                                 <Copy className="w-3.5 h-3.5" /> Duplicate Tool
                               </ContextMenuItem>
                             )}
-                            <ContextMenuItem onClick={() => handleRemoveClick(origIndex)} className="gap-2 text-destructive focus:text-destructive">
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Tool
-                            </ContextMenuItem>
                           </ContextMenuContent>
                           </ContextMenu>
                         )}
@@ -318,21 +315,6 @@ export default function ToolList({ tools, onChange, machine, slotCount }) {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={confirmUnlockAndRemove}>Unlock & Remove</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={deleteConfirmIndex !== null} onOpenChange={(open) => !open && setDeleteConfirmIndex(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete tool?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this tool? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
