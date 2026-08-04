@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wrench, Plus, Lock, Unlock, Pencil, Trash2, Filter } from "lucide-react";
+import { Wrench, Plus, Lock, Unlock, Pencil, Trash2, Filter, Search } from "lucide-react";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
@@ -20,6 +20,7 @@ import {
 export default function MachineToolListTable({ tools, onChange, slotCount, machineName }) {
   const [editingIndex, setEditingIndex] = useState(null);
   const [showOnlyFull, setShowOnlyFull] = useState(false);
+  const [search, setSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmUnlock, setConfirmUnlock] = useState(null);
 
@@ -39,7 +40,17 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
   const isSlotFull = (tool) =>
     Object.entries(tool).some(([k, v]) => k !== "tool_number" && k !== "locked" && k !== "visible_fields" && v && String(v).trim());
 
-  const visibleSlots = showOnlyFull ? slots.map((t, i) => ({ tool: t, index: i })).filter(({ tool }) => isSlotFull(tool)) : slots.map((t, i) => ({ tool: t, index: i }));
+  const matchesSearch = (tool) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return Object.entries(tool).some(([k, v]) =>
+      k !== "visible_fields" && v && String(v).toLowerCase().includes(q)
+    );
+  };
+
+  const visibleSlots = slots
+    .map((t, i) => ({ tool: t, index: i }))
+    .filter(({ tool }) => (!showOnlyFull || isSlotFull(tool)) && matchesSearch(tool));
 
   const updateTool = (i, updated) => {
     const next = [...slots];
@@ -82,14 +93,25 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
             <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
             <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount} slots filled</span>
           </div>
-          <Button
-            size="sm"
-            variant={showOnlyFull ? "default" : "outline"}
-            onClick={() => setShowOnlyFull(!showOnlyFull)}
-            className="h-7 text-xs gap-1.5"
-          >
-            <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Show Only Full"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search tools…"
+                className="h-7 text-xs pl-7 w-40"
+              />
+            </div>
+            <Button
+              size="sm"
+              variant={showOnlyFull ? "default" : "outline"}
+              onClick={() => setShowOnlyFull(!showOnlyFull)}
+              className="h-7 text-xs gap-1.5"
+            >
+              <Filter className="w-3 h-3" /> {showOnlyFull ? "Showing Full" : "Show Only Full"}
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-1">
@@ -109,6 +131,10 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                         {tool.tool_number}
                       </div>
                     </div>
+
+                    {!full && (
+                      <span className="text-xs text-muted-foreground italic pb-1">empty</span>
+                    )}
 
                     {full ? (
                       <>
@@ -169,17 +195,14 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                         )}
                       </>
                     ) : (
-                      <div className="flex items-center gap-1.5 ml-auto pr-1">
-                        <span className="text-xs text-muted-foreground italic">empty</span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setEditingIndex(i)}
-                          className="h-7 w-7"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditingIndex(i)}
+                        className="h-7 w-7 ml-auto"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
                     )}
                   </div>
                 </ContextMenuTrigger>
