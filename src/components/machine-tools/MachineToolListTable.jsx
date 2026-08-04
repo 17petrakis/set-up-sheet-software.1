@@ -110,64 +110,65 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                       </div>
                     </div>
 
-                    {/* Comment (name) — expandable */}
-                    <div className="shrink-0" style={{ width: `${Math.max(15, (tool.name || '').length + 3)}ch`, minWidth: '120px', maxWidth: '400px' }}>
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
-                      <Input
-                        value={tool.name || ""}
-                        onChange={(e) => updateCell(i, "name", e.target.value)}
-                        className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                      />
-                    </div>
-
-                    {/* Tool Type */}
-                    <div className="shrink-0 w-40">
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
-                      <TreeCascadingDropdown
-                        value={tool.tool_type || ""}
-                        onChange={(v) => handleTypeChange(i, v)}
-                        options={TOOL_TYPE_OPTIONS}
-                        placeholder="Select…"
-                        className="w-full"
-                        allowCustom
-                      />
-                    </div>
-
-                    {/* Dynamic fields */}
-                    {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key]).map(f => {
-                      const options = getFieldOptions(f.key, tool.tool_type);
-                      const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
-                      return (
-                        <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
-                          {options ? (
-                            <ComboBox
-                              value={tool[f.key] || ""}
-                              onChange={(v) => updateCell(i, f.key, v)}
-                              options={options}
-                              placeholder="—"
-                              className="h-8 text-xs px-2 py-1 w-full"
-                            />
-                          ) : (
-                            <Input
-                              value={tool[f.key] || ""}
-                              onChange={(e) => updateCell(i, f.key, e.target.value)}
-                              className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                            />
-                          )}
+                    {full ? (
+                      <>
+                        {/* Comment (name) — expandable */}
+                        <div className="shrink-0" style={{ width: `${Math.max(15, (tool.name || '').length + 3)}ch`, minWidth: '120px', maxWidth: '400px' }}>
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
+                          <Input
+                            value={tool.name || ""}
+                            onChange={(e) => updateCell(i, "name", e.target.value)}
+                            className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                          />
                         </div>
-                      );
-                    })}
 
-                    {/* Lock indicator */}
-                    {tool.locked && (
-                      <div className="flex items-end pb-1.5 shrink-0">
-                        <Lock className="w-3.5 h-3.5 text-amber-500" />
-                      </div>
-                    )}
+                        {/* Tool Type */}
+                        <div className="shrink-0 w-40">
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
+                          <TreeCascadingDropdown
+                            value={tool.tool_type || ""}
+                            onChange={(v) => handleTypeChange(i, v)}
+                            options={TOOL_TYPE_OPTIONS}
+                            placeholder="Select…"
+                            className="w-full"
+                            allowCustom
+                          />
+                        </div>
 
-                    {/* Empty slot indicator */}
-                    {!full && (
+                        {/* Dynamic fields */}
+                        {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key]).map(f => {
+                          const options = getFieldOptions(f.key, tool.tool_type);
+                          const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
+                          return (
+                            <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                              {options ? (
+                                <ComboBox
+                                  value={tool[f.key] || ""}
+                                  onChange={(v) => updateCell(i, f.key, v)}
+                                  options={options}
+                                  placeholder="—"
+                                  className="h-8 text-xs px-2 py-1 w-full"
+                                />
+                              ) : (
+                                <Input
+                                  value={tool[f.key] || ""}
+                                  onChange={(e) => updateCell(i, f.key, e.target.value)}
+                                  className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* Lock indicator */}
+                        {tool.locked && (
+                          <div className="flex items-end pb-1.5 shrink-0">
+                            <Lock className="w-3.5 h-3.5 text-amber-500" />
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <div className="flex items-center gap-1.5 ml-auto pr-1">
                         <span className="text-xs text-muted-foreground italic">empty</span>
                         <Button
