@@ -193,14 +193,14 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                         )}
                       </>
                     ) : (
-                      <Button
-                        size="icon"
-                        variant="ghost"
+                      <button
+                        type="button"
                         onClick={() => setEditingIndex(i)}
-                        className="h-7 w-7 ml-auto"
+                        className="flex-1 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors pb-1"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                      </Button>
+                        <span className="text-xs">Click to add tool</span>
+                      </button>
                     )}
                   </div>
                 </ContextMenuTrigger>
