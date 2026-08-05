@@ -19,6 +19,7 @@ const MACHINES = [
   { group: "HAAS", models: ["DT1", "VF 4SS", "DM1"] },
   { group: "OKUMA", models: ["OKUMA"] },
   { group: "HYD MECH", models: ["H-10A"] },
+  { group: "Manual", models: ["Manual"] },
 ];
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];

@@ -3,7 +3,7 @@ import HmcStationCard from "./HmcStationCard";
 import { emptyHmcStation } from "@/lib/fixturingOptions";
 
 export default function HmcFixturing({ data, onChange, machine }) {
-  const stations = data.stations || [];
+  const stations = data.stations?.length ? data.stations : [{ ...emptyHmcStation }];
 
   const updateStation = (i, updated) => {
     const next = [...stations];

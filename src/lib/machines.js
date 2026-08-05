@@ -15,6 +15,7 @@ export const MACHINES = [
   { name: "Nakamura WT-150II", type: "lathe", toolSlots: 20 },
   { name: "Nakamura AS-200", type: "lathe", toolSlots: 20 },
   { name: "Mori Seiki NL-2000SY", type: "lathe", toolSlots: 20 },
+  { name: "Manual", type: "mill", toolSlots: 20 },
 ];
 
 export const DEFAULT_TOOL_SLOTS = 20;
