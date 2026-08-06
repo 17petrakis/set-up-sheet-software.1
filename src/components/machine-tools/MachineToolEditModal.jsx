@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,20 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
   const visible = getEffectiveVisibleFields(tool);
   const [toolNumberInput, setToolNumberInput] = useState(tool.tool_number || "");
   const [confirmOverwrite, setConfirmOverwrite] = useState(null); // { newNumber, targetIndex }
+  const nameInputRef = useRef(null);
+
+  const isEmpty = !Object.entries(tool).some(
+    ([k, v]) => k !== "tool_number" && k !== "locked" && k !== "visible_fields" && v && String(v).trim()
+  );
+
+  // For empty tools: show only Comment and auto-focus it
+  useEffect(() => {
+    if (isEmpty) {
+      onChange({ ...tool, visible_fields: { name: true } });
+      setTimeout(() => nameInputRef.current?.focus(), 50);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleField = (key) => {
     const overrides = tool.visible_fields || {};
@@ -89,6 +103,7 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
                   />
                 ) : (
                   <Input
+                    ref={f.key === "name" ? nameInputRef : undefined}
                     value={tool[f.key] || ""}
                     onChange={(e) => setField(f.key, e.target.value)}
                     className="h-8 text-xs flex-1"
