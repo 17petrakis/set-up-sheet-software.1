@@ -15,11 +15,12 @@ import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
-  { group: "Doosan", models: ["Puma 2100Y II", "Puma MX2100ST"] },
-  { group: "Mori", models: ["NL-2000"] },
+  { group: "MORI SIEKI", models: ["NL 2000"] },
   { group: "HAAS", models: ["SL-10"] },
-  { group: "Nakamura", models: ["WY-150", "NTY3-150"] },
-  { group: "Citizen", models: ["Swiss"] },
+  { group: "Doosan", models: ["Puma 2100Y II", "Puma MX2100ST", "SMX2100"] },
+  { group: "DMG Mori", models: ["RPS-NHX-4000"] },
+  { group: "Citizen", models: ["L20"] },
+  { group: "Nakamura", models: ["NTY3-150"] },
   { group: "Manual", models: ["Manual"] },
 ];
 

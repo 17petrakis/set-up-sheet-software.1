@@ -15,10 +15,10 @@ import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
   { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
-  { group: "MORI SIEKI", models: ["NH 4000 DCG", "NL 2000"] },
+  { group: "MORI SIEKI", models: ["NH 4000 DCG"] },
   { group: "HAAS", models: ["DT1", "VF 4SS", "DM1"] },
   { group: "OKUMA", models: ["OKUMA"] },
-  { group: "HYD MECH", models: ["H-10A"] },
+  { group: "DMG Mori", models: ["NH4000DCG"] },
   { group: "Manual", models: ["Manual"] },
 ];
 
