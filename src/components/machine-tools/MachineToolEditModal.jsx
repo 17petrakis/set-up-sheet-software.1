@@ -88,7 +88,17 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
               placeholder="e.g. 10"
             />
             {numberError && (
-              <p className="text-xs text-destructive mt-1">{numberError}</p>
+              <div className="flex items-center gap-3 mt-2 p-2 bg-destructive/10 border border-destructive/30 rounded-md">
+                <img
+                  src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/3af3de635_image.png"
+                  alt="Stop"
+                  className="h-16 w-16 object-contain shrink-0"
+                />
+                <div>
+                  <p className="text-sm font-bold text-destructive">Hold it! Tool number out of bounds.</p>
+                  <p className="text-xs text-destructive/80 mt-0.5">{numberError}</p>
+                </div>
+              </div>
             )}
           </div>
 
