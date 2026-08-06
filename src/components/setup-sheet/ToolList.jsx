@@ -12,7 +12,7 @@ import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFi
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
-import { MACHINES } from "@/lib/machines";
+import { MACHINES, isKnownMachine } from "@/lib/machines";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
 } from "@/components/ui/context-menu";
@@ -70,11 +70,8 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
   };
 
   const handleViewMachineList = () => {
-    if (!machine) return;
-    const match = MACHINES.find(m => m.name === machine);
-    if (match) {
-      navigate(`/machine-tool-sync/${sheetId}`);
-    }
+    if (!machine || !isKnownMachine(machine)) return;
+    navigate(`/machine-tool-sync/${sheetId}`);
   };
 
   if (viewMode && !tools.some(t => Object.values(t).some(v => v && String(v).trim()))) return null;
@@ -85,7 +82,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
         <SectionHeader icon={Wrench} title="Tool List">
           {tools.length > 0 && (
             <div className="flex items-center gap-2">
-              {machine && MACHINES.find(m => m.name === machine) && (
+              {machine && isKnownMachine(machine) && (
                 <Button size="sm" variant="outline" onClick={handleViewMachineList} className="h-7 text-xs gap-1.5">
                   <ExternalLink className="w-3 h-3" /> Machine Tool List
                 </Button>
