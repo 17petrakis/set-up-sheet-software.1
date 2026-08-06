@@ -12,9 +12,11 @@ export const MACHINES = [
   { name: "OKUMA", type: "mill", toolSlots: 40 },
   { name: "Doosan Puma 2100Y II", type: "lathe", toolSlots: 20 },
   { name: "Doosan Puma MX2100ST", type: "lathe", toolSlots: 20 },
-  { name: "Nakamura WT-150II", type: "lathe", toolSlots: 20 },
-  { name: "Nakamura AS-200", type: "lathe", toolSlots: 20 },
-  { name: "Mori Seiki NL-2000SY", type: "lathe", toolSlots: 20 },
+  { name: "DMG Mori NH4000DCG", type: "mill", toolSlots: 20 },
+  { name: "DMG Mori RPS-NHX-4000", type: "lathe", toolSlots: 20 },
+  { name: "Citizen L20", type: "lathe", toolSlots: 20 },
+  { name: "Doosan SMX2100", type: "lathe", toolSlots: 20 },
+  { name: "Nakamura NTY3-150", type: "lathe", toolSlots: 20 },
   { name: "Manual", type: "mill", toolSlots: 20 },
 ];
 
