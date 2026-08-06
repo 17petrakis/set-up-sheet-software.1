@@ -255,6 +255,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
             allSlots={slots}
             currentIndex={editingIndex}
             onSwap={swapTools}
+            slotCount={slotCount}
           />
         )}
 

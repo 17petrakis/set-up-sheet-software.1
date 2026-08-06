@@ -9,10 +9,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function MachineToolEditModal({ tool, onChange, onClose, allSlots = [], currentIndex = -1, onSwap }) {
+export default function MachineToolEditModal({ tool, onChange, onClose, allSlots = [], currentIndex = -1, onSwap, slotCount }) {
   const visible = getEffectiveVisibleFields(tool);
   const [toolNumberInput, setToolNumberInput] = useState(tool.tool_number || "");
   const [confirmOverwrite, setConfirmOverwrite] = useState(null); // { newNumber, targetIndex }
+  const [numberError, setNumberError] = useState("");
   const nameInputRef = useRef(null);
 
   const isEmpty = !Object.entries(tool).some(
@@ -40,7 +41,13 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
 
   const handleSubmit = () => {
     const newNumber = toolNumberInput.trim();
+    setNumberError("");
     if (newNumber && newNumber !== (tool.tool_number || "")) {
+      const num = parseInt(newNumber, 10);
+      if (slotCount && !isNaN(num) && (num < 1 || num > slotCount)) {
+        setNumberError(`Tool number out of bounds (1–${slotCount})`);
+        return;
+      }
       const targetIndex = allSlots.findIndex((s, idx) => idx !== currentIndex && s.tool_number === newNumber);
       if (targetIndex >= 0) {
         const targetTool = allSlots[targetIndex];
@@ -76,10 +83,13 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
             <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-1">Tool #</label>
             <Input
               value={toolNumberInput}
-              onChange={(e) => setToolNumberInput(e.target.value)}
+              onChange={(e) => { setToolNumberInput(e.target.value); setNumberError(""); }}
               className="h-8 text-xs font-mono w-24"
               placeholder="e.g. 10"
             />
+            {numberError && (
+              <p className="text-xs text-destructive mt-1">{numberError}</p>
+            )}
           </div>
 
           {/* All toggleable fields — tool type first, then name, then rest */}
