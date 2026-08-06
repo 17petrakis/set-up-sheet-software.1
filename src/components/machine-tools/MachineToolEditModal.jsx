@@ -22,7 +22,7 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
   // For empty tools: show only Comment and auto-focus it
   useEffect(() => {
     if (isEmpty) {
-      onChange({ ...tool, visible_fields: { name: true } });
+      onChange({ ...tool, visible_fields: { tool_type: false, diameter: false, holder: false, name: true } });
       setTimeout(() => nameInputRef.current?.focus(), 50);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
