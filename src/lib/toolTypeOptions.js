@@ -50,6 +50,7 @@ export const TOOL_TYPE_OPTIONS = [
 
 // ── Toggleable field definitions (tool_number & tool_type are always visible) ─
 export const TOOL_FIELDS = [
+  { key: "tool_type", label: "Tool Type" },
   { key: "diameter", label: "Diameter" },
   { key: "flutes", label: "Flutes" },
   { key: "flute_length", label: "Flute Length" },
@@ -70,6 +71,7 @@ export const TOOL_FIELDS = [
 
 // Short labels for compact row display
 export const TOOL_FIELD_SHORT = {
+  tool_type: "Type",
   name: "Comment",
   diameter: "Dia",
   flutes: "Flutes",
@@ -108,7 +110,8 @@ export function getDefaultVisibleFields(toolType) {
   const v = {};
   for (const f of TOOL_FIELDS) v[f.key] = false;
 
-  // All tools show diameter + holder + name
+  // All tools show type + diameter + holder + name
+  v.tool_type = true;
   v.diameter = true;
   v.holder = true;
   v.name = true;

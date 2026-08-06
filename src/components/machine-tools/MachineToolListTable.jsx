@@ -84,6 +84,15 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
 
   const fullCount = slots.filter(isSlotFull).length;
 
+  const swapTools = (indexA, indexB) => {
+    const next = [...slots];
+    const a = { ...next[indexA] };
+    const b = { ...next[indexB] };
+    next[indexA] = { ...b, tool_number: a.tool_number };
+    next[indexB] = { ...a, tool_number: b.tool_number };
+    onChange(next);
+  };
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
@@ -146,23 +155,25 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                           />
                         </div>
 
-                        {/* Tool Type */}
-                        <div className="shrink-0 w-40">
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Tool Type</span>
-                          <TreeCascadingDropdown
-                            value={tool.tool_type || ""}
-                            onChange={(v) => handleTypeChange(i, v)}
-                            options={TOOL_TYPE_OPTIONS}
-                            placeholder="Select…"
-                            className="w-full"
-                            allowCustom
-                          />
-                        </div>
-
-                        {/* Dynamic fields */}
+                        {/* Dynamic fields (including tool_type) */}
                         {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key]).map(f => {
                           const options = getFieldOptions(f.key, tool.tool_type);
                           const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
+                          if (f.key === "tool_type") {
+                            return (
+                              <div key={f.key} className="shrink-0 w-40">
+                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                <TreeCascadingDropdown
+                                  value={tool.tool_type || ""}
+                                  onChange={(v) => handleTypeChange(i, v)}
+                                  options={TOOL_TYPE_OPTIONS}
+                                  placeholder="Select…"
+                                  className="w-full"
+                                  allowCustom
+                                />
+                              </div>
+                            );
+                          }
                           return (
                             <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
@@ -241,6 +252,9 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
             tool={slots[editingIndex]}
             onChange={(updated) => updateTool(editingIndex, updated)}
             onClose={() => setEditingIndex(null)}
+            allSlots={slots}
+            currentIndex={editingIndex}
+            onSwap={swapTools}
           />
         )}
 
