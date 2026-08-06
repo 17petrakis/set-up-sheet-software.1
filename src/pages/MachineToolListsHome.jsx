@@ -37,7 +37,7 @@ export default function MachineToolListsHome() {
         </div>
 
         <div className="space-y-2.5">
-          {MACHINES.filter(m => m.name !== "Manual").map((machine, i) => (
+          {MACHINES.map((machine, i) => (
             <motion.div
               key={machine.name}
               initial={{ opacity: 0, y: 8 }}
