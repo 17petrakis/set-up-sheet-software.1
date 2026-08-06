@@ -8,9 +8,10 @@ const HMC_PALLET = [
   "Matsuura MAM72-35 V",
   "Matsuura H.Plus-405",
   "Mori Seiki NH 4000 DCG",
+  "DMG Mori NH4000DCG",
 ];
 
-const VMC = ["HAAS VF 4SS", "OKUMA"];
+const VMC = ["HAAS VF 4SS", "OKUMA", "Manual"];
 
 const DRILL_TAP = ["HAAS DT1", "HAAS DM1"];
 
