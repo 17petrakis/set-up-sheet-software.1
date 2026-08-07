@@ -1,11 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, RefreshCw } from "lucide-react";
+import { Wrench, Plus, RefreshCw, ExternalLink } from "lucide-react";
 import TurretBlock from "@/components/turning-tools/TurretBlock";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
+import { isKnownMachine } from "@/lib/machines";
 
 const MAX_TURRETS = 3;
 
@@ -19,9 +21,16 @@ const toolKey = (t) =>
     .map((v) => (v || "").toString().trim().toLowerCase())
     .join("|");
 
-export default function TurningToolList({ tools, onChange, machine, showSync = true }) {
+export default function TurningToolList({ tools, onChange, machine, showSync = true, sheetId }) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [syncing, setSyncing] = useState(false);
+
+  const handleViewMachineList = () => {
+    if (machine && isKnownMachine(machine) && sheetId) {
+      navigate(`/turning-tool-sync/${sheetId}`);
+    }
+  };
 
   // tools is now an object: { turrets: [...] }
   const turrets = tools?.turrets || [];
@@ -133,6 +142,11 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List (Turret)">
           <div className="flex items-center gap-2">
+            {showSync && machine && isKnownMachine(machine) && sheetId && (
+              <Button type="button" size="sm" variant="outline" onClick={handleViewMachineList} className="h-8 text-xs gap-1.5">
+                <ExternalLink className="w-3.5 h-3.5" /> Machine Tool List
+              </Button>
+            )}
             {showSync && (
               <Button type="button" size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-8 text-xs gap-1.5">
                 <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
