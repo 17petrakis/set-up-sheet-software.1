@@ -9,7 +9,17 @@ import { base44 } from "@/api/base44Client";
 
 const MAX_TURRETS = 3;
 
-export default function TurningToolList({ tools, onChange, machine }) {
+const isToolEmpty = (t) =>
+  !Object.entries(t || {}).some(([k, v]) =>
+    k !== "_id" && k !== "tool_kind" && k !== "tool_number" && v && String(v).trim()
+  );
+
+const toolKey = (t) =>
+  [t.tool_type, t.diameter, t.flutes, t.holder, t.name, t.angle]
+    .map((v) => (v || "").toString().trim().toLowerCase())
+    .join("|");
+
+export default function TurningToolList({ tools, onChange, machine, showSync = true }) {
   const { toast } = useToast();
   const [syncing, setSyncing] = useState(false);
 
@@ -40,15 +50,70 @@ export default function TurningToolList({ tools, onChange, machine }) {
     }
     setSyncing(true);
     try {
-      const payload = {
-        machineId: machine,
-        turrets: turrets,
+      // Load the MachineTool record for this machine
+      const results = await base44.entities.MachineTool.filter({ machine_name: machine });
+      const machineRec = results && results.length > 0 ? results[0] : null;
+
+      // Deep-copy machine turrets so we can mutate safely
+      const machineTurrets = machineRec && Array.isArray(machineRec.turrets)
+        ? machineRec.turrets.map(t => ({ ...t, tools: [...(t.tools || [])] }))
+        : [];
+
+      let addedCount = 0;
+      let createdTurrets = 0;
+
+      for (const sheetTurret of turrets) {
+        if (!sheetTurret.turret_type) continue;
+
+        // Find matching machine turret by turret_type
+        let machineTurret = machineTurrets.find(t => t.turret_type === sheetTurret.turret_type);
+        if (!machineTurret) {
+          machineTurret = { turret_type: sheetTurret.turret_type, tools: [] };
+          machineTurrets.push(machineTurret);
+          createdTurrets++;
+        }
+
+        const existingTools = machineTurret.tools || [];
+        const existingKeys = new Set(existingTools.map(toolKey));
+        const sheetTools = (sheetTurret.tools || []).filter(t => !isToolEmpty(t));
+
+        for (const st of sheetTools) {
+          const k = toolKey(st);
+          if (!k || existingKeys.has(k)) continue;
+          existingKeys.add(k);
+          const { _id, ...clean } = st;
+          existingTools.push(clean);
+          addedCount++;
+        }
+
+        machineTurret.tools = existingTools;
+      }
+
+      // Save the updated MachineTool entity
+      const data = {
+        machine_name: machine,
+        machine_type: "lathe",
+        turrets: machineTurrets,
+        tools: machineRec ? (machineRec.tools || []) : [],
       };
-      const res = await base44.functions.invoke('syncTurretListToMachine', payload);
-      const data = res.data || res;
+
+      if (machineRec) {
+        await base44.entities.MachineTool.update(machineRec.id, data);
+      } else {
+        await base44.entities.MachineTool.create(data);
+      }
+
+      // Also push to the external procedure app (non-blocking — local entity already saved)
+      const payload = { machineId: machine, turrets };
+      try {
+        await base44.functions.invoke('syncTurretListToMachine', payload);
+      } catch (extErr) {
+        console.warn("External sync failed (local entity already updated)", extErr);
+      }
+
       const t = toast({
         title: "Machine turret list updated",
-        description: data.message || data.summary || "Sync complete.",
+        description: `${addedCount} tool(s) added${createdTurrets ? `, ${createdTurrets} turret(s) created` : ""}.`,
       });
       setTimeout(() => t.dismiss(), 30000);
     } catch (err) {
@@ -68,9 +133,11 @@ export default function TurningToolList({ tools, onChange, machine }) {
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List (Turret)">
           <div className="flex items-center gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-8 text-xs gap-1.5">
-              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
-            </Button>
+            {showSync && (
+              <Button type="button" size="sm" variant="outline" onClick={handleSync} disabled={syncing} className="h-8 text-xs gap-1.5">
+                <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} /> Update Machine's Tool List (Beta)
+              </Button>
+            )}
             {turrets.length < MAX_TURRETS && (
               <Button type="button" size="sm" variant="outline" onClick={addTurret} className="h-8 text-xs gap-1.5">
                 <Plus className="w-3.5 h-3.5" /> Add Turret

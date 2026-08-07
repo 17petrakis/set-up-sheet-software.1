@@ -160,7 +160,7 @@ export default function MachineToolList() {
         </div>
 
         {machine.type === "lathe" ? (
-          <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} />
+          <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} showSync={false} />
         ) : (
           <MachineToolListTable tools={tools} onChange={setTools} slotCount={getToolSlots(machine)} machineName={decodedName} />
         )}
