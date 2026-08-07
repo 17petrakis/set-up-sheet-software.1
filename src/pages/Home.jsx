@@ -185,13 +185,13 @@ export default function Home() {
 
       {/* Sidebar — desktop only */}
       <aside className="hidden md:flex w-56 bg-background text-foreground flex-col shrink-0">
-        <div className="px-4 py-5 border-b border-white/10 bg-background">
+        <button onClick={() => switchNav("dashboard")} className="px-4 py-5 border-b border-white/10 bg-background w-full text-left">
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
             alt="Logo"
             className="h-10 w-auto object-contain"
           />
-        </div>
+        </button>
         <nav className="flex-1 px-3 py-4 space-y-1">
           <a
             href="https://straightline-precision-industries-procedures.base44.app"
@@ -255,11 +255,13 @@ export default function Home() {
           <button onClick={() => setMobileNavOpen(true)} className="p-2.5 -ml-2.5 rounded-lg hover:bg-muted transition-colors">
             <Menu className="w-6 h-6 text-foreground" />
           </button>
-          <img
-            src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
-            alt="Logo"
-            className="h-7 w-auto object-contain"
-          />
+          <button onClick={() => switchNav("dashboard")}>
+            <img
+              src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
+              alt="Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </button>
           <button onClick={() => activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true)} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
             <FilePlus className="w-6 h-6 text-foreground" />
           </button>
