@@ -263,7 +263,7 @@ export default function TurningToolSync() {
         <div className="text-center max-w-sm">
           <p className="text-lg font-medium mb-1">No machine selected</p>
           <p className="text-sm text-muted-foreground mb-3">This setup sheet doesn't have a machine. Select a machine on the setup sheet first.</p>
-          <button onClick={() => navigate(`/sheet/${sheetId}`)} className="text-primary text-sm">Back to Setup Sheet</button>
+          <button onClick={() => navigate(`/sheet/${sheetId}?mode=edit`)} className="text-primary text-sm">Back to Setup Sheet</button>
         </div>
       </div>
     );
@@ -298,7 +298,7 @@ export default function TurningToolSync() {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
           <button
-            onClick={() => navigate(`/sheet/${sheetId}`)}
+            onClick={() => navigate(`/sheet/${sheetId}?mode=edit`)}
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

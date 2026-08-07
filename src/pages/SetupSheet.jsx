@@ -144,6 +144,27 @@ export default function SetupSheet() {
     };
   }, [id]);
 
+  // Save scroll position when leaving the sheet (e.g. navigating to sync page)
+  useEffect(() => {
+    return () => {
+      if (id) {
+        sessionStorage.setItem(`setupSheet_scroll_${id}`, String(window.scrollY));
+      }
+    };
+  }, [id]);
+
+  // Restore scroll position after the sheet finishes loading
+  useEffect(() => {
+    if (loading) return;
+    const saved = sessionStorage.getItem(`setupSheet_scroll_${id}`);
+    if (saved) {
+      sessionStorage.removeItem(`setupSheet_scroll_${id}`);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, parseInt(saved, 10) || 0);
+      });
+    }
+  }, [loading, id]);
+
   // Use refs to always have latest values for triggerSave closures
   const generalRef = useRef(general);
   const toolsRef = useRef(tools);
