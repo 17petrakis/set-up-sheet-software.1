@@ -179,6 +179,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 3: Material, Stock, Qty., Length/1pc (always 4 fields) */}
         <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          <MaterialField data={data} onChange={onChange} materialSpan="sm:col-span-3" hideExtras />
           {data.material_color_enabled && (
             <div className="sm:col-span-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -214,7 +215,6 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               </Select>
             </div>
           )}
-          <MaterialField data={data} onChange={onChange} materialSpan="sm:col-span-3" hideExtras />
           <Field label="Stock" value={data.stock} onChange={update("stock")} className="sm:col-span-3" />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className="sm:col-span-3" />
           <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className="sm:col-span-3" />
