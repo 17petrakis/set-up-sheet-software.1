@@ -4,19 +4,50 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, UserCheck, UserX, Plus } from "lucide-react";
+import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save } from "lucide-react";
 
 export default function EmployeeManagement() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ employeeNumber: "", name: "" });
   const [authorized, setAuthorized] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeSaved, setCodeSaved] = useState("");
 
   // All hooks before any conditional return
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["employees"],
     queryFn: () => base44.entities.Employee.list("-created_date"),
     enabled: authorized,
+  });
+
+  const { data: loginSetting } = useQuery({
+    queryKey: ["login_code"],
+    queryFn: async () => {
+      const rows = await base44.entities.Setting.filter({ key: "login_code" });
+      return rows && rows.length > 0 ? rows[0] : null;
+    },
+  });
+
+  useEffect(() => {
+    if (loginSetting) {
+      setCodeInput(loginSetting.value || "");
+      setCodeSaved(loginSetting.value || "");
+    }
+  }, [loginSetting]);
+
+  const updateCodeMutation = useMutation({
+    mutationFn: async (newCode) => {
+      if (loginSetting) {
+        return base44.entities.Setting.update(loginSetting.id, { value: newCode });
+      } else {
+        return base44.entities.Setting.create({ key: "login_code", value: newCode });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["login_code"] });
+      setCodeSaved(codeInput);
+    },
   });
 
   const addMutation = useMutation({
@@ -54,6 +85,13 @@ export default function EmployeeManagement() {
     addMutation.mutate({ employeeNumber: form.employeeNumber.trim(), name: form.name.trim(), isActive: true });
   };
 
+  const handleSaveCode = (e) => {
+    e.preventDefault();
+    const trimmed = codeInput.trim().toUpperCase();
+    if (!trimmed || trimmed.length !== 3) return;
+    updateCodeMutation.mutate(trimmed);
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-2xl mx-auto">
@@ -65,6 +103,26 @@ export default function EmployeeManagement() {
         </button>
 
         <h1 className="text-2xl font-bold text-foreground mb-6">Employee Management</h1>
+
+        {/* Login Code Section */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
+          <h2 className="text-sm font-semibold text-foreground mb-1">Login Code</h2>
+          <p className="text-xs text-muted-foreground mb-4">3-letter code appended to every employee number at sign-in (e.g. 0001<span className="font-semibold text-foreground">{codeSaved || "SUS"}</span>). Same for all employees.</p>
+          <form onSubmit={handleSaveCode} className="flex gap-3 flex-wrap items-end">
+            <div className="flex-1 min-w-[120px]">
+              <Input
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                placeholder="SUS"
+                maxLength={3}
+                className="uppercase"
+              />
+            </div>
+            <Button type="submit" disabled={updateCodeMutation.isPending || codeInput.trim().length !== 3 || codeInput.trim().toUpperCase() === codeSaved} className="gap-1.5">
+              <Save className="w-4 h-4" /> Update Code
+            </Button>
+          </form>
+        </div>
 
         {/* Add Employee Form */}
         <div className="bg-card border border-border rounded-2xl p-5 mb-6">

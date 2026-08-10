@@ -9,24 +9,39 @@ export default function EmployeeLogin() {
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginCode, setLoginCode] = useState("SUS");
 
   useEffect(() => {
     const session = localStorage.getItem("employeeSession");
     if (session) navigate("/");
   }, [navigate]);
 
+  useEffect(() => {
+    base44.entities.Setting.filter({ key: "login_code" }).then((rows) => {
+      if (rows && rows.length > 0) setLoginCode(rows[0].value || "SUS");
+    });
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    const num = employeeNumber.trim();
-    if (!num) return;
+    const entered = employeeNumber.trim();
+    if (!entered) return;
 
     // Admin special case
-    if (num === "ADMIN001") {
+    if (entered === "ADMIN001") {
       localStorage.setItem("employeeSession", JSON.stringify({ employeeNumber: "ADMIN001", isAdmin: true }));
       navigate("/");
       return;
     }
+
+    // Require the login code suffix
+    const code = loginCode;
+    if (entered.length < code.length || entered.slice(-code.length).toUpperCase() !== code.toUpperCase()) {
+      setError("Invalid employee number or code.");
+      return;
+    }
+    const num = entered.slice(0, entered.length - code.length);
 
     setLoading(true);
     try {
@@ -55,15 +70,15 @@ export default function EmployeeLogin() {
             />
           </div>
           <h1 className="text-xl font-bold text-foreground text-center mb-1">Shop Floor Login</h1>
-          <p className="text-sm text-muted-foreground text-center mb-6">Enter your employee number to continue</p>
+          <p className="text-sm text-muted-foreground text-center mb-6">Enter your employee number followed by the login code</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Employee Number</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Employee Number + Code</label>
               <Input
                 value={employeeNumber}
                 onChange={(e) => setEmployeeNumber(e.target.value)}
-                placeholder="e.g. EMP001"
+                placeholder="e.g. EMP001SUS"
                 autoFocus
               />
             </div>

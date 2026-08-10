@@ -1,0 +1,18 @@
+{
+  "name": "Setting",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Setting key (e.g. login_code)"
+    },
+    "value": {
+      "type": "string",
+      "description": "Setting value"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}
