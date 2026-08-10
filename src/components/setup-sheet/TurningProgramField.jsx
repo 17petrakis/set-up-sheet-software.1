@@ -40,22 +40,30 @@ export default function TurningProgramField({ data, onChange, className = "" }) 
   return (
     <>
       {/* Program # label with checkboxes inline — same pattern as Material + Color/Condition */}
-      <div className={`${className} space-y-1.5`}>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1.5">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Program #
-          </Label>
+      <div className={className}>
+        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
+          Program #
+        </Label>
+        <div className="flex flex-wrap gap-2">
           {keys.map(key => {
             const entry = programNumbers[key] || { active: false, number: "" };
+            const isActive = entry.active || false;
             return (
-              <label key={key} className="flex items-center gap-1 cursor-pointer select-none whitespace-nowrap">
+              <label
+                key={key}
+                className={`flex items-center gap-1.5 cursor-pointer select-none px-3 py-1.5 rounded-md border text-xs transition-colors ${
+                  isActive
+                    ? "bg-primary/10 border-primary/40 text-primary font-medium"
+                    : "bg-background border-border/60 text-muted-foreground hover:border-border"
+                }`}
+              >
                 <input
                   type="checkbox"
-                  checked={entry.active || false}
+                  checked={isActive}
                   onChange={() => toggleProgram(key)}
-                  className="w-3.5 h-3.5 rounded border-border accent-primary"
+                  className="w-4 h-4 rounded border-border accent-primary"
                 />
-                <span className="text-xs text-muted-foreground">{getProgramLabel(key)}</span>
+                <span>{getProgramLabel(key)}</span>
               </label>
             );
           })}
