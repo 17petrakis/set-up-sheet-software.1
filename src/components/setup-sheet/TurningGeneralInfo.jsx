@@ -218,10 +218,6 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <Field label="Stock" value={data.stock} onChange={update("stock")} className="sm:col-span-3" />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className="sm:col-span-3" />
           <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className="sm:col-span-3" />
-        </div>
-
-        {/* Row 4: Program #, Program Location, Program Desc., Cycle Time, Handling Time, Total */}
-        <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
           <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
           <div className="sm:col-span-3">
