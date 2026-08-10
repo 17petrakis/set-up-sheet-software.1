@@ -51,8 +51,8 @@ export function getProgramLabel(key) {
   const labels = {
     upper: "Upper Prg.",
     lower: "Lower Prg.",
-    upper_left: "Upper Left Prg.",
-    upper_right: "Upper Right Prg.",
+    upper_left: "Up L Prg.",
+    upper_right: "Up R Prg.",
   };
   return labels[key] || key;
 }
