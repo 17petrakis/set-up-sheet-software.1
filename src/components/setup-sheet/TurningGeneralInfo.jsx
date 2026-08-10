@@ -240,6 +240,26 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
               />
             </div>
+            <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time className="sm:col-span-3" />
+            <Field
+              label="Handling Time"
+              note="(Includes Stops)"
+              value={data.handling_time}
+              onChange={update("handling_time")}
+              time
+              className="sm:col-span-3"
+            />
+            <div className="sm:col-span-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Total Combined Cycle Time
+              </Label>
+              <Input
+                value={data.total_cycle_time || ""}
+                readOnly
+                className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+                placeholder="Auto-calculated"
+              />
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
@@ -256,31 +276,27 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
               />
             </div>
+            <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time />
+            <Field
+              label="Handling Time"
+              note="(Includes Stops)"
+              value={data.handling_time}
+              onChange={update("handling_time")}
+              time
+            />
+            <div>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Total Combined Cycle Time
+              </Label>
+              <Input
+                value={data.total_cycle_time || ""}
+                readOnly
+                className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+                placeholder="Auto-calculated"
+              />
+            </div>
           </div>
         )}
-
-        {/* Row 5: Cycle Time, Handling Time, Total Combined */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-1">
-          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time />
-          <Field
-            label="Handling Time"
-            note="(Includes Stops)"
-            value={data.handling_time}
-            onChange={update("handling_time")}
-            time
-          />
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              Total Combined Cycle Time
-            </Label>
-            <Input
-              value={data.total_cycle_time || ""}
-              readOnly
-              className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-              placeholder="Auto-calculated"
-            />
-          </div>
-        </div>
 
         {/* Stops */}
         <div className="mb-3">
