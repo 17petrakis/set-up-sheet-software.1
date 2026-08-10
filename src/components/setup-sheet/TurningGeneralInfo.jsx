@@ -179,124 +179,83 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
         {/* Row 3: Material, Stock, Qty., Length/1pc (always 4 fields) */}
         <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          {data.material_color_enabled && (
+            <div className="sm:col-span-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Color
+              </Label>
+              <Input
+                value={data.material_color || ""}
+                onChange={(e) => onChange("material_color", e.target.value)}
+                placeholder="e.g. Black…"
+                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+              />
+            </div>
+          )}
+          {data.material_condition_enabled && (
+            <div className="sm:col-span-3">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Condition
+              </Label>
+              <Select
+                value={data.material_condition || ""}
+                onValueChange={(v) => onChange("material_condition", v)}
+              >
+                <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                  <span className={data.material_condition ? "" : "text-muted-foreground"}>
+                    {data.material_condition || "Select…"}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {MATERIAL_CONDITIONS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <MaterialField data={data} onChange={onChange} materialSpan="sm:col-span-3" hideExtras />
           <Field label="Stock" value={data.stock} onChange={update("stock")} className="sm:col-span-3" />
           <Field label="Qty." value={data.quantity} onChange={(v) => update("quantity")(v.slice(0, 4))} className="sm:col-span-3" />
           <Field label="Length/1pc" value={data.consumed_per_part} onChange={(v) => update("consumed_per_part")(v.slice(0, 6))} className="sm:col-span-3" />
         </div>
 
-        {/* Row 4: [Color+Condition] (material width), Program #, Program Location, Program Desc. */}
-        {showExtrasRow ? (
-          <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
-            <div className="sm:col-span-3">
-              <div className={`grid gap-x-2 ${data.material_color_enabled && data.material_condition_enabled ? "grid-cols-2" : "grid-cols-1"}`}>
-                {data.material_color_enabled && (
-                  <div>
-                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Color
-                    </Label>
-                    <Input
-                      value={data.material_color || ""}
-                      onChange={(e) => onChange("material_color", e.target.value)}
-                      placeholder="e.g. Black…"
-                      className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-                    />
-                  </div>
-                )}
-                {data.material_condition_enabled && (
-                  <div>
-                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                      Condition
-                    </Label>
-                    <Select
-                      value={data.material_condition || ""}
-                      onValueChange={(v) => onChange("material_condition", v)}
-                    >
-                      <SelectTrigger className="h-9 text-sm bg-background border-border/60">
-                        <span className={data.material_condition ? "" : "text-muted-foreground"}>
-                          {data.material_condition || "Select…"}
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MATERIAL_CONDITIONS.map((c) => (
-                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </div>
-            <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
-            <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
-            <div className="sm:col-span-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                Program Desc.
-              </Label>
-              <Input
-                value={data.program_description || ""}
-                onChange={(e) => update("program_description")(e.target.value)}
-                placeholder="i.e. Roughing"
-                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-              />
-            </div>
-            <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time className="sm:col-span-3" />
-            <Field
-              label="Handling Time"
-              note="(Includes Stops)"
-              value={data.handling_time}
-              onChange={update("handling_time")}
-              time
-              className="sm:col-span-3"
+        {/* Row 4: Program #, Program Location, Program Desc., Cycle Time, Handling Time, Total */}
+        <div className="grid grid-cols-2 sm:grid-cols-12 gap-x-4 gap-y-3 mb-3">
+          <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
+          <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
+          <div className="sm:col-span-3">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Program Desc.
+            </Label>
+            <Input
+              value={data.program_description || ""}
+              onChange={(e) => update("program_description")(e.target.value)}
+              placeholder="i.e. Roughing"
+              className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
             />
-            <div className="sm:col-span-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                Total Combined Cycle Time
-              </Label>
-              <Input
-                value={data.total_cycle_time || ""}
-                readOnly
-                className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-                placeholder="Auto-calculated"
-              />
-            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-            <TurningProgramField data={data} onChange={onChange} />
-            <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                Program Desc.
-              </Label>
-              <Input
-                value={data.program_description || ""}
-                onChange={(e) => update("program_description")(e.target.value)}
-                placeholder="i.e. Roughing"
-                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-              />
-            </div>
-            <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time />
-            <Field
-              label="Handling Time"
-              note="(Includes Stops)"
-              value={data.handling_time}
-              onChange={update("handling_time")}
-              time
+          <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time className="sm:col-span-3" />
+          <Field
+            label="Handling Time"
+            note="(Includes Stops)"
+            value={data.handling_time}
+            onChange={update("handling_time")}
+            time
+            className="sm:col-span-3"
+          />
+          <div className="sm:col-span-3">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              Total Combined Cycle Time
+            </Label>
+            <Input
+              value={data.total_cycle_time || ""}
+              readOnly
+              className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
+              placeholder="Auto-calculated"
             />
-            <div>
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-                Total Combined Cycle Time
-              </Label>
-              <Input
-                value={data.total_cycle_time || ""}
-                readOnly
-                className="h-9 text-sm bg-muted/30 border-border/60 cursor-default"
-                placeholder="Auto-calculated"
-              />
-            </div>
           </div>
-        )}
+        </div>
 
         {/* Stops */}
         <div className="mb-3">
