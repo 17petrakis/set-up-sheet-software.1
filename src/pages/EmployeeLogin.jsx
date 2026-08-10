@@ -74,11 +74,11 @@ export default function EmployeeLogin() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Employee Number + Code</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Employee Number, Code</label>
               <Input
                 value={employeeNumber}
                 onChange={(e) => setEmployeeNumber(e.target.value)}
-                placeholder="e.g. EMP001SUS"
+                placeholder="e.g. EMP001XYZ"
                 autoFocus
               />
             </div>
