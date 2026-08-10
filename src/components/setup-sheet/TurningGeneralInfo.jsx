@@ -227,7 +227,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 )}
               </div>
             </div>
-            <TurningProgramField data={data} onChange={onChange} className="sm:col-span-6" />
+            <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
             <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
             <div className="sm:col-span-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -243,7 +243,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-            <TurningProgramField data={data} onChange={onChange} className="sm:col-span-2" />
+            <TurningProgramField data={data} onChange={onChange} />
             <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
             <div>
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
