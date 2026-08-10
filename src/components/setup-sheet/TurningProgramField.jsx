@@ -36,37 +36,47 @@ export default function TurningProgramField({ data, onChange, className = "" }) 
     onChange("program_numbers", updated);
   };
 
+  const activeKeys = keys.filter(key => (programNumbers[key] || {}).active);
+
   return (
     <div className={className}>
       <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
         Program #
       </Label>
-      <div className="flex flex-row flex-wrap items-start gap-4">
+      {/* Checkboxes — all on the same row */}
+      <div className="flex flex-row items-center gap-x-3 gap-y-1 mb-1.5">
         {keys.map(key => {
           const entry = programNumbers[key] || { active: false, number: "" };
           return (
-            <div key={key} className="space-y-1 min-w-[140px]">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={entry.active || false}
-                  onChange={() => toggleProgram(key)}
-                  className="w-3.5 h-3.5 rounded border-border accent-primary"
-                />
-                <span className="text-xs font-medium text-foreground">{getProgramLabel(key)}</span>
-              </label>
-              {entry.active && (
-                <Input
-                  value={entry.number || ""}
-                  onChange={(e) => updateNumber(key, e.target.value)}
-                  placeholder={`${getProgramLabel(key)} number…`}
-                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
-                />
-              )}
-            </div>
+            <label key={key} className="flex items-center gap-1 cursor-pointer whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={entry.active || false}
+                onChange={() => toggleProgram(key)}
+                className="w-3.5 h-3.5 rounded border-border accent-primary"
+              />
+              <span className="text-xs font-medium text-foreground">{getProgramLabel(key)}</span>
+            </label>
           );
         })}
       </div>
+      {/* Active inputs — same line, same size, wrap if needed */}
+      {activeKeys.length > 0 && (
+        <div className="flex flex-row flex-wrap items-center gap-2">
+          {activeKeys.map(key => {
+            const entry = programNumbers[key] || { active: false, number: "" };
+            return (
+              <Input
+                key={key}
+                value={entry.number || ""}
+                onChange={(e) => updateNumber(key, e.target.value)}
+                placeholder={`${getProgramLabel(key)} number…`}
+                className="h-9 flex-1 min-w-[100px] text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
