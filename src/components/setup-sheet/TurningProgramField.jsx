@@ -41,11 +41,11 @@ export default function TurningProgramField({ data, onChange, className = "" }) 
       <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
         Program #
       </Label>
-      <div className="space-y-2">
+      <div className="flex flex-row flex-wrap items-start gap-4">
         {keys.map(key => {
           const entry = programNumbers[key] || { active: false, number: "" };
           return (
-            <div key={key} className="space-y-1">
+            <div key={key} className="space-y-1 min-w-[140px]">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"

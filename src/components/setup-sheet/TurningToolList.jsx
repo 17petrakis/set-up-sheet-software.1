@@ -8,7 +8,7 @@ import TurretBlock from "@/components/turning-tools/TurretBlock";
 import { isKnownMachine } from "@/lib/machines";
 import {
   getProgramMode, getProgramKeys, getTurretTypeForProgram,
-  getPreferredTurretOrder, getTurretOptionsForMode,
+  getPreferredTurretOrder, getTurretOptionsForTurret,
 } from "@/lib/turningMachineConfig";
 
 const MAX_TURRETS = 3;
@@ -43,7 +43,6 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
   };
 
   const programMode = getProgramMode(machine);
-  const turretOptions = getTurretOptionsForMode(programMode);
 
   // Auto-sync turrets based on active program checkboxes
   useEffect(() => {
@@ -106,7 +105,7 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
             turret={turret}
             onChange={(updated) => updateTurret(i, updated)}
             onRemove={() => removeTurret(i)}
-            turretOptions={turretOptions}
+            turretOptions={getTurretOptionsForTurret(programMode, turret.turret_type)}
           />
         ))}
       </CardContent>

@@ -73,20 +73,46 @@ export function getPreferredTurretOrder(mode) {
   return [];
 }
 
-export function getTurretOptionsForMode(mode) {
-  if (mode === "upper_lower") {
-    return [
-      { label: "Lower (Turn)", value: "Lower (Turn)" },
-      { label: "Upper – Mill (B-axis)", value: "Upper – Mill (B-axis)" },
-    ];
+export function getTurretOptionsForTurret(mode, turretType) {
+  if (!turretType) {
+    if (mode === "upper_lower") {
+      return [
+        { label: "Lower (Turn)", value: "Lower (Turn)" },
+        { label: "Upper – Mill (B-axis)", value: "Upper – Mill (B-axis)" },
+        { label: "Upper – Turn (Left)", value: "Upper – Turn (Left)" },
+        { label: "Upper – Turn (Right)", value: "Upper – Turn (Right)" },
+      ];
+    }
+    if (mode === "triple") {
+      return [
+        { label: "Lower (Turn)", value: "Lower (Turn)" },
+        { label: "Upper – Turn (Left)", value: "Upper – Turn (Left)" },
+        { label: "Upper – Turn (Right)", value: "Upper – Turn (Right)" },
+      ];
+    }
   }
-  if (mode === "triple") {
+
+  const isLower = turretType === "Lower (Turn)";
+
+  if (mode === "upper_lower") {
+    if (isLower) {
+      return [{ label: "Lower (Turn)", value: "Lower (Turn)" }];
+    }
     return [
-      { label: "Lower (Turn)", value: "Lower (Turn)" },
+      { label: "Upper – Mill (B-axis)", value: "Upper – Mill (B-axis)" },
       { label: "Upper – Turn (Left)", value: "Upper – Turn (Left)" },
       { label: "Upper – Turn (Right)", value: "Upper – Turn (Right)" },
     ];
   }
+
+  if (mode === "triple") {
+    if (isLower) {
+      return [{ label: "Lower (Turn)", value: "Lower (Turn)" }];
+    }
+    // Upper turrets in triple mode are locked to their specific type
+    return [{ label: turretType, value: turretType }];
+  }
+
   return [
     { label: "Lower (Turn)", value: "Lower (Turn)" },
     { label: "Upper – Mill (B-axis)", value: "Upper – Mill (B-axis)" },
