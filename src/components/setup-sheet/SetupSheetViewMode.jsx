@@ -4,6 +4,7 @@ import { getMachineGroup } from "@/lib/machineGroups";
 import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
 import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
+import { getProgramMode, getProgramLabel } from "@/lib/turningMachineConfig";
 import ViewPhoto from "./ViewPhoto";
 
 const DEFAULT_PHOTO_SLOTS = [
@@ -92,7 +93,9 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ...(isTurning && gen.stock ? [["Stock", gen.stock]] : []),
               ...(isTurning && gen.consumed_per_part ? [["Length/1pc", gen.consumed_per_part]] : []),
               ["Qty", gen.quantity],
-              ["File Name", gen.program],
+              ...(isTurning && getProgramMode(gen.machine) !== "single" && gen.program_numbers
+    ? Object.entries(gen.program_numbers).filter(([_, v]) => v.active).map(([k, v]) => [getProgramLabel(k), v.number])
+    : [["File Name", gen.program]]),
               ["Program Desc", gen.program_description],
               ...(gen.program_location ? [["Program Location", gen.program_location]] : []),
               ...(gen.cycle_time ? [["Cycle Time", gen.cycle_time]] : []),

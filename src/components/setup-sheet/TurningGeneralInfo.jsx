@@ -12,6 +12,8 @@ import MaterialField from "./MaterialField";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { MATERIAL_CONDITIONS } from "@/lib/materialOptions";
 import TimeInput from "@/components/ui/TimeInput";
+import TurningProgramField from "./TurningProgramField";
+import { getProgramMode, getDefaultProgramNumbers } from "@/lib/turningMachineConfig";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 
 const MACHINES = [
@@ -20,7 +22,7 @@ const MACHINES = [
   { group: "Doosan", models: ["Puma 2100Y II", "Puma MX2100ST", "SMX2100"] },
   { group: "DMG Mori", models: ["RPS-NHX-4000"] },
   { group: "Citizen", models: ["L20"] },
-  { group: "Nakamura", models: ["NTY3-150"] },
+  { group: "Nakamura", models: ["NTY3-150", "WY-150"] },
   { group: "Manual", models: ["Manual"] },
 ];
 
@@ -96,6 +98,12 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
   const showExtrasRow = data.material_color_enabled || data.material_condition_enabled;
 
+  const handleMachineChange = (value) => {
+    onChange("machine", value);
+    const mode = getProgramMode(value);
+    onChange("program_numbers", mode !== "single" ? getDefaultProgramNumbers(mode) : null);
+  };
+
   return (
     <Card className="border-border/50 shadow-sm">
       <CardContent className="pt-5 pb-5">
@@ -131,7 +139,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             </Label>
             <CascadingDropdown
               value={data.machine || ""}
-              onChange={update("machine")}
+              onChange={handleMachineChange}
               options={MACHINES}
               placeholder="Select…"
               className="w-full"
@@ -219,7 +227,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                 )}
               </div>
             </div>
-            <Field label="Program #" value={data.program} onChange={update("program")} className="sm:col-span-3" />
+            <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
             <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
             <div className="sm:col-span-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -235,7 +243,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
-            <Field label="Program #" value={data.program} onChange={update("program")} />
+            <TurningProgramField data={data} onChange={onChange} />
             <Field label="Program Location" value={data.program_location} onChange={update("program_location")} />
             <div>
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">

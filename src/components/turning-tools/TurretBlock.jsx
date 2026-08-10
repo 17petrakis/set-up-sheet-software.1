@@ -13,7 +13,7 @@ import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function TurretBlock({ turret, onChange, onRemove, index }) {
+export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions }) {
   const [collapsed, setCollapsed] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -73,7 +73,7 @@ export default function TurretBlock({ turret, onChange, onRemove, index }) {
         </button>
         <span className="text-sm font-semibold text-foreground">Turret {index + 1}</span>
         <div className="flex-1 max-w-xs">
-          <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} />
+          <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} options={turretOptions} />
         </div>
         {turret.turret_type && <AddToolButton onAdd={addTool} />}
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}

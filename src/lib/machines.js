@@ -17,6 +17,7 @@ export const MACHINES = [
   { name: "Citizen L20", type: "lathe", toolSlots: 20 },
   { name: "Doosan SMX2100", type: "lathe", toolSlots: 20 },
   { name: "Nakamura NTY3-150", type: "lathe", toolSlots: 20 },
+  { name: "Nakamura WY-150", type: "lathe", toolSlots: 20 },
   { name: "Manual", type: "mill", toolSlots: 20 },
 ];
 

@@ -76,6 +76,10 @@
       "type": "string",
       "description": "Program number / name"
     },
+    "program_numbers": {
+      "type": "object",
+      "description": "Multi-program numbers for turning machines with upper/lower turrets"
+    },
     "program_software": {
       "type": "string",
       "description": "CAM software used (Mastercam, Gibbscam, etc.)"
