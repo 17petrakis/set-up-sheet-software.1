@@ -75,12 +75,11 @@ export default function TurningProgramField({ data, onChange, className = "" }) 
         return (
           <div key={key} className={className}>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
-              {getProgramLabel(key)}
+              {getProgramLabel(key)} #
             </Label>
             <Input
               value={entry.number || ""}
               onChange={(e) => updateNumber(key, e.target.value)}
-              placeholder="Number…"
               className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
             />
           </div>
