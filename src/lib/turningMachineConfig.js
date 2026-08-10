@@ -3,7 +3,7 @@
 
 const UPPER_LOWER_MACHINES = [
   "Doosan SMX2100",
-  "Doosan Puma 2100Y II",
+  "Doosan Puma MX2100ST",
   "Nakamura WY-150",
 ];
 
