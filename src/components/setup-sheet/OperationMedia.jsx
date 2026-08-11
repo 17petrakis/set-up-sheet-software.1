@@ -102,20 +102,12 @@ export default function OperationMedia({ items, onChange }) {
                       className={`border border-border/60 rounded-lg overflow-hidden bg-background ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
                     >
                       <div className="flex items-stretch">
-                        {!viewMode && (
-                          <div
-                            {...dragProvided.dragHandleProps}
-                            className="flex items-center justify-center w-8 bg-muted/30 hover:bg-muted/60 cursor-grab active:cursor-grabbing border-r border-border/60"
-                          >
-                            <GripVertical className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        )}
                         <div className="flex-1 min-w-0">
           {/* Title */}
-          <div className="p-3 pb-2">
+          <div className="p-3 pb-2 flex items-center gap-2">
             {viewMode ? (
               m.title && (
-                <p className="text-sm font-bold text-foreground">{m.title}</p>
+                <p className="text-sm font-bold text-foreground flex-1">{m.title}</p>
               )
             ) : (
               <Input
@@ -124,6 +116,14 @@ export default function OperationMedia({ items, onChange }) {
                 placeholder="Add a title…"
                 className="h-9 text-sm font-bold flex-1 bg-background border-border/60"
               />
+            )}
+            {!viewMode && (
+              <div
+                {...dragProvided.dragHandleProps}
+                className="flex items-center justify-center w-8 h-9 shrink-0 bg-muted/30 hover:bg-muted/60 cursor-grab active:cursor-grabbing rounded-md border border-border/60"
+              >
+                <GripVertical className="w-4 h-4 text-muted-foreground" />
+              </div>
             )}
           </div>
 
