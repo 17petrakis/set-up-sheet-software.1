@@ -379,20 +379,6 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                   );
                 })()}
 
-                {((mcMachiningData && (mcMachiningData.photo || mcMachiningData.note))) && (
-                  <section>
-                    <SectionTitle>MC Machining Data Screen</SectionTitle>
-                    <MediaNoteView data={mcMachiningData} title="MC Machining Data Screen" />
-                  </section>
-                )}
-
-                {((preparationScreen && (preparationScreen.photo || preparationScreen.note))) && (
-                  <section>
-                    <SectionTitle>Preparation Screen</SectionTitle>
-                    <MediaNoteView data={preparationScreen} title="Preparation Screen" />
-                  </section>
-                )}
-
                 {millTools.length > 0 && millTools.some(t => t.tool_number || t.description || t.insert) && (
                   <section>
                     <SectionTitle>Tools</SectionTitle>
@@ -416,6 +402,40 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                         ))}
                       </tbody>
                     </table>
+                  </section>
+                )}
+
+                {((mcMachiningData && (mcMachiningData.photo || mcMachiningData.note))) && (
+                  <section>
+                    <SectionTitle>MC Machining Data Screen</SectionTitle>
+                    <MediaNoteView data={mcMachiningData} title="MC Machining Data Screen" />
+                  </section>
+                )}
+
+                {((preparationScreen && (preparationScreen.photo || preparationScreen.note))) && (
+                  <section>
+                    <SectionTitle>Preparation Screen</SectionTitle>
+                    <MediaNoteView data={preparationScreen} title="Preparation Screen" />
+                  </section>
+                )}
+
+                {(gen.operation_notes || (gen.operation_media && gen.operation_media.length > 0)) && (
+                  <section>
+                    <SectionTitle>Operation Notes / Instruction</SectionTitle>
+                    <div className="border border-gray-200 rounded p-3 space-y-3">
+                      {gen.operation_notes && <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_notes}</p>}
+                      {gen.operation_media?.map((m, i) => (
+                        <div key={i}>
+                          {m.title && <p className="text-xs font-bold text-gray-800 mb-1">{m.title}</p>}
+                          {m.type === "video" ? (
+                            <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
+                          ) : (
+                            <img src={m.url} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                          )}
+                          {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{m.note}</p>}
+                        </div>
+                      ))}
+                    </div>
                   </section>
                 )}
               </>
@@ -578,7 +598,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           </>
         )}
 
-        {isTurning && gen.operation_notes && (
+        {isTurning && !isCitizen && gen.operation_notes && (
           <section>
             <SectionTitle>Operation Notes</SectionTitle>
             <div className="border border-gray-200 rounded p-3">
