@@ -154,6 +154,13 @@
       "type": "string",
       "description": "Operation notes"
     },
+    "operation_media": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Media items (photos/videos) for operation notes: [{url, type, title, note}]"
+    },
     "work_holding_notes": {
       "type": "string",
       "description": "Work holding notes (milling)"
