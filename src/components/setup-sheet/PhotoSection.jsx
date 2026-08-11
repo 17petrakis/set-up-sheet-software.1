@@ -13,10 +13,11 @@ const DEFAULT_SLOTS = [
   { key: "final_part_2", label: "Final Part 2" },
 ];
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, large, readOnly = false }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
+  const [editingLabel, setEditingLabel] = useState(false);
 
   const isPdf = url && (url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("application/pdf") || url.includes("pdf"));
 
@@ -46,7 +47,23 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
       {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
 
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-foreground uppercase tracking-widest">{label}</span>
+        {editingLabel && onLabelChange ? (
+          <input
+            autoFocus
+            value={label}
+            onChange={(e) => onLabelChange(e.target.value)}
+            onBlur={() => setEditingLabel(false)}
+            onKeyDown={(e) => e.key === "Enter" && setEditingLabel(false)}
+            className="text-xs font-bold text-foreground uppercase tracking-widest bg-transparent border-b border-primary outline-none min-w-0 flex-1"
+          />
+        ) : (
+          <span
+            className={`text-xs font-bold text-foreground uppercase tracking-widest ${onLabelChange && !readOnly ? "cursor-text" : ""}`}
+            onClick={() => onLabelChange && !readOnly && setEditingLabel(true)}
+          >
+            {label}
+          </span>
+        )}
         <div className="flex items-center gap-2">
           {url && !readOnly && (
             <button
@@ -178,6 +195,11 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     onChange({ ...photos, [`${key}__note`]: note });
   };
 
+  const handleLabelChange = (key, newLabel) => {
+    const newExtra = extraSlots.map((s) => s.key === key ? { ...s, label: newLabel } : s);
+    onChange({ ...photos, __extra_slots: newExtra });
+  };
+
   const handleAddPhotoFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -247,6 +269,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
               onRemove={() => (isExtra ? removeExtraSlot(key) : handleRemove(key))}
               onDeleteSlot={isExtra ? () => removeExtraSlot(key) : undefined}
               onNoteChange={(note) => handleNoteChange(key, note)}
+              onLabelChange={isExtra ? (newLabel) => handleLabelChange(key, newLabel) : undefined}
               large={key === "work_holding"}
               readOnly={readOnly}
             />
