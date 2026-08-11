@@ -1,11 +1,10 @@
 import React from "react";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
-import { getMachineGroup } from "@/lib/machineGroups";
+import { getMachineGroup, isCitizenMachine } from "@/lib/machineGroups";
 import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
 import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
 import { getProgramMode, getProgramLabel } from "@/lib/turningMachineConfig";
-import { isCitizenMachine } from "@/lib/machineGroups";
 import ViewPhoto from "./ViewPhoto";
 
 function CitizenWorkholdingView({ data }) {

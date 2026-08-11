@@ -750,6 +750,9 @@ export default function SetupSheet() {
               operations: isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }],
               photos: carriedPhotos,
               turning_chuck: isTurning ? turningChuck : undefined,
+              citizen_workholding: (isTurning && sourceIsTurning && isCitizenMachine(general.machine)) ? citizenWorkholding : undefined,
+              mc_machining_data: (isTurning && sourceIsTurning && isCitizenMachine(general.machine)) ? mcMachiningData : undefined,
+              preparation_screen: (isTurning && sourceIsTurning && isCitizenMachine(general.machine)) ? preparationScreen : undefined,
             };
 
             const newSheet = await base44.entities.SetupSheet.create({
