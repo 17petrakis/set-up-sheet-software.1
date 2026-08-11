@@ -65,18 +65,7 @@ export default function OperationMedia({ items, onChange, onAddNote }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="h-8 px-3 text-xs gap-1.5"
-        >
-          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-          Add Media (Photo/Video)
-        </Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         {onAddNote && (
           <Button
             type="button"
@@ -89,6 +78,17 @@ export default function OperationMedia({ items, onChange, onAddNote }) {
             Add Operation Note
           </Button>
         )}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="h-8 px-3 text-xs gap-1.5"
+        >
+          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+          Add Media (Photo/Video)
+        </Button>
         <input
           ref={fileRef}
           type="file"
