@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import PhotoLightbox from "./PhotoLightbox";
 
@@ -178,15 +179,15 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 export default function PhotoSection({ photos = {}, onChange, readOnly = false }) {
   // Extra slots beyond the defaults, stored as array of { key, label } in photos.__extra_slots
   const extraSlots = photos.__extra_slots || [];
-  const addFileInputRef = useRef(null);
-  const [addingSlot, setAddingSlot] = useState(false);
+  const fileInputRef = useRef(null);
+  const [pendingSlot, setPendingSlot] = useState(null); // "custom" | default slot key
+  const [uploading, setUploading] = useState(false);
 
   const handleUpload = (key, url) => onChange({ ...photos, [key]: url });
 
   const handleRemove = (key) => {
     const updated = { ...photos };
     delete updated[key];
-    // Also remove note
     delete updated[`${key}__note`];
     onChange(updated);
   };
@@ -200,21 +201,30 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     onChange({ ...photos, __extra_slots: newExtra });
   };
 
-  const handleAddPhotoFile = async (e) => {
+  const triggerFileSelect = (slot) => {
+    setPendingSlot(slot);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setAddingSlot(true);
+    if (!file) { setPendingSlot(null); return; }
+    setUploading(true);
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
-      const idx = extraSlots.length + 1;
-      const newKey = `extra_${Date.now()}`;
-      const newLabel = `Photo ${DEFAULT_SLOTS.length + idx}`;
-      const newExtra = [{ key: newKey, label: newLabel }, ...extraSlots];
-      onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
+      if (pendingSlot === "custom") {
+        const newKey = `extra_${Date.now()}`;
+        const newLabel = `Photo ${DEFAULT_SLOTS.length + extraSlots.length + 1}`;
+        const newExtra = [{ key: newKey, label: newLabel }, ...extraSlots];
+        onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
+      } else if (pendingSlot) {
+        onChange({ ...photos, [pendingSlot]: result.file_url });
+      }
     } catch (err) {
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
-      setAddingSlot(false);
+      setUploading(false);
+      setPendingSlot(null);
       e.target.value = "";
     }
   };
@@ -227,7 +237,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     onChange(updated);
   };
 
-  const allSlots = [...extraSlots, ...DEFAULT_SLOTS];
+  const filledSlots = [...extraSlots, ...DEFAULT_SLOTS].filter((s) => photos[s.key]);
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
@@ -236,27 +246,48 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
           <Camera className="w-4 h-4 text-primary" />
           Photos
         </h2>
-        {!readOnly && (
-        <>
-          <button
-            onClick={() => addFileInputRef.current?.click()}
-            disabled={addingSlot}
-            className="no-print flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+      </div>
+      <div className="border-b border-border mb-5" />
+
+      {!readOnly && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button
+            onClick={() => triggerFileSelect("custom")}
+            disabled={uploading}
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 text-xs gap-1.5"
           >
-            {addingSlot ? (
+            {uploading && pendingSlot === "custom" ? (
               <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             ) : (
               <Plus className="w-3.5 h-3.5" />
             )}
-            Add Photo
-          </button>
-          <input ref={addFileInputRef} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleAddPhotoFile} />
-        </>
-        )}
-      </div>
-      <div className="border-b border-border mb-5" />
+            Add Custom Photo
+          </Button>
+          {DEFAULT_SLOTS.filter((s) => !photos[s.key]).map(({ key, label }) => (
+            <Button
+              key={key}
+              onClick={() => triggerFileSelect(key)}
+              disabled={uploading}
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-xs gap-1.5"
+            >
+              {uploading && pendingSlot === key ? (
+                <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              ) : (
+                <Plus className="w-3.5 h-3.5" />
+              )}
+              Add {label} Photo
+            </Button>
+          ))}
+          <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFileChange} />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-8">
-        {allSlots.map(({ key, label }) => {
+        {filledSlots.map(({ key, label }) => {
           const isExtra = extraSlots.some((s) => s.key === key);
           return (
             <PhotoSlot
