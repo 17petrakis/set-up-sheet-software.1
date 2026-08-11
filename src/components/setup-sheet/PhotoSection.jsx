@@ -214,7 +214,8 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
       const result = await base44.integrations.Core.UploadFile({ file });
       if (pendingSlot === "custom") {
         const newKey = `extra_${Date.now()}`;
-        const newLabel = `Photo ${DEFAULT_SLOTS.length + extraSlots.length + 1}`;
+        const newLabel = prompt("Enter a title for this photo:", `Photo ${DEFAULT_SLOTS.length + extraSlots.length + 1}`);
+        if (!newLabel) return;
         const newExtra = [{ key: newKey, label: newLabel }, ...extraSlots];
         onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
       } else if (pendingSlot) {
