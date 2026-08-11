@@ -24,6 +24,8 @@ export default function OperationMedia({ items, onChange }) {
 
   const detectType = (file) => {
     if (file.type.startsWith("video/")) return "video";
+    const name = (file.name || "").toLowerCase();
+    if (/\.(mp4|mov|avi|webm|mkv|m4v|ogg|3gp)$/.test(name)) return "video";
     return "image";
   };
 

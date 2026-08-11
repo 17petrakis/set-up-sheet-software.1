@@ -68,12 +68,14 @@ export default function OperationsList({ operations, onChange, includeInView, on
                 />
               </label>
             </div>
-            <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
-              <Plus className="w-3 h-3" /> Add Operation
-            </Button>
           </div>
 
           <CollapsibleContent>
+            <div className="flex justify-end mb-2">
+              <Button size="sm" variant="outline" onClick={addRow} className="h-7 text-xs gap-1.5">
+                <Plus className="w-3 h-3" /> Add Operation
+              </Button>
+            </div>
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
