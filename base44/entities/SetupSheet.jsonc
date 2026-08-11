@@ -209,6 +209,18 @@
       "type": "object",
       "description": "Chuck & work holding data for turning sheets"
     },
+    "citizen_workholding": {
+      "type": "object",
+      "description": "Citizen swiss-style workholding/part eject data: {bar_loader_collet_size, ms_collet_size, ms_collet_shape, guide_bush_size, guide_bush_shape, guide_bush_material, ss_collet_size, ss_collet_shape, ss_collet_stickout, ss_collet_special, part_ejection_description, part_ejection_photo}"
+    },
+    "mc_machining_data": {
+      "type": "object",
+      "description": "MC Machining Data screen: {photo, note}"
+    },
+    "preparation_screen": {
+      "type": "object",
+      "description": "Preparation screen: {photo, note}"
+    },
     "photos": {
       "type": "object",
       "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"

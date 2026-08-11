@@ -5,7 +5,69 @@ import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
 import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
 import { getProgramMode, getProgramLabel } from "@/lib/turningMachineConfig";
+import { isCitizenMachine } from "@/lib/machineGroups";
 import ViewPhoto from "./ViewPhoto";
+
+function CitizenWorkholdingView({ data }) {
+  const d = data || {};
+  const fields = [
+    ["Bar Loader Collet — Size", d.bar_loader_collet_size],
+    ["MS Collet — Size", d.ms_collet_size],
+    ["MS Collet — Shape", d.ms_collet_shape],
+    ["Guide Bush — Size", d.guide_bush_size],
+    ["Guide Bush — Shape", d.guide_bush_shape],
+    ["Guide Bush — Material", d.guide_bush_material],
+    ["SS Collet — Size", d.ss_collet_size],
+    ["SS Collet — Shape", d.ss_collet_shape],
+    ["SS Collet — Stickout", d.ss_collet_stickout],
+    ["SS Collet — Special", d.ss_collet_special],
+  ].filter(([, v]) => v);
+  const hasData = fields.length > 0 || d.part_ejection_description || d.part_ejection_photo;
+  if (!hasData) return null;
+  return (
+    <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
+      {fields.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-1">
+          {fields.map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
+        </div>
+      )}
+      {(d.part_ejection_description || d.part_ejection_photo) && (
+        <div className="border-t border-gray-200 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Part Ejection</p>
+          {d.part_ejection_description && <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.part_ejection_description}</p>}
+          {d.part_ejection_photo && (
+            <div className="mt-1.5">
+              <ViewPhoto url={d.part_ejection_photo} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MediaNoteView({ data, title }) {
+  const d = data || {};
+  if (!d.photo && !d.note) return null;
+  return (
+    <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">{title}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+        {d.photo && (
+          <div>
+            <ViewPhoto url={d.photo} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+          </div>
+        )}
+        {d.note && (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Note</p>
+            <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.note}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const DEFAULT_PHOTO_SLOTS = [
   { key: "work_holding", label: "Work Holding" },
@@ -40,8 +102,9 @@ function SectionTitle({ children }) {
   return <h2 className="view-section-title">{children}</h2>;
 }
 
-export default function SetupSheetViewMode({ general, tools, turningTools, partZero: pz, operations, photos, fixturingNotes, turningChuck }) {
+export default function SetupSheetViewMode({ general, tools, turningTools, partZero: pz, operations, photos, fixturingNotes, turningChuck, citizenWorkholding, mcMachiningData, preparationScreen }) {
   const isTurning = general.machine_type === "turning";
+  const isCitizen = isCitizenMachine(general.machine);
   const millTools = tools?.length ? tools : [];
   const millToolColumns = millTools.length > 0 ? (() => {
     const alwaysCols = [{ key: "tool_number", label: "Tool #" }, { key: "tool_type", label: "Tool Type" }];
@@ -305,12 +368,49 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
 
         {isTurning ? (
           <>
-            {hasTurningChuckData(tChuck) && (
-              <section>
-                <SectionTitle>Chuck & Work Holding</SectionTitle>
-                <TurningChuckView turningChuck={tChuck} />
-              </section>
-            )}
+            {isCitizen ? (
+              <>
+                {(() => {
+                  const d = citizenWorkholding || {};
+                  const hasData = Object.values(d).some(v => v);
+                  if (!hasData) return null;
+                  return (
+                    <section>
+                      <SectionTitle>Workholding / Part Eject</SectionTitle>
+                      <CitizenWorkholdingView data={d} />
+                    </section>
+                  );
+                })()}
+
+                {((mcMachiningData && (mcMachiningData.photo || mcMachiningData.note))) && (
+                  <section>
+                    <SectionTitle>MC Machining Data Screen</SectionTitle>
+                    <MediaNoteView data={mcMachiningData} title="MC Machining Data Screen" />
+                  </section>
+                )}
+
+                {((preparationScreen && (preparationScreen.photo || preparationScreen.note))) && (
+                  <section>
+                    <SectionTitle>Preparation Screen</SectionTitle>
+                    <MediaNoteView data={preparationScreen} title="Preparation Screen" />
+                  </section>
+                )}
+
+                {hasTurningToolsData(tTools) && (
+                  <section>
+                    <SectionTitle>Tools</SectionTitle>
+                    <TurningToolsView turningTools={tTools} tableClass="view-table" />
+                  </section>
+                )}
+              </>
+            ) : (
+              <>
+                {hasTurningChuckData(tChuck) && (
+                  <section>
+                    <SectionTitle>Chuck & Work Holding</SectionTitle>
+                    <TurningChuckView turningChuck={tChuck} />
+                  </section>
+                )}
 
             {hasTurningToolsData(tTools) && (
               <section>
@@ -381,6 +481,8 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
               );
             })()}
+              </>
+            )}
           </>
         ) : (
           <>

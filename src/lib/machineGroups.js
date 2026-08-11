@@ -33,3 +33,9 @@ export function getMachineGroup(machine) {
   if (HMC_NORM.has(n)) return "hmc";
   return null;
 }
+
+// Citizen swiss-type lathes use a dedicated workholding/part-eject format.
+export function isCitizenMachine(machine) {
+  if (!machine) return false;
+  return normalize(machine).startsWith("citizen");
+}

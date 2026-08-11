@@ -76,6 +76,23 @@ export const emptyTurningChuck = {
 
 export const emptyTurningTools = { turrets: [] };
 
+export const emptyCitizenWorkholding = {
+  bar_loader_collet_size: "",
+  ms_collet_size: "",
+  ms_collet_shape: "",
+  guide_bush_size: "",
+  guide_bush_shape: "",
+  guide_bush_material: "",
+  ss_collet_size: "",
+  ss_collet_shape: "",
+  ss_collet_stickout: "",
+  ss_collet_special: "",
+  part_ejection_description: "",
+  part_ejection_photo: "",
+};
+
+export const emptyMediaNote = { photo: "", note: "" };
+
 export const emptyTurningOperation = {
   n_block: "",
   op_number: "",

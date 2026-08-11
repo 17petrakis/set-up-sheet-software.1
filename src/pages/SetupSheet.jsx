@@ -23,9 +23,13 @@ import AddOperationDialog from "@/components/home/AddOperationDialog";
 import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
 import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 import SetupSheetViewMode from "@/components/setup-sheet/SetupSheetViewMode";
+import CitizenWorkholdingSection from "@/components/setup-sheet/CitizenWorkholdingSection";
+import MediaNoteSection from "@/components/setup-sheet/MediaNoteSection";
 
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote } from "@/lib/setupSheetDefaults";
+import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
+import { Monitor, ClipboardList } from "lucide-react";
 
 export default function SetupSheet() {
   const { id } = useParams();
@@ -39,6 +43,9 @@ export default function SetupSheet() {
   const [photos, setPhotos] = useState({});
   const [fixturingNotes, setFixturingNotes] = useState({});
   const [turningChuck, setTurningChuck] = useState({ ...emptyTurningChuck });
+  const [citizenWorkholding, setCitizenWorkholding] = useState({ ...emptyCitizenWorkholding });
+  const [mcMachiningData, setMcMachiningData] = useState({ ...emptyMediaNote });
+  const [preparationScreen, setPreparationScreen] = useState({ ...emptyMediaNote });
   const [importError, setImportError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,7 +71,7 @@ export default function SetupSheet() {
     (async () => {
       try {
         const sheet = await base44.entities.SetupSheet.get(id);
-        const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, ...gen } = sheet;
+        const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = sheet;
         const isTurning = gen.machine_type === "turning";
         setGeneral({ ...emptyGeneral, ...gen });
         setTools(t?.length ? t : [{ ...emptyTool }]);
@@ -74,6 +81,9 @@ export default function SetupSheet() {
         setPhotos(ph || {});
         setFixturingNotes(sheet.fixturing_notes || {});
         setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
+        setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
+        setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
+        setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
         setLoading(false);
       } catch (err) {
         // Sheet not found or deleted — go back to home
@@ -83,9 +93,9 @@ export default function SetupSheet() {
   }, [id]);
 
   // Auto-save debounce
-  const triggerSave = useCallback((gen, t, tt, pz, ops, ph, fn, tc) => {
+  const triggerSave = useCallback((gen, t, tt, pz, ops, ph, fn, tc, cw, mc, ps) => {
     if (!id) return;
-    latestData.current = { gen, t, tt, pz, ops, ph, fn, tc };
+    latestData.current = { gen, t, tt, pz, ops, ph, fn, tc, cw, mc, ps };
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -100,6 +110,9 @@ export default function SetupSheet() {
           photos: d.ph,
           fixturing_notes: d.fn,
           turning_chuck: d.tc,
+          citizen_workholding: d.cw,
+          mc_machining_data: d.mc,
+          preparation_screen: d.ps,
         });
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus(null), 2000);
@@ -128,6 +141,9 @@ export default function SetupSheet() {
       const ph = photosRef.current;
       const fn = fixturingNotesRef.current;
       const tc = turningChuckRef.current;
+      const cw = citizenWorkholdingRef.current;
+      const mc = mcMachiningDataRef.current;
+      const ps = preparationScreenRef.current;
       // Only flush if general has real data (i.e. we've finished loading)
       if (gen && gen.part_number !== undefined) {
         base44.entities.SetupSheet.update(id, {
@@ -139,6 +155,9 @@ export default function SetupSheet() {
           photos: ph,
           fixturing_notes: fn,
           turning_chuck: tc,
+          citizen_workholding: cw,
+          mc_machining_data: mc,
+          preparation_screen: ps,
         }).catch(() => {});
       }
     };
@@ -174,6 +193,9 @@ export default function SetupSheet() {
   const photosRef = useRef(photos);
   const fixturingNotesRef = useRef(fixturingNotes);
   const turningChuckRef = useRef(turningChuck);
+  const citizenWorkholdingRef = useRef(citizenWorkholding);
+  const mcMachiningDataRef = useRef(mcMachiningData);
+  const preparationScreenRef = useRef(preparationScreen);
 
   useEffect(() => { generalRef.current = general; }, [general]);
   useEffect(() => { toolsRef.current = tools; }, [tools]);
@@ -183,6 +205,9 @@ export default function SetupSheet() {
   useEffect(() => { photosRef.current = photos; }, [photos]);
   useEffect(() => { fixturingNotesRef.current = fixturingNotes; }, [fixturingNotes]);
   useEffect(() => { turningChuckRef.current = turningChuck; }, [turningChuck]);
+  useEffect(() => { citizenWorkholdingRef.current = citizenWorkholding; }, [citizenWorkholding]);
+  useEffect(() => { mcMachiningDataRef.current = mcMachiningData; }, [mcMachiningData]);
+  useEffect(() => { preparationScreenRef.current = preparationScreen; }, [preparationScreen]);
 
   const handleGeneralChange = useCallback((field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
@@ -228,7 +253,8 @@ export default function SetupSheet() {
         triggerSave(
           { ...generalRef.current, [field]: value },
           toolsRef.current, turningToolsRef.current, partZeroRef.current,
-          operationsRef.current, photosRef.current, fixturingNotesRef.current, newChuck
+          operationsRef.current, photosRef.current, fixturingNotesRef.current, newChuck,
+          citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current
         );
       }
     }
@@ -241,43 +267,58 @@ export default function SetupSheet() {
   // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
     if (!loading) {
-      triggerSave(general, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
+      triggerSave(general, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
     }
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
     setTools(val); toolsRef.current = val;
-    triggerSave(generalRef.current, val, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, val, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handleTurningToolsChange = useCallback((val) => {
     setTurningTools(val); turningToolsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, val, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handlePartZeroChange = useCallback((val) => {
     setPartZero(val); partZeroRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, val, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, val, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handleOperationsChange = useCallback((val) => {
     setOperations(val); operationsRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, val, photosRef.current, fixturingNotesRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, val, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handlePhotosChange = useCallback((val) => {
     setPhotos(val); photosRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, val, fixturingNotesRef.current, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, val, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handleFixturingNotesChange = useCallback((val) => {
     setFixturingNotes(val); fixturingNotesRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningChuckRef.current);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, val, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
   }, [triggerSave]);
 
   const handleTurningChuckChange = useCallback((val) => {
     setTurningChuck(val); turningChuckRef.current = val;
-    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, val);
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, val, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
+  }, [triggerSave]);
+
+  const handleCitizenWorkholdingChange = useCallback((val) => {
+    setCitizenWorkholding(val); citizenWorkholdingRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, val, mcMachiningDataRef.current, preparationScreenRef.current);
+  }, [triggerSave]);
+
+  const handleMcMachiningDataChange = useCallback((val) => {
+    setMcMachiningData(val); mcMachiningDataRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, val, preparationScreenRef.current);
+  }, [triggerSave]);
+
+  const handlePreparationScreenChange = useCallback((val) => {
+    setPreparationScreen(val); preparationScreenRef.current = val;
+    triggerSave(generalRef.current, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, val);
   }, [triggerSave]);
 
   const handleDebugPDF = async (e) => {
@@ -373,6 +414,9 @@ export default function SetupSheet() {
       photos: photosRef.current,
       fixturing_notes: fixturingNotesRef.current,
       turning_chuck: turningChuckRef.current,
+      citizen_workholding: citizenWorkholdingRef.current,
+      mc_machining_data: mcMachiningDataRef.current,
+      preparation_screen: preparationScreenRef.current,
     };
     await base44.entities.SheetRevision.create({
       sheet_id: id,
@@ -390,7 +434,7 @@ export default function SetupSheet() {
     await saveRevision("Auto-saved before restore");
     const snap = revision.snapshot;
     if (!snap) return;
-    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, fixturing_notes: fn, turning_chuck: tc, ...gen } = snap;
+    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, fixturing_notes: fn, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = snap;
     setGeneral({ ...emptyGeneral, ...gen });
     setTools(t?.length ? t : [{ ...emptyTool }]);
     setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
@@ -399,6 +443,9 @@ export default function SetupSheet() {
     setPhotos(ph || {});
     setFixturingNotes(fn || {});
     setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
+    setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
+    setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
+    setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
     // Persist the restored snapshot
     await base44.entities.SetupSheet.update(id, snap);
     setShowHistory(false);
@@ -427,6 +474,9 @@ export default function SetupSheet() {
           photos: photosRef.current,
           fixturing_notes: fixturingNotesRef.current,
           turning_chuck: turningChuckRef.current,
+          citizen_workholding: citizenWorkholdingRef.current,
+          mc_machining_data: mcMachiningDataRef.current,
+          preparation_screen: preparationScreenRef.current,
         });
       } catch (err) {
         // ignore
@@ -732,6 +782,9 @@ export default function SetupSheet() {
             photos={photos}
             fixturingNotes={fixturingNotes}
             turningChuck={turningChuck}
+            citizenWorkholding={citizenWorkholding}
+            mcMachiningData={mcMachiningData}
+            preparationScreen={preparationScreen}
           />
         ) : (
         <>
@@ -745,21 +798,43 @@ export default function SetupSheet() {
 
           {general.machine_type === "turning" ? (
             <>
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-                <TurningChuckSection data={turningChuck} onChange={handleTurningChuckChange} />
-              </motion.div>
+              {isCitizenMachine(general.machine) ? (
+                <>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+                    <CitizenWorkholdingSection data={citizenWorkholding} onChange={handleCitizenWorkholdingChange} />
+                  </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
-                <PartZero data={partZero} onChange={handlePartZeroChange} machineType="turning" />
-              </motion.div>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
+                    <MediaNoteSection data={mcMachiningData} onChange={handleMcMachiningDataChange} title="MC Machining Data Screen" icon={Monitor} />
+                  </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-                <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} sheetId={id} programNumbers={general.program_numbers} />
-              </motion.div>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                    <MediaNoteSection data={preparationScreen} onChange={handlePreparationScreenChange} title="Preparation Screen" icon={ClipboardList} />
+                  </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
-                <TurningOperationsList operations={operations} onChange={handleOperationsChange} includeInView={general.operations_in_view} onIncludeInViewChange={(val) => handleGeneralChange("operations_in_view", val)} />
-              </motion.div>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.12 }}>
+                    <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} sheetId={id} programNumbers={general.program_numbers} />
+                  </motion.div>
+                </>
+              ) : (
+                <>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
+                    <TurningChuckSection data={turningChuck} onChange={handleTurningChuckChange} />
+                  </motion.div>
+
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
+                    <PartZero data={partZero} onChange={handlePartZeroChange} machineType="turning" />
+                  </motion.div>
+
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                    <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} sheetId={id} programNumbers={general.program_numbers} />
+                  </motion.div>
+
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
+                    <TurningOperationsList operations={operations} onChange={handleOperationsChange} includeInView={general.operations_in_view} onIncludeInViewChange={(val) => handleGeneralChange("operations_in_view", val)} />
+                  </motion.div>
+                </>
+              )}
             </>
           ) : (
             <>
