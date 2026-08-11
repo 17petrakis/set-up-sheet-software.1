@@ -26,7 +26,7 @@ const MACHINES = [
   { group: "Manual", models: ["Manual"] },
 ];
 
-const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "N/A"];
+const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "Finger-Code", "N/A"];
 
 const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
   models.map(m => {
@@ -62,6 +62,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
   const [customerNames, setCustomerNames] = useState([]);
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
+  const [showEditNote, setShowEditNote] = useState(!!data.has_program_edited);
 
   useEffect(() => {
     base44.entities.Customer.list("name", 200).then(list => {
@@ -370,6 +371,37 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           )}
         </div>
 
+        {/* Program edited at machine checkbox */}
+        <div className="mt-4 border border-border/50 rounded-lg overflow-hidden">
+          <label className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showEditNote}
+              onChange={() => {
+                const next = !showEditNote;
+                setShowEditNote(next);
+                onChange("has_program_edited", next);
+                if (!next) onChange("edit_note", "");
+              }}
+              className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+            />
+            <span className="text-sm font-medium text-foreground">Has program been edited at machine?</span>
+          </label>
+
+          {showEditNote && (
+            <div className="px-4 py-4">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Edit Note
+              </Label>
+              <AutoResizeTextarea
+                value={data.edit_note || ""}
+                onChange={(e) => update("edit_note")(e.target.value)}
+                placeholder="Describe what was edited at the machine…"
+                className="min-h-[64px] text-sm bg-background border-border/60"
+              />
+            </div>
+          )}
+        </div>
 
       </CardContent>
     </Card>
