@@ -11,8 +11,10 @@ export default function HmcFixturing({ data, onChange, machine }) {
     onChange({ ...data, stations: next });
   };
   const addStation = () => onChange({ ...data, stations: [...stations, { ...emptyHmcStation }] });
-  const removeStation = (i) =>
+  const removeStation = (i) => {
+    if (i === 0) return;
     onChange({ ...data, stations: stations.filter((_, idx) => idx !== i) });
+  };
 
   return (
     <div className="space-y-3">
@@ -22,6 +24,7 @@ export default function HmcFixturing({ data, onChange, machine }) {
           station={s}
           index={i}
           machine={machine}
+          isFirst={i === 0}
           onChange={(updated) => updateStation(i, updated)}
           onRemove={() => removeStation(i)}
         />

@@ -254,7 +254,7 @@ export default function PrintView() {
               const renderStationRows = (s, isHmc) => {
                 const rows = [];
                 if (isHmc) {
-                  rows.push(["Pallet Note", s.pallet_note], ["Tombstone", s.tombstone_structure], ["Workholding", s.workholding_type]);
+                  rows.push(["Fixture Structure / Tombstone Note", s.fixture_structure_note || s.pallet_note], ["Workholding", s.workholding_type]);
                   if (s.workholding_type === "Vise") {
                      rows.push(["Vise Model", s.vise_model === "Other" ? (s.vise_model_other || "Other") : s.vise_model], ["Jaw Type", s.jaw_type], ["# Vises", s.num_vises], ["Parallels", s.parallels ? `Yes${s.parallel_height ? ` (${s.parallel_height})` : ""}` : "No"]);
                      (s.additional_vises || []).forEach((v, vi) => {
@@ -323,6 +323,12 @@ export default function PrintView() {
                                 {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                               </div>
                               {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
+                              {s.fixture_photo && (
+                                <div className="mt-1.5">
+                                  <img src={s.fixture_photo} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                  {s.fixture_photo_note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{s.fixture_photo_note}</p>}
+                                </div>
+                              )}
                               {s.photos?.length > 0 && (
                                 <div className="space-y-3 mt-1.5">
                                   {s.photos.map((p, pi) => (
