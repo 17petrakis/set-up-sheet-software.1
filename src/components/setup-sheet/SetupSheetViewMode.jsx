@@ -270,10 +270,14 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                               {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                             </div>
                             {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
-                            {s.fixture_photo && (
-                              <div className="mt-1.5">
-                                <ViewPhoto url={s.fixture_photo} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
-                                {s.fixture_photo_note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{s.fixture_photo_note}</p>}
+                            {s.fixture_photos?.length > 0 && (
+                              <div className="space-y-3 mt-1.5">
+                                {s.fixture_photos.map((p, pi) => (
+                                  <div key={pi}>
+                                    <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
+                                  </div>
+                                ))}
                               </div>
                             )}
                             {s.photos?.length > 0 && (

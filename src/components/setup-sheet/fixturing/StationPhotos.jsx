@@ -11,7 +11,7 @@ import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
  * correlating note beside it.
  * photos: [{ url, note }]
  */
-export default function StationPhotos({ photos, onChange }) {
+export default function StationPhotos({ photos, onChange, label = "Photos" }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState(null);
@@ -49,7 +49,7 @@ export default function StationPhotos({ photos, onChange }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Photos</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
         <Button
           type="button"
           size="sm"

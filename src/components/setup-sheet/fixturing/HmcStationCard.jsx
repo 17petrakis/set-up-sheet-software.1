@@ -10,7 +10,6 @@ import CustomFixtureFields from "./CustomFixtureFields";
 import SoftJawPocketFields from "./SoftJawPocketFields";
 import CommonStationFields from "./CommonStationFields";
 import WorkholdingNoteField from "./WorkholdingNoteField";
-import InlinePhotoField from "@/components/setup-sheet/InlinePhotoField";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { HMC_WORKHOLDING, NUM_VISES_3 } from "@/lib/fixturingOptions";
 
@@ -47,16 +46,11 @@ export default function HmcStationCard({ station, index, machine, onChange, onRe
           />
         </FixturingField>
 
-        <FixturingField label="Fixture Photo">
-          <InlinePhotoField
-            value={station.fixture_photo || ""}
-            note={station.fixture_photo_note || ""}
-            onUpload={(url) => update("fixture_photo", url)}
-            onRemove={() => update("fixture_photo", "")}
-            onNoteChange={(v) => update("fixture_photo_note", v)}
-            label="Fixture Photo"
-          />
-        </FixturingField>
+        <StationPhotos
+          photos={station.fixture_photos || []}
+          onChange={(photos) => update("fixture_photos", photos)}
+          label="Fixture Photos"
+        />
 
         <FixturingField label="Workholding Type">
           <FixturingSelect
