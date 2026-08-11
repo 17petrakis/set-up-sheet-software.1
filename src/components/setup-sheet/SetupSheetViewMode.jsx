@@ -51,19 +51,17 @@ function MediaNoteView({ data, title }) {
   return (
     <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">{title}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-        {d.photo && (
-          <div>
-            <ViewPhoto url={d.photo} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
-          </div>
-        )}
-        {d.note && (
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Note</p>
-            <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.note}</p>
-          </div>
-        )}
-      </div>
+      {d.photo && (
+        <div className="flex justify-center">
+          <ViewPhoto url={d.photo} className="max-w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+        </div>
+      )}
+      {d.note && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Note</p>
+          <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.note}</p>
+        </div>
+      )}
     </div>
   );
 }
