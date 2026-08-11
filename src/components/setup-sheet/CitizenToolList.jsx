@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, Trash2, GripVertical, Ruler } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import AutoSizeInput from "@/components/turning-tools/AutoSizeInput";
 
 const emptyCitizenTool = { tool_number: "", description: "", insert: "", stickout: "" };
 
@@ -100,23 +101,25 @@ export default function CitizenToolList({ tools, onChange }) {
                               />
                             </div>
 
-                            {/* Description */}
-                            <div className="flex-1 min-w-[140px]">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Description</span>
-                              <Input
+                            {/* Description — expands to fit text */}
+                            <div className="flex items-end gap-1">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5 shrink-0">Description</span>
+                              <AutoSizeInput
                                 value={tool.description || ""}
-                                onChange={(e) => updateCell(i, "description", e.target.value)}
-                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                onChange={(v) => updateCell(i, "description", v)}
+                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                minWidth="8rem"
                               />
                             </div>
 
-                            {/* Insert */}
-                            <div className="flex-1 min-w-[120px]">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Insert</span>
-                              <Input
+                            {/* Insert — shrinks to fit */}
+                            <div className="flex items-end gap-1">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5 shrink-0">Insert</span>
+                              <AutoSizeInput
                                 value={tool.insert || ""}
-                                onChange={(e) => updateCell(i, "insert", e.target.value)}
-                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                onChange={(v) => updateCell(i, "insert", v)}
+                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                minWidth="3rem"
                               />
                             </div>
 
