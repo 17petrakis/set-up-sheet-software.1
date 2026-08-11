@@ -483,20 +483,28 @@ export default function SetupSheet() {
             <div>
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
-                <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                <InlineEditTitle
-                  value={general.operation_name || "Operation"}
-                  onChange={(val) => handleGeneralChange("operation_name", val)}
-                />
+                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
+                <div className="hidden md:block">
+                  <InlineEditTitle
+                    value={general.operation_name || "Operation"}
+                    onChange={(val) => handleGeneralChange("operation_name", val)}
+                  />
+                </div>
                 {general.part_name && general.part_name.trim() && (
                   <>
-                    <span className="text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                    <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.part_name}</span>
+                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
+                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.part_name}</span>
                   </>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : general.customer || "Machine Shop Manager"}
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (
+                  <>
+                    {general.customer || "Machine Shop Manager"}
+                    {general.operation_name && <span className="md:hidden"> • {general.operation_name}</span>}
+                    {general.part_name && general.part_name.trim() && <span className="md:hidden"> • {general.part_name}</span>}
+                  </>
+                )}
               </p>
             </div>
           </div>
