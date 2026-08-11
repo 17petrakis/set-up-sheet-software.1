@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
-import { Plus, X, Loader2, Film, Image as ImageIcon, Pencil, Trash2 } from "lucide-react";
+import { Plus, X, Loader2, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 /**
  * Media items: [{ url, type: "image"|"video", title, note }]
@@ -54,6 +55,14 @@ export default function OperationMedia({ items, onChange }) {
     onChange(media.filter((_, idx) => idx !== i));
   };
 
+  const handleDragEnd = (result) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+    const next = [...media];
+    const [moved] = next.splice(result.source.index, 1);
+    next.splice(result.destination.index, 0, moved);
+    onChange(next);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -77,8 +86,31 @@ export default function OperationMedia({ items, onChange }) {
         />
       </div>
 
-      {media.map((m, i) => (
-        <div key={i} className="border border-border/60 rounded-lg overflow-hidden bg-background">
+      {!viewMode && media.length > 1 && (
+        <p className="text-xs text-muted-foreground">Drag the handle to reorder media.</p>
+      )}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="operation-media">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-4">
+              {media.map((m, i) => (
+                <Draggable key={i} draggableId={`media-${i}`} index={i} isDragDisabled={viewMode}>
+                  {(dragProvided, snapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      className={`border border-border/60 rounded-lg overflow-hidden bg-background ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}
+                    >
+                      <div className="flex items-stretch">
+                        {!viewMode && (
+                          <div
+                            {...dragProvided.dragHandleProps}
+                            className="flex items-center justify-center w-8 bg-muted/30 hover:bg-muted/60 cursor-grab active:cursor-grabbing border-r border-border/60"
+                          >
+                            <GripVertical className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
           {/* Title */}
           <div className="p-3 pb-2">
             {viewMode ? (
@@ -136,8 +168,17 @@ export default function OperationMedia({ items, onChange }) {
               />
             )}
           </div>
-        </div>
-      ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {lightboxUrl && <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
     </div>
