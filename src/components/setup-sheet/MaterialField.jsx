@@ -71,8 +71,8 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
 
   return (
     <>
-      <div className={`${materialSpan} space-y-1.5`}>
-        <div className="flex items-center gap-3 mb-1.5">
+      <div className={`col-span-2 ${materialSpan} space-y-1.5`}>
+        <div className="flex items-center gap-3 mb-1.5 flex-wrap">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Material
           </Label>
