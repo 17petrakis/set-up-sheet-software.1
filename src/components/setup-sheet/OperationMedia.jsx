@@ -77,6 +77,28 @@ export default function OperationMedia({ items, onChange }) {
 
       {media.map((m, i) => (
         <div key={i} className="border border-border/60 rounded-lg overflow-hidden bg-background">
+          {/* Title */}
+          <div className="p-3 pb-2">
+            {viewMode ? (
+              m.title && (
+                <div className="flex items-center gap-1.5">
+                  {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
+                  <p className="text-sm font-semibold text-foreground">{m.title}</p>
+                </div>
+              )
+            ) : (
+              <div className="flex items-center gap-2">
+                {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
+                <Input
+                  value={m.title || ""}
+                  onChange={(e) => updateItem(i, { title: e.target.value })}
+                  placeholder="Add a title…"
+                  className="h-8 text-sm flex-1 bg-background border-border/60"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Media preview */}
           <div className="relative bg-muted/10">
             {m.type === "video" ? (
@@ -105,36 +127,17 @@ export default function OperationMedia({ items, onChange }) {
             )}
           </div>
 
-          {/* Title + Note */}
-          <div className="p-3 space-y-2">
+          {/* Note */}
+          <div className="p-3 pt-2">
             {viewMode ? (
-              <>
-                {m.title && (
-                  <div className="flex items-center gap-1.5">
-                    {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
-                    <p className="text-sm font-semibold text-foreground">{m.title}</p>
-                  </div>
-                )}
-                {m.note && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{m.note}</p>}
-              </>
+              m.note && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{m.note}</p>
             ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
-                  <Input
-                    value={m.title || ""}
-                    onChange={(e) => updateItem(i, { title: e.target.value })}
-                    placeholder="Add a title…"
-                    className="h-8 text-sm flex-1 bg-background border-border/60"
-                  />
-                </div>
-                <AutoResizeTextarea
-                  value={m.note || ""}
-                  onChange={(e) => updateItem(i, { note: e.target.value })}
-                  placeholder="Add a note…"
-                  className="min-h-[48px] text-sm bg-background border-border/60"
-                />
-              </>
+              <AutoResizeTextarea
+                value={m.note || ""}
+                onChange={(e) => updateItem(i, { note: e.target.value })}
+                placeholder="Add a note…"
+                className="min-h-[48px] text-sm bg-background border-border/60"
+              />
             )}
           </div>
         </div>
