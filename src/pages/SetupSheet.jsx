@@ -25,6 +25,7 @@ import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 import SetupSheetViewMode from "@/components/setup-sheet/SetupSheetViewMode";
 import CitizenWorkholdingSection from "@/components/setup-sheet/CitizenWorkholdingSection";
 import MediaNoteSection from "@/components/setup-sheet/MediaNoteSection";
+import CitizenToolList from "@/components/setup-sheet/CitizenToolList";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote } from "@/lib/setupSheetDefaults";
 import { isCitizenMachine } from "@/lib/machineGroups";
@@ -731,10 +732,13 @@ export default function SetupSheet() {
             CARRY_PHOTOS.forEach(k => { if (photos[k]) carriedPhotos[k] = photos[k]; });
 
             const sourceIsTurning = general.machine_type === "turning";
+            const sourceIsCitizen = sourceIsTurning && isCitizenMachine(general.machine);
             // Copy tool list from the current operation when the machine type matches
             const carriedTools = (!isTurning && !sourceIsTurning && tools?.length)
               ? tools.map(t => ({ ...t }))
-              : (isTurning ? [] : [{ ...emptyTool }]);
+              : (isTurning && sourceIsCitizen && tools?.length)
+                ? tools.map(t => ({ ...t }))
+                : (isTurning ? [] : [{ ...emptyTool }]);
             const carriedTurningTools = (isTurning && sourceIsTurning && turningTools)
               ? JSON.parse(JSON.stringify(turningTools))
               : (isTurning ? { ...emptyTurningTools } : undefined);
@@ -816,7 +820,7 @@ export default function SetupSheet() {
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.12 }}>
-                    <TurningToolList tools={turningTools} onChange={handleTurningToolsChange} machine={general.machine} sheetId={id} programNumbers={general.program_numbers} />
+                    <CitizenToolList tools={tools} onChange={handleToolsChange} />
                   </motion.div>
                 </>
               ) : (

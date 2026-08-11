@@ -395,10 +395,29 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                   </section>
                 )}
 
-                {hasTurningToolsData(tTools) && (
+                {millTools.length > 0 && millTools.some(t => t.tool_number || t.description || t.insert) && (
                   <section>
                     <SectionTitle>Tools</SectionTitle>
-                    <TurningToolsView turningTools={tTools} tableClass="view-table" />
+                    <table className="view-table w-full">
+                      <thead>
+                        <tr>
+                          <th>T#</th>
+                          <th>Description</th>
+                          <th>Insert</th>
+                          {millTools.some(t => t.stickout) && <th>Stickout</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {millTools.filter(t => t.tool_number || t.description || t.insert).map((t, i) => (
+                          <tr key={i}>
+                            <td className="font-mono font-bold">{t.tool_number}</td>
+                            <td>{t.description}</td>
+                            <td>{t.insert}</td>
+                            {millTools.some(t2 => t2.stickout) && <td>{t.stickout}</td>}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </section>
                 )}
               </>
