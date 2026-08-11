@@ -1,18 +1,43 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
+import { migratePhotoSlots, DEFAULT_CATEGORIES } from "@/lib/photoSlots";
 
-const DEFAULT_SLOTS = [
-  { key: "drawing", label: "Drawing" },
-  { key: "work_holding", label: "Work Holding" },
-  { key: "material_stock", label: "Material Stock" },
-  { key: "iso", label: "ISO View" },
-  { key: "final_part", label: "Final Part 1" },
-  { key: "final_part_2", label: "Final Part 2" },
-];
+function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
+  const [title, setTitle] = useState("");
+
+  const handleConfirm = () => {
+    if (!title.trim()) return;
+    onConfirm(title.trim());
+    setTitle("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Custom Photo</DialogTitle>
+        </DialogHeader>
+        <Input
+          autoFocus
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter photo title..."
+          onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleConfirm} disabled={!title.trim()}>Upload Photo</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false }) {
   const [uploading, setUploading] = useState(false);
@@ -177,67 +202,69 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 }
 
 export default function PhotoSection({ photos = {}, onChange, readOnly = false }) {
-  // Extra slots beyond the defaults, stored as array of { key, label } in photos.__extra_slots
-  const extraSlots = photos.__extra_slots || [];
+  const slots = useMemo(() => migratePhotoSlots(photos), [photos]);
   const fileInputRef = useRef(null);
-  const [pendingSlot, setPendingSlot] = useState(null); // "custom" | default slot key
+  const [pendingCategory, setPendingCategory] = useState(null);
+  const [pendingCustomTitle, setPendingCustomTitle] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [customDialogOpen, setCustomDialogOpen] = useState(false);
 
-  const handleUpload = (key, url) => onChange({ ...photos, [key]: url });
+  const updateSlots = (newSlots) => onChange({ __slots: newSlots });
 
-  const handleRemove = (key) => {
-    const updated = { ...photos };
-    delete updated[key];
-    delete updated[`${key}__note`];
-    onChange(updated);
+  const handleFileSelect = (category) => {
+    setPendingCategory(category);
+    fileInputRef.current?.click();
   };
 
-  const handleNoteChange = (key, note) => {
-    onChange({ ...photos, [`${key}__note`]: note });
-  };
-
-  const handleLabelChange = (key, newLabel) => {
-    const newExtra = extraSlots.map((s) => s.key === key ? { ...s, label: newLabel } : s);
-    onChange({ ...photos, __extra_slots: newExtra });
-  };
-
-  const triggerFileSelect = (slot) => {
-    setPendingSlot(slot);
+  const handleCustomConfirm = (title) => {
+    setPendingCustomTitle(title);
+    setPendingCategory("custom");
+    setCustomDialogOpen(false);
     fileInputRef.current?.click();
   };
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) { setPendingSlot(null); return; }
+    if (!file) { setPendingCategory(null); setPendingCustomTitle(null); return; }
     setUploading(true);
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
-      if (pendingSlot === "custom") {
-        const newKey = `extra_${Date.now()}`;
-        const newLabel = `Photo ${DEFAULT_SLOTS.length + extraSlots.length + 1}`;
-        const newExtra = [{ key: newKey, label: newLabel }, ...extraSlots];
-        onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
-      } else if (pendingSlot) {
-        onChange({ ...photos, [pendingSlot]: result.file_url });
+      const newSlot = { id: `slot_${Date.now()}`, url: result.file_url, note: "" };
+      if (pendingCategory === "custom") {
+        newSlot.category = "custom";
+        newSlot.label = pendingCustomTitle || "Custom Photo";
+      } else {
+        const cat = DEFAULT_CATEGORIES.find(c => c.key === pendingCategory);
+        newSlot.category = pendingCategory;
+        const count = slots.filter(s => s.category === pendingCategory).length;
+        newSlot.label = count === 0 ? `${cat.label} Photo` : `${cat.label} Photo ${count + 1}`;
       }
+      updateSlots([...slots, newSlot]);
     } catch (err) {
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
       setUploading(false);
-      setPendingSlot(null);
+      setPendingCategory(null);
+      setPendingCustomTitle(null);
       e.target.value = "";
     }
   };
 
-  const removeExtraSlot = (key) => {
-    const updated = { ...photos };
-    delete updated[key];
-    delete updated[`${key}__note`];
-    updated.__extra_slots = extraSlots.filter((s) => s.key !== key);
-    onChange(updated);
+  const handleSlotUpload = (id, url) => {
+    updateSlots(slots.map(s => s.id === id ? { ...s, url } : s));
   };
 
-  const filledSlots = [...extraSlots, ...DEFAULT_SLOTS].filter((s) => photos[s.key]);
+  const handleSlotRemove = (id) => {
+    updateSlots(slots.filter(s => s.id !== id));
+  };
+
+  const handleSlotNoteChange = (id, note) => {
+    updateSlots(slots.map(s => s.id === id ? { ...s, note } : s));
+  };
+
+  const handleSlotLabelChange = (id, newLabel) => {
+    updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
@@ -252,29 +279,25 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
       {!readOnly && (
         <div className="flex flex-wrap gap-2 mb-6">
           <Button
-            onClick={() => triggerFileSelect("custom")}
+            onClick={() => setCustomDialogOpen(true)}
             disabled={uploading}
             variant="outline"
             size="sm"
             className="h-8 px-3 text-xs gap-1.5"
           >
-            {uploading && pendingSlot === "custom" ? (
-              <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            ) : (
-              <Plus className="w-3.5 h-3.5" />
-            )}
+            <Plus className="w-3.5 h-3.5" />
             Add Custom Photo
           </Button>
-          {DEFAULT_SLOTS.filter((s) => !photos[s.key]).map(({ key, label }) => (
+          {DEFAULT_CATEGORIES.map(({ key, label }) => (
             <Button
               key={key}
-              onClick={() => triggerFileSelect(key)}
+              onClick={() => handleFileSelect(key)}
               disabled={uploading}
               variant="outline"
               size="sm"
               className="h-8 px-3 text-xs gap-1.5"
             >
-              {uploading && pendingSlot === key ? (
+              {uploading && pendingCategory === key ? (
                 <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               ) : (
                 <Plus className="w-3.5 h-3.5" />
@@ -286,26 +309,29 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
         </div>
       )}
 
+      <CustomPhotoTitleDialog
+        open={customDialogOpen}
+        onClose={() => setCustomDialogOpen(false)}
+        onConfirm={handleCustomConfirm}
+      />
+
       <div className="grid grid-cols-1 gap-8">
-        {filledSlots.map(({ key, label }) => {
-          const isExtra = extraSlots.some((s) => s.key === key);
-          return (
-            <PhotoSlot
-              key={key}
-              slotKey={key}
-              label={label}
-              url={photos[key]}
-              note={photos[`${key}__note`]}
-              onUpload={(url) => handleUpload(key, url)}
-              onRemove={() => (isExtra ? removeExtraSlot(key) : handleRemove(key))}
-              onDeleteSlot={isExtra ? () => removeExtraSlot(key) : undefined}
-              onNoteChange={(note) => handleNoteChange(key, note)}
-              onLabelChange={isExtra ? (newLabel) => handleLabelChange(key, newLabel) : undefined}
-              large={key === "work_holding"}
-              readOnly={readOnly}
-            />
-          );
-        })}
+        {slots.map((slot) => (
+          <PhotoSlot
+            key={slot.id}
+            slotKey={slot.id}
+            label={slot.label}
+            url={slot.url}
+            note={slot.note}
+            onUpload={(url) => handleSlotUpload(slot.id, url)}
+            onRemove={() => handleSlotRemove(slot.id)}
+            onDeleteSlot={() => handleSlotRemove(slot.id)}
+            onNoteChange={(note) => handleSlotNoteChange(slot.id, note)}
+            onLabelChange={(newLabel) => handleSlotLabelChange(slot.id, newLabel)}
+            large={slot.category === "work_holding"}
+            readOnly={readOnly}
+          />
+        ))}
       </div>
     </div>
   );

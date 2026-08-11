@@ -8,15 +8,7 @@ import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/
 import { getMachineGroup } from "@/lib/machineGroups";
 import TurningChuckView, { hasTurningChuckData } from "@/components/setup-sheet/TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "@/components/setup-sheet/TurningToolsView";
-
-const DEFAULT_PHOTO_SLOTS = [
-  { key: "work_holding", label: "Work Holding" },
-  { key: "drawing", label: "Drawing" },
-  { key: "iso", label: "ISO View" },
-  { key: "material_stock", label: "Material Stock" },
-  { key: "final_part", label: "Final Part 1" },
-  { key: "final_part_2", label: "Final Part 2" },
-];
+import { migratePhotoSlots } from "@/lib/photoSlots";
 
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Type", "Feed", "Max RPM", "Cut Time", "Cycle Time"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "type", "feed", "max_rpm", "cut_time", "cycle_time"];
@@ -82,8 +74,7 @@ export default function PrintView() {
   const operations = data.operations?.length ? data.operations : [];
   const opsHasData = operations.some(op => Object.values(op).some(v => v !== "" && v !== null && v !== undefined));
   const photos = data.photos || {};
-  const extraSlots = photos.__extra_slots || [];
-  const allPhotoSlots = [...DEFAULT_PHOTO_SLOTS, ...extraSlots].filter(({ key }) => photos[key]);
+  const allPhotoSlots = migratePhotoSlots(photos);
 
   return (
     <>
@@ -529,17 +520,17 @@ export default function PrintView() {
             <section>
               <h2 className="print-section-title">Photos</h2>
               <div className="grid grid-cols-1 gap-8">
-                {allPhotoSlots.map(({ key, label }) => (
-                  <div key={key} className="space-y-2">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{label}</p>
+                {allPhotoSlots.map((slot) => (
+                  <div key={slot.id} className="space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
                     <img
-                      src={photos[key]}
-                      alt={label}
+                      src={slot.url}
+                      alt={slot.label}
                       className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"
-                      style={{ maxHeight: "600px" }}
+                      style={{ maxHeight: slot.category === "work_holding" ? "500px" : "600px" }}
                     />
-                    {photos[`${key}__note`] && (
-                      <p className="text-xs text-gray-600 italic">{photos[`${key}__note`]}</p>
+                    {slot.note && (
+                      <p className="text-xs text-gray-600 italic">{slot.note}</p>
                     )}
                   </div>
                 ))}
