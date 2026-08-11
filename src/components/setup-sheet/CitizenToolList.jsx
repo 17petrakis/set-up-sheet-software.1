@@ -37,7 +37,13 @@ export default function CitizenToolList({ tools, onChange }) {
   const updateCell = (i, key, val) => {
     const updated = [...list];
     updated[i] = { ...updated[i], [key]: val };
-    onChange(key === "tool_number" ? sortByTNumber(updated) : updated);
+    onChange(updated);
+  };
+
+  const commitToolNumber = (i, val) => {
+    const updated = [...list];
+    updated[i] = { ...updated[i], tool_number: val };
+    onChange(sortByTNumber(updated));
   };
 
   const toggleStickout = (i) => {
@@ -97,6 +103,7 @@ export default function CitizenToolList({ tools, onChange }) {
                               <Input
                                 value={tool.tool_number || ""}
                                 onChange={(e) => updateCell(i, "tool_number", e.target.value)}
+                                onBlur={(e) => commitToolNumber(i, e.target.value)}
                                 className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
                               />
                             </div>
