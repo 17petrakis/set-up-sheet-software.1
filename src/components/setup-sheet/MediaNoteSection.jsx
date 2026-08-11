@@ -41,9 +41,9 @@ export default function MediaNoteSection({ data, onChange, title, icon }) {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Photo</p>
             {viewMode ? (
               d.photo ? (
-                <img src={d.photo} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
+                <img src={d.photo} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10 mx-auto" />
               ) : (
-                <p className="text-sm text-muted-foreground min-h-[2.25rem] flex items-center">—</p>
+                <p className="text-sm text-muted-foreground min-h-[2.25rem] flex items-center justify-center">—</p>
               )
             ) : (
               <div className="space-y-2">
