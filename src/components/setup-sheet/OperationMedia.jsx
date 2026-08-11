@@ -64,7 +64,7 @@ export default function OperationMedia({ items, onChange }) {
           className="h-8 px-3 text-xs gap-1.5"
         >
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-          Add Media
+          Add Media (Photo/Video)
         </Button>
         <input
           ref={fileRef}
