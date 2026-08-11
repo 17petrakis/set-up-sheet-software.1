@@ -266,7 +266,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                         return (
                           <div key={i} className="border border-gray-200 rounded p-2 bg-white">
                             {fGroup === "hmc" && <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-1">
                               {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                             </div>
                             {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
