@@ -81,21 +81,15 @@ export default function OperationMedia({ items, onChange }) {
           <div className="p-3 pb-2">
             {viewMode ? (
               m.title && (
-                <div className="flex items-center gap-1.5">
-                  {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
-                  <p className="text-sm font-semibold text-foreground">{m.title}</p>
-                </div>
+                <p className="text-sm font-bold text-foreground">{m.title}</p>
               )
             ) : (
-              <div className="flex items-center gap-2">
-                {m.type === "video" ? <Film className="w-3.5 h-3.5 text-muted-foreground" /> : <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />}
-                <Input
-                  value={m.title || ""}
-                  onChange={(e) => updateItem(i, { title: e.target.value })}
-                  placeholder="Add a title…"
-                  className="h-8 text-sm flex-1 bg-background border-border/60"
-                />
-              </div>
+              <Input
+                value={m.title || ""}
+                onChange={(e) => updateItem(i, { title: e.target.value })}
+                placeholder="Add a title…"
+                className="h-9 text-sm font-bold flex-1 bg-background border-border/60"
+              />
             )}
           </div>
 
