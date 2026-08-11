@@ -67,7 +67,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
   const opsHasData = ops.some(op => Object.values(op).some(v => v !== "" && v !== null && v !== undefined));
   const ph = photos || {};
   const extraSlots = ph.__extra_slots || [];
-  const allPhotoSlots = [...DEFAULT_PHOTO_SLOTS, ...extraSlots].filter(({ key }) => ph[key]);
+  const allPhotoSlots = [...extraSlots, ...DEFAULT_PHOTO_SLOTS].filter(({ key }) => ph[key]);
 
   const gen = { ...emptyGeneral, ...general };
   const fix = fixturingNotes || {};
