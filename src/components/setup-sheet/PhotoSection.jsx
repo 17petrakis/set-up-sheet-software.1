@@ -187,7 +187,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
       const idx = extraSlots.length + 1;
       const newKey = `extra_${Date.now()}`;
       const newLabel = `Photo ${DEFAULT_SLOTS.length + idx}`;
-      const newExtra = [...extraSlots, { key: newKey, label: newLabel }];
+      const newExtra = [{ key: newKey, label: newLabel }, ...extraSlots];
       onChange({ ...photos, __extra_slots: newExtra, [newKey]: result.file_url });
     } catch (err) {
       alert("Upload failed: " + (err?.message || "Unknown error"));
@@ -205,7 +205,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     onChange(updated);
   };
 
-  const allSlots = [...DEFAULT_SLOTS, ...extraSlots];
+  const allSlots = [...extraSlots, ...DEFAULT_SLOTS];
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
