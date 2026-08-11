@@ -12,7 +12,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 /**
  * Media items: [{ url, type: "image"|"video", title, note }]
  */
-export default function OperationMedia({ items, onChange }) {
+export default function OperationMedia({ items, onChange, onAddNote }) {
   const viewMode = useContext(ViewModeContext);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -77,6 +77,18 @@ export default function OperationMedia({ items, onChange }) {
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
           Add Media (Photo/Video)
         </Button>
+        {onAddNote && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onAddNote}
+            className="h-8 px-3 text-xs gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Operation Note
+          </Button>
+        )}
         <input
           ref={fileRef}
           type="file"
