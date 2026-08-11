@@ -109,8 +109,8 @@ export default function CitizenToolList({ tools, onChange }) {
                             </div>
 
                             {/* Description — expands to fit text */}
-                            <div className="flex items-end gap-1">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5 shrink-0">Description</span>
+                            <div className="min-w-[8rem]">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Description</span>
                               <AutoSizeInput
                                 value={tool.description || ""}
                                 onChange={(v) => updateCell(i, "description", v)}
@@ -120,8 +120,8 @@ export default function CitizenToolList({ tools, onChange }) {
                             </div>
 
                             {/* Insert — shrinks to fit */}
-                            <div className="flex items-end gap-1">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5 shrink-0">Insert</span>
+                            <div className="min-w-[3rem]">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Insert</span>
                               <AutoSizeInput
                                 value={tool.insert || ""}
                                 onChange={(v) => updateCell(i, "insert", v)}
