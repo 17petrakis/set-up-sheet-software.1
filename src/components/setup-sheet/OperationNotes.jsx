@@ -3,17 +3,18 @@ import { ViewModeContext } from "@/lib/viewModeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
+import OperationMedia from "./OperationMedia";
 import { ClipboardList, ChevronDown } from "lucide-react";
 
-export default function OperationNotes({ value, onChange, machineType }) {
+export default function OperationNotes({ value, onChange, media, onMediaChange, machineType }) {
   const viewMode = useContext(ViewModeContext);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (value && value.trim()) setOpen(true);
-  }, [value]);
+    if ((value && value.trim()) || (media && media.length > 0)) setOpen(true);
+  }, [value, media]);
 
-  if (viewMode && (!value || !value.trim())) return null;
+  if (viewMode && (!value || !value.trim()) && (!media || media.length === 0)) return null;
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -24,17 +25,20 @@ export default function OperationNotes({ value, onChange, machineType }) {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <ClipboardList className="w-4 h-4 text-primary" />
               </div>
-              <h2 className="text-base font-semibold text-foreground tracking-tight">Operation Notes</h2>
+              <h2 className="text-base font-semibold text-foreground tracking-tight">Operation Notes / Instruction</h2>
             </div>
             <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <AutoResizeTextarea
-              value={value || ""}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="Add any operation notes here..."
-              className="min-h-[96px] text-sm bg-background border-border/60"
-            />
+            <div className="space-y-4">
+              <AutoResizeTextarea
+                value={value || ""}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Add any operation notes or instructions here..."
+                className="min-h-[96px] text-sm bg-background border-border/60"
+              />
+              <OperationMedia items={media || []} onChange={onMediaChange} />
+            </div>
           </CollapsibleContent>
         </Collapsible>
       </CardContent>

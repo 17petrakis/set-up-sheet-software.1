@@ -473,12 +473,23 @@ export default function PrintView() {
               </section>
               )}
 
-              {/* Operation Notes */}
-              {general.operation_notes && (
+              {/* Operation Notes / Instruction */}
+              {(general.operation_notes || (general.operation_media && general.operation_media.length > 0)) && (
                 <section>
-                  <h2 className="print-section-title">Operation Notes</h2>
-                  <div className="border border-gray-200 rounded p-3">
-                    <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.operation_notes}</p>
+                  <h2 className="print-section-title">Operation Notes / Instruction</h2>
+                  <div className="border border-gray-200 rounded p-3 space-y-3">
+                    {general.operation_notes && <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.operation_notes}</p>}
+                    {general.operation_media?.map((m, i) => (
+                      <div key={i}>
+                        {m.type === "video" ? (
+                          <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
+                        ) : (
+                          <img src={m.url} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                        )}
+                        {m.title && <p className="text-[10px] font-semibold text-gray-700 mt-1">{m.title}</p>}
+                        {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-0.5">{m.note}</p>}
+                      </div>
+                    ))}
                   </div>
                 </section>
               )}

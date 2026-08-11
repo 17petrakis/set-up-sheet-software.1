@@ -417,11 +417,22 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </section>
             )}
 
-            {gen.operation_notes && (
+            {(gen.operation_notes || (gen.operation_media && gen.operation_media.length > 0)) && (
               <section>
-                <SectionTitle>Operation Notes</SectionTitle>
-                <div className="border border-gray-200 rounded p-3">
-                  <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_notes}</p>
+                <SectionTitle>Operation Notes / Instruction</SectionTitle>
+                <div className="border border-gray-200 rounded p-3 space-y-3">
+                  {gen.operation_notes && <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_notes}</p>}
+                  {gen.operation_media?.map((m, i) => (
+                    <div key={i}>
+                      {m.type === "video" ? (
+                        <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
+                      ) : (
+                        <img src={m.url} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                      )}
+                      {m.title && <p className="text-[10px] font-semibold text-gray-700 mt-1">{m.title}</p>}
+                      {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-0.5">{m.note}</p>}
+                    </div>
+                  ))}
                 </div>
               </section>
             )}

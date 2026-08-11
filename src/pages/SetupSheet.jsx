@@ -768,8 +768,14 @@ export default function SetupSheet() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.13 }}>
-                {(mode === "edit" || (general.operation_notes && general.operation_notes.trim())) && (
-                  <OperationNotes value={general.operation_notes} onChange={(val) => handleGeneralChange("operation_notes", val)} machineType={general.machine_type} />
+                {(mode === "edit" || (general.operation_notes && general.operation_notes.trim()) || (general.operation_media && general.operation_media.length > 0)) && (
+                  <OperationNotes
+                    value={general.operation_notes}
+                    onChange={(val) => handleGeneralChange("operation_notes", val)}
+                    media={general.operation_media}
+                    onMediaChange={(media) => handleGeneralChange("operation_media", media)}
+                    machineType={general.machine_type}
+                  />
                 )}
               </motion.div>
 
