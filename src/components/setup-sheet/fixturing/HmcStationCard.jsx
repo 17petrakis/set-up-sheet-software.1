@@ -42,7 +42,7 @@ export default function HmcStationCard({ station, index, machine, onChange, onRe
             value={station.fixture_structure_note || ""}
             onChange={(e) => update("fixture_structure_note", e.target.value)}
             placeholder="Type or voice dictate description…"
-            className="text-sm bg-background border-border/60 min-h-[60px]"
+            className="text-sm font-medium bg-card border-border min-h-[60px]"
           />
         </FixturingField>
 

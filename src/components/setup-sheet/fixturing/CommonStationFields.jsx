@@ -13,7 +13,7 @@ export default function CommonStationFields({ data, onChange, stickoutLabel = "P
           <Input
             value={data.part_stickout || ""}
             onChange={(e) => update("part_stickout", e.target.value)}
-            className="h-9 text-sm bg-background border-border/60"
+            className="h-9 text-sm font-medium bg-card border-border"
           />
         </FixturingField>
       )}
@@ -33,7 +33,7 @@ export default function CommonStationFields({ data, onChange, stickoutLabel = "P
           value={data.notes || ""}
           onChange={(e) => update("notes", e.target.value)}
           placeholder="Workholding specific notes…"
-          className="min-h-[60px] text-sm bg-background border-border/60"
+          className="min-h-[60px] text-sm font-medium bg-card border-border"
         />
       </FixturingField>
     </div>

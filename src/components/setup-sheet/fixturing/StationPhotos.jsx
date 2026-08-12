@@ -80,7 +80,7 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
             value={p.note || ""}
             onChange={(e) => updateNote(i, e.target.value)}
             placeholder="Photo note…"
-            className="sm:w-56 shrink-0 text-sm bg-background border-border/60"
+            className="sm:w-56 shrink-0 text-sm font-medium bg-card border-border"
           />
         </div>
       ))}

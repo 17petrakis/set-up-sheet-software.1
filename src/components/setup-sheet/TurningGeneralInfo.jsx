@@ -37,7 +37,7 @@ const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
 
 const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false }) => (
   <div className={className}>
-    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+    <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
       {label}
       {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
     </Label>
@@ -49,7 +49,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+        className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
       />
     )}
   </div>
@@ -114,7 +114,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           {/* Customer */}
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Customer
             </Label>
             <ComboBox
@@ -135,7 +135,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mb-3">
           {/* Machine select */}
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
             <CascadingDropdown
@@ -151,7 +151,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
           {/* CAM select */}
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               CAM
             </Label>
             <CascadingDropdown
@@ -165,7 +165,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
           {/* Automated select */}
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Automated
             </Label>
             <CascadingDropdown
@@ -183,27 +183,27 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <MaterialField data={data} onChange={onChange} materialSpan="sm:col-span-3" hideExtras />
           {data.material_color_enabled && (
             <div className="sm:col-span-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                 Color
               </Label>
               <Input
                 value={data.material_color || ""}
                 onChange={(e) => onChange("material_color", e.target.value)}
                 placeholder="e.g. Black…"
-                className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+                className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
               />
             </div>
           )}
           {data.material_condition_enabled && (
             <div className="sm:col-span-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                 Condition
               </Label>
               <Select
                 value={data.material_condition || ""}
                 onValueChange={(v) => onChange("material_condition", v)}
               >
-                <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+                <SelectTrigger className="h-9 text-sm bg-card border-border font-medium">
                   <span className={data.material_condition ? "" : "text-muted-foreground"}>
                     {data.material_condition || "Select…"}
                   </span>
@@ -222,14 +222,14 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           <TurningProgramField data={data} onChange={onChange} className="sm:col-span-3" />
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-3" />
           <div className="sm:col-span-3">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Program Desc.
             </Label>
             <Input
               value={data.program_description || ""}
               onChange={(e) => update("program_description")(e.target.value)}
               placeholder="i.e. Roughing"
-              className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+              className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
             />
           </div>
           <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time className="sm:col-span-3" />
@@ -242,7 +242,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             className="sm:col-span-3"
           />
           <div className="sm:col-span-3">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Total Combined Cycle Time
             </Label>
             <Input
@@ -259,7 +259,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
           {(data.stops || []).map((stop, i) => (
             <div key={i} className="flex items-start gap-2 mt-2">
               <div className="flex-1">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">
+                <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1 block">
                   Stop #{i + 1}
                 </Label>
                 <Input
@@ -270,7 +270,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
                     onChange("stops", next);
                   }}
                   placeholder={`Stop #${i + 1} notes…`}
-                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+                  className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
                 />
               </div>
               <button
@@ -311,7 +311,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <div className="px-4 py-4 space-y-3">
               {/* Row 1: Total Additional Time */}
               <div>
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                   Total Additional Time
                 </Label>
                 <Input
@@ -325,45 +325,45 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               {/* Row 2: Individual times, Row 3: notes directly below each */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Deburring Time
                   </Label>
                   <TimeInput value={data.deburring_time} onChange={update("deburring_time")} />
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block mt-3">
                     Deburring Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.deburring_notes || ""}
                     onChange={(e) => update("deburring_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Finishing Time
                   </Label>
                   <TimeInput value={data.finishing_time} onChange={update("finishing_time")} />
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block mt-3">
                     Finishing Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.finishing_notes || ""}
                     onChange={(e) => update("finishing_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Wash Time
                   </Label>
                   <TimeInput value={data.wash_time} onChange={update("wash_time")} />
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block mt-3">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block mt-3">
                     Wash Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.wash_notes || ""}
                     onChange={(e) => update("wash_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
               </div>
@@ -390,14 +390,14 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
 
           {showEditNote && (
             <div className="px-4 py-4">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                 Edit Note
               </Label>
               <AutoResizeTextarea
                 value={data.edit_note || ""}
                 onChange={(e) => update("edit_note")(e.target.value)}
                 placeholder="Describe what was edited at the machine…"
-                className="min-h-[64px] text-sm bg-background border-border/60"
+                className="min-h-[64px] text-sm bg-card border-border font-medium"
               />
             </div>
           )}

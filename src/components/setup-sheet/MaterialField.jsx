@@ -22,7 +22,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
     return (
       <>
         <div className={materialSpan}>
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+          <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
             Material
           </Label>
           <ComboBox
@@ -35,7 +35,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
         </div>
         {!hideExtras && data.material_color && (
           <div className="sm:col-span-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Color
             </Label>
             <Input
@@ -47,14 +47,14 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
         )}
         {!hideExtras && data.material_condition && (
           <div className="sm:col-span-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Condition
             </Label>
             <Select
               value={data.material_condition || ""}
               onValueChange={(v) => onChange("material_condition", v)}
             >
-              <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+              <SelectTrigger className="h-9 text-sm font-medium bg-card border-border">
                 <span>{data.material_condition || "Select…"}</span>
               </SelectTrigger>
               <SelectContent>
@@ -73,7 +73,7 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
     <>
       <div className={`col-span-full ${materialSpan} space-y-1.5`}>
         <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
             Material
           </Label>
           <label className="flex items-center gap-1 cursor-pointer select-none">
@@ -101,27 +101,27 @@ export default function MaterialField({ data, onChange, materialSpan = "sm:col-s
       </div>
       {!hideExtras && data.material_color_enabled && (
         <div className="sm:col-span-2">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+          <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
             Color
           </Label>
           <Input
             value={data.material_color || ""}
             onChange={(e) => update("material_color")(e.target.value)}
             placeholder="e.g. Black…"
-            className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+            className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
           />
         </div>
       )}
       {!hideExtras && data.material_condition_enabled && (
         <div className="sm:col-span-2">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+          <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
             Condition
           </Label>
           <Select
             value={data.material_condition || ""}
             onValueChange={(v) => onChange("material_condition", v)}
           >
-            <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+            <SelectTrigger className="h-9 text-sm font-medium bg-card border-border">
               <span className={data.material_condition ? "" : "text-muted-foreground"}>
                 {data.material_condition || "Select…"}
               </span>

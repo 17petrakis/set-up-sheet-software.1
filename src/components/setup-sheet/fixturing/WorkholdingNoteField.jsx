@@ -14,7 +14,7 @@ export default function WorkholdingNoteField({ data, onChange, fieldName = "work
         value={data[fieldName] || ""}
         onChange={(e) => onChange({ ...data, [fieldName]: e.target.value })}
         placeholder={`Notes for ${data.workholding_type || data.fixture_type || "this workholding"}…`}
-        className="text-sm bg-background border-border/60 min-h-[60px]"
+        className="text-sm font-medium bg-card border-border min-h-[60px]"
       />
     </FixturingField>
   );

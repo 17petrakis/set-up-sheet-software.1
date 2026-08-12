@@ -12,7 +12,7 @@ import { Wrench, Loader2, X, Upload } from "lucide-react";
 function FieldWrap({ label, children }) {
   return (
     <div>
-      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">{label}</Label>
+      <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">{label}</Label>
       {children}
     </div>
   );
@@ -52,7 +52,7 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.bar_loader_collet_size || "—"}</p>
             ) : (
-              <Input value={d.bar_loader_collet_size || ""} onChange={(e) => set("bar_loader_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.bar_loader_collet_size || ""} onChange={(e) => set("bar_loader_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
 
@@ -61,14 +61,14 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ms_collet_size || "—"}</p>
             ) : (
-              <Input value={d.ms_collet_size || ""} onChange={(e) => set("ms_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ms_collet_size || ""} onChange={(e) => set("ms_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="MS Collet — Shape">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ms_collet_shape || "—"}</p>
             ) : (
-              <Input value={d.ms_collet_shape || ""} onChange={(e) => set("ms_collet_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ms_collet_shape || ""} onChange={(e) => set("ms_collet_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
 
@@ -77,21 +77,21 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.guide_bush_size || "—"}</p>
             ) : (
-              <Input value={d.guide_bush_size || ""} onChange={(e) => set("guide_bush_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.guide_bush_size || ""} onChange={(e) => set("guide_bush_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="Guide Bush — Shape">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.guide_bush_shape || "—"}</p>
             ) : (
-              <Input value={d.guide_bush_shape || ""} onChange={(e) => set("guide_bush_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.guide_bush_shape || ""} onChange={(e) => set("guide_bush_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="Guide Bush — Material">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.guide_bush_material || "—"}</p>
             ) : (
-              <Input value={d.guide_bush_material || ""} onChange={(e) => set("guide_bush_material", e.target.value)} placeholder="e.g. Carbide" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.guide_bush_material || ""} onChange={(e) => set("guide_bush_material", e.target.value)} placeholder="e.g. Carbide" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
 
@@ -100,28 +100,28 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_collet_size || "—"}</p>
             ) : (
-              <Input value={d.ss_collet_size || ""} onChange={(e) => set("ss_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ss_collet_size || ""} onChange={(e) => set("ss_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="SS Collet — Shape">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_collet_shape || "—"}</p>
             ) : (
-              <Input value={d.ss_collet_shape || ""} onChange={(e) => set("ss_collet_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ss_collet_shape || ""} onChange={(e) => set("ss_collet_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="SS Collet — Stickout">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_collet_stickout || "—"}</p>
             ) : (
-              <Input value={d.ss_collet_stickout || ""} onChange={(e) => set("ss_collet_stickout", e.target.value)} placeholder='e.g. 2.500"' className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ss_collet_stickout || ""} onChange={(e) => set("ss_collet_stickout", e.target.value)} placeholder='e.g. 2.500"' className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
           <FieldWrap label="SS Collet — Special">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_collet_special || "—"}</p>
             ) : (
-              <Input value={d.ss_collet_special || ""} onChange={(e) => set("ss_collet_special", e.target.value)} placeholder="Describe if special…" className="h-9 text-sm bg-background border-border/60" />
+              <Input value={d.ss_collet_special || ""} onChange={(e) => set("ss_collet_special", e.target.value)} placeholder="Describe if special…" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
         </div>
@@ -134,7 +134,7 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
               {viewMode ? (
                 <p className="text-sm text-foreground whitespace-pre-wrap min-h-[2.25rem]">{d.part_ejection_description || "—"}</p>
               ) : (
-                <AutoResizeTextarea value={d.part_ejection_description || ""} onChange={(e) => set("part_ejection_description", e.target.value)} placeholder="Describe part ejection…" className="min-h-[48px] text-sm bg-background border-border/60" />
+                <AutoResizeTextarea value={d.part_ejection_description || ""} onChange={(e) => set("part_ejection_description", e.target.value)} placeholder="Describe part ejection…" className="min-h-[48px] text-sm bg-card border-border font-medium" />
               )}
             </FieldWrap>
             <FieldWrap label="Photo">

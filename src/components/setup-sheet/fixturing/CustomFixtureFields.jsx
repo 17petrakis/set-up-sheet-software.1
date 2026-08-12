@@ -11,7 +11,7 @@ export default function CustomFixtureFields({ data, onChange }) {
           value={data.fixture_note || ""}
           onChange={(e) => update("fixture_note", e.target.value)}
           placeholder="Fixture-specific notes…"
-          className="min-h-[100px] text-sm bg-background border-border/60"
+          className="min-h-[100px] text-sm font-medium bg-card border-border"
         />
       </FixturingField>
     </div>

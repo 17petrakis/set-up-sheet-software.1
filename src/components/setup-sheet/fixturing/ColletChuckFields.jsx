@@ -12,14 +12,14 @@ export default function ColletChuckFields({ data, onChange }) {
             value={data.collet_size || ""}
             onChange={(e) => update("collet_size", e.target.value)}
             placeholder="e.g. ER32, ER16"
-            className="h-9 text-sm bg-background border-border/60"
+            className="h-9 text-sm bg-card border-border font-medium"
           />
         </FixturingField>
         <FixturingField label="Part Stick-out">
           <Input
             value={data.part_stickout || ""}
             onChange={(e) => update("part_stickout", e.target.value)}
-            className="h-9 text-sm bg-background border-border/60"
+            className="h-9 text-sm bg-card border-border font-medium"
           />
         </FixturingField>
       </div>

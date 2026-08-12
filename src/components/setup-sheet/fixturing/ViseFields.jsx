@@ -15,7 +15,7 @@ function ViseModelField({ viseData, onChangeVise }) {
             value={viseData.vise_model_other || ""}
             onChange={(e) => onChangeVise({ ...viseData, vise_model_other: e.target.value })}
             placeholder="Specify vise model…"
-            className="h-9 text-sm bg-background border-border/60"
+            className="h-9 text-sm bg-card border-border font-medium"
             autoFocus
           />
           <Button
@@ -67,7 +67,7 @@ function SingleViseFields({ viseData, onChangeVise, trailing }) {
                 value={viseData.parallel_height || ""}
                 onChange={(e) => onChangeVise({ ...viseData, parallel_height: e.target.value })}
                 placeholder='e.g. 1.000"'
-                className="h-8 text-sm flex-1 min-w-[80px] bg-background border-border/60"
+                className="h-8 text-sm flex-1 min-w-[80px] bg-card border-border font-medium"
               />
             )}
           </div>

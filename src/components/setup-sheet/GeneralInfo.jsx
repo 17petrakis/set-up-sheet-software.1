@@ -29,7 +29,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
   if (viewMode && !value && !hrs) return null;
   return (
     <div className={className}>
-      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+      <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
         {label}
         {note && <span className="ml-1 normal-case font-normal text-muted-foreground/70 not-uppercase">{note}</span>}
       </Label>
@@ -41,7 +41,7 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+          className="h-9 text-sm font-medium bg-card border-border focus:border-primary/40 transition-colors"
         />
       )}
     </div>
@@ -92,7 +92,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           {(!viewMode || data.customer) && (
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Customer
             </Label>
             <ComboBox
@@ -113,7 +113,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           {(!viewMode || data.machine) && (
           <div>
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Machine
             </Label>
             <CascadingDropdown
@@ -139,7 +139,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           <Field label="Program Location" value={data.program_location} onChange={update("program_location")} className="sm:col-span-4" />
           {(!viewMode || data.program_software) && (
           <div className="sm:col-span-4">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               CAM
             </Label>
             <CascadingDropdown
@@ -170,7 +170,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           {(data.stops || []).map((stop, i) => (
             <div key={i} className="flex items-start gap-2 mt-2">
               <div className="flex-1">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">
+                <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1 block">
                   Stop #{i + 1}
                 </Label>
                 <Input
@@ -181,7 +181,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
                     onChange("stops", next);
                   }}
                   placeholder={`Stop #${i + 1} notes…`}
-                  className="h-9 text-sm bg-background border-border/60 focus:border-primary/40 transition-colors"
+                  className="h-9 text-sm font-medium bg-card border-border focus:border-primary/40 transition-colors"
                 />
               </div>
               <button
@@ -225,7 +225,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               {/* Times */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Total Additional Time
                   </Label>
                   <Input
@@ -243,33 +243,33 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               {/* Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3">
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Deburring Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.deburring_notes || ""}
                     onChange={(e) => update("deburring_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Finishing Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.finishing_notes || ""}
                     onChange={(e) => update("finishing_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                  <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                     Wash Notes
                   </Label>
                   <AutoResizeTextarea
                     value={data.wash_notes || ""}
                     onChange={(e) => update("wash_notes")(e.target.value)}
-                    className="min-h-[64px] text-sm bg-background border-border/60"
+                    className="min-h-[64px] text-sm bg-card border-border font-medium"
                   />
                 </div>
               </div>
@@ -298,14 +298,14 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
 
           {showEditNote && (
             <div className="px-4 py-4">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                 Edit Note
               </Label>
               <AutoResizeTextarea
                 value={data.edit_note || ""}
                 onChange={(e) => update("edit_note")(e.target.value)}
                 placeholder="Describe what was edited at the machine…"
-                className="min-h-[64px] text-sm bg-background border-border/60"
+                className="min-h-[64px] text-sm bg-card border-border font-medium"
               />
             </div>
           )}

@@ -16,7 +16,7 @@ export default function FixturingSelect({ value, onChange, options, placeholder 
       value={value || ""}
       onValueChange={(v) => onChange(v === "__none__" ? "" : v)}
     >
-      <SelectTrigger className="h-9 text-sm bg-background border-border/60">
+      <SelectTrigger className="h-9 text-sm font-medium bg-card border-border">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

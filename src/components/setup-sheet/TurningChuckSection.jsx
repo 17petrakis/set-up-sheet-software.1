@@ -29,7 +29,7 @@ const MACHINE_CHUCK_MAP = {
 function ChuckTypeDropdown({ value, onChange }) {
   return (
     <Select value={value || undefined} onValueChange={onChange}>
-      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+      <SelectTrigger className="h-9 text-sm bg-card border-border font-medium px-3 w-full">
         <SelectValue placeholder="Select…" />
       </SelectTrigger>
       <SelectContent>
@@ -56,7 +56,7 @@ function getAccessoryOptions(spindleKey) {
 function AccessoriesDropdown({ value, onChange, spindleKey }) {
   return (
     <Select value={value || undefined} onValueChange={onChange}>
-      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+      <SelectTrigger className="h-9 text-sm bg-card border-border font-medium px-3 w-full">
         <SelectValue placeholder="Select…" />
       </SelectTrigger>
       <SelectContent>
@@ -72,7 +72,7 @@ const JAW_TYPES = ['Hard Jaw', 'Soft Jaw', 'Mounted Fixture'];
 function JawTypeDropdown({ value, onChange }) {
   return (
     <Select value={value || undefined} onValueChange={onChange}>
-      <SelectTrigger className="h-9 text-sm bg-background border-border/60 px-3 w-full">
+      <SelectTrigger className="h-9 text-sm bg-card border-border font-medium px-3 w-full">
         <SelectValue placeholder="Select…" />
       </SelectTrigger>
       <SelectContent>
@@ -92,31 +92,31 @@ function BarFeederFields({ data, onChange }) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 px-4 py-3">
         <FieldWrap label="PCG Gripper Size">
-          <Input value={data.bf_pcg_gripper_size || ""} onChange={f("bf_pcg_gripper_size")} placeholder="e.g. 12-18mm" className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_pcg_gripper_size || ""} onChange={f("bf_pcg_gripper_size")} placeholder="e.g. 12-18mm" className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Push Rod Ø">
-          <Input value={data.bf_push_rod || ""} onChange={f("bf_push_rod")} placeholder='e.g. 1/2"' className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_push_rod || ""} onChange={f("bf_push_rod")} placeholder='e.g. 1/2"' className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Part Library #">
-          <Input value={data.bf_part_library || ""} onChange={f("bf_part_library")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_part_library || ""} onChange={f("bf_part_library")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Set Bar Ø To">
-          <Input value={data.bf_set_bar_dia || ""} onChange={f("bf_set_bar_dia")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_set_bar_dia || ""} onChange={f("bf_set_bar_dia")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Total Part Feedout">
-          <Input value={data.bf_total_feedout || ""} onChange={f("bf_total_feedout")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_total_feedout || ""} onChange={f("bf_total_feedout")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Top Cut Position">
-          <Input value={data.bf_top_cut_pos || ""} onChange={f("bf_top_cut_pos")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_top_cut_pos || ""} onChange={f("bf_top_cut_pos")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="End of Bar Signal Position">
-          <Input value={data.bf_end_bar_signal || ""} onChange={f("bf_end_bar_signal")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_end_bar_signal || ""} onChange={f("bf_end_bar_signal")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Torque Rate High Feed %">
-          <Input value={data.bf_torque_high_feed || ""} onChange={f("bf_torque_high_feed")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_torque_high_feed || ""} onChange={f("bf_torque_high_feed")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
         <FieldWrap label="Torque Rate Part Feedout %">
-          <Input value={data.bf_torque_feedout || ""} onChange={f("bf_torque_feedout")} className="h-9 text-sm bg-background border-border/60" />
+          <Input value={data.bf_torque_feedout || ""} onChange={f("bf_torque_feedout")} className="h-9 text-sm bg-card border-border font-medium" />
         </FieldWrap>
       </div>
     </div>
@@ -127,7 +127,7 @@ function BarFeederFields({ data, onChange }) {
 function FieldWrap({ label, children }) {
   return (
     <div>
-      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">{label}</Label>
+      <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">{label}</Label>
       {children}
     </div>
   );
@@ -141,7 +141,7 @@ function ChuckPressureField({ value, unit, onValueChange, onUnitChange }) {
         value={value || ""}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder="e.g. 60"
-        className="h-9 text-sm bg-background border-border/60"
+        className="h-9 text-sm bg-card border-border font-medium"
       />
       <select
         value={unit || "PSI"}
@@ -249,7 +249,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
                 value={s.chuck_type || ""}
                 onChange={(e) => set("chuck_type", e.target.value)}
                 placeholder="Enter chuck type…"
-                className="h-9 text-sm bg-background border-border/60"
+                className="h-9 text-sm bg-card border-border font-medium"
               />
             )}
           </FieldWrap>
@@ -259,7 +259,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
                 value={s.jaw_type || ""}
                 onChange={(e) => set("jaw_type", e.target.value)}
                 placeholder="Enter collet…"
-                className="h-9 text-sm bg-background border-border/60"
+                className="h-9 text-sm bg-card border-border font-medium"
               />
             ) : (
               <JawTypeDropdown value={s.jaw_type || ""} onChange={(v) => set("jaw_type", v)} />
@@ -278,7 +278,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               value={s.initial_stickout || ""}
               onChange={(e) => set("initial_stickout", e.target.value)}
               placeholder='e.g. 2.500"'
-              className="h-9 text-sm bg-background border-border/60"
+              className="h-9 text-sm bg-card border-border font-medium"
             />
           </FieldWrap>
         </div>
@@ -289,7 +289,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
               value={s.jaw_description || ""}
               onChange={(e) => set("jaw_description", e.target.value)}
               placeholder='e.g. 2.5" Dia x 0.3" Steel Step Jaw'
-              className="h-9 text-sm bg-background border-border/60"
+              className="h-9 text-sm bg-card border-border font-medium"
             />
           </FieldWrap>
           {showFixtureDesc && (
@@ -298,7 +298,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
                 value={s.fixture_description || ""}
                 onChange={(e) => set("fixture_description", e.target.value)}
                 placeholder="Describe fixture…"
-                className="h-9 text-sm bg-background border-border/60"
+                className="h-9 text-sm bg-card border-border font-medium"
               />
             </FieldWrap>
           )}
@@ -306,7 +306,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             <Input
               value={s.min_grip_length || ""}
               onChange={(e) => set("min_grip_length", e.target.value)}
-              className="h-9 text-sm bg-background border-border/60"
+              className="h-9 text-sm bg-card border-border font-medium"
             />
           </FieldWrap>
           <FieldWrap label="Spindle Accessories">
@@ -324,7 +324,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
             value={s.accessories_extra || ""}
             onChange={(e) => set("accessories_extra", e.target.value)}
             placeholder={localAccessories === 'Work Stop' ? 'Work Stop Description' : 'Size'}
-            className="h-9 text-sm bg-background border-border/60"
+            className="h-9 text-sm bg-card border-border font-medium"
           />
         )}
 
@@ -352,14 +352,14 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
                     <AutoResizeTextarea
                       value={s[f.key] || ""}
                       onChange={(e) => set(f.key, e.target.value)}
-                      className="min-h-[64px] text-sm bg-background border-border/60"
+                      className="min-h-[64px] text-sm bg-card border-border font-medium"
                     />
                   ) : (
                     <Input
                       value={s[f.key] || ""}
                       onChange={(e) => set(f.key, e.target.value)}
                       placeholder={f.placeholder || ""}
-                      className="h-9 text-sm bg-background border-border/60"
+                      className="h-9 text-sm bg-card border-border font-medium"
                     />
                   )}
                 </FieldWrap>

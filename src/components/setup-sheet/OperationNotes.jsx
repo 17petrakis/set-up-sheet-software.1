@@ -30,7 +30,7 @@ export default function OperationNotes({ value, onChange, media, onMediaChange, 
                 value={value || ""}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="Add any operation notes or instructions here..."
-                className="min-h-[96px] text-sm bg-background border-border/60 pr-9"
+                className="min-h-[96px] text-sm font-medium bg-card border-border pr-9"
               />
               {!hasNotes && (
                 <button

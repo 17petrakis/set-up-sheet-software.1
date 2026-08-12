@@ -71,25 +71,25 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
         {/* Z */}
         <FieldWrap label="Z">
           <Input value={offset.z || ""} onChange={handleZChange} onBlur={handleZBlur} placeholder="0.000"
-            className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
+            className="h-9 text-sm bg-card border-border font-medium w-28 font-mono" />
         </FieldWrap>
         {/* C — toggleable */}
         {showC && (
           <FieldWrap label="C">
             <Input value={offset.c || ""} onChange={setE("c")} placeholder="Null"
-              className="h-9 text-sm bg-background border-border/60 w-28 font-mono" />
+              className="h-9 text-sm bg-card border-border font-medium w-28 font-mono" />
           </FieldWrap>
         )}
         {/* Z stock amount */}
         <FieldWrap label="Z stock amount">
           <Input value={offset.dist_from_jaws || ""} onChange={setE("dist_from_jaws")} placeholder="e.g. 1.250"
-            className="h-9 text-sm bg-background border-border/60 w-32 font-mono" />
+            className="h-9 text-sm bg-card border-border font-medium w-32 font-mono" />
         </FieldWrap>
         {/* Relative Pickoff — only on subsequent stages */}
         {index > 0 && (
           <FieldWrap label="Relative Pickoff">
             <Input value={offset.relative_pickoff || ""} onChange={setE("relative_pickoff")} placeholder="0.000"
-              className="h-9 text-sm bg-background border-border/60 w-32 font-mono" />
+              className="h-9 text-sm bg-card border-border font-medium w-32 font-mono" />
           </FieldWrap>
         )}
         {/* + Note */}
@@ -127,7 +127,7 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
             value={offset.note || ""}
             onChange={setE("note")}
             placeholder="Note: e.g. tight clearance, pullout stage description…"
-            className="text-sm bg-background border-border/60 min-h-[60px]"
+            className="text-sm bg-card border-border font-medium min-h-[60px]"
           />
         </div>
       )}
@@ -195,7 +195,7 @@ export default function PartZero({ data, onChange, machineType }) {
                 value={data.program_coord_zero_note ?? ""}
                 onChange={(e) => onChange({ ...data, program_coord_zero_note: e.target.value })}
                 placeholder="Describe program coordinate zero location..."
-                className="text-sm bg-background border-border/60 min-h-[80px]"
+                className="text-sm bg-card border-border font-medium min-h-[80px]"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -205,7 +205,7 @@ export default function PartZero({ data, onChange, machineType }) {
                   value={data.coordinate_system ?? ""}
                   onChange={update("coordinate_system")}
                   placeholder="e.g. G54"
-                  className="h-9 text-sm bg-background border-border/60"
+                  className="h-9 text-sm bg-card border-border font-medium"
                 />
               </div>
               <div>
@@ -214,7 +214,7 @@ export default function PartZero({ data, onChange, machineType }) {
                   value={data.overall_depth_range ?? ""}
                   onChange={update("overall_depth_range")}
                   placeholder="e.g. -0.500 to -1.175"
-                  className="h-9 text-sm bg-background border-border/60"
+                  className="h-9 text-sm bg-card border-border font-medium"
                 />
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function PartZero({ data, onChange, machineType }) {
                 value={data.work_coordinate_system ?? ""}
                 onChange={(e) => onChange({ ...data, work_coordinate_system: e.target.value })}
                 placeholder="i.e. Fixed jaw center of part"
-                className="text-sm bg-background border-border/60 min-h-[60px]"
+                className="text-sm bg-card border-border font-medium min-h-[60px]"
               />
             </div>
           </>
