@@ -1015,7 +1015,7 @@ export default function SetupSheet() {
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.12 }}>
-                    <MediaNoteSection data={preparationScreen} onChange={handlePreparationScreenChange} title="Preparation Screen" icon={ClipboardList} />
+                    <MediaNoteSection data={preparationScreen} onChange={handlePreparationScreenChange} title="Preparation Screen" icon={ClipboardList} permanentNote="Offsets will need adjustments — this is for REFERENCE ONLY." />
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.14 }}>

@@ -7,7 +7,7 @@ import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Loader2, X, Upload } from "lucide-react";
 
-export default function MediaNoteSection({ data, onChange, title, icon }) {
+export default function MediaNoteSection({ data, onChange, title, icon, permanentNote }) {
   const viewMode = useContext(ViewModeContext);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -65,6 +65,13 @@ export default function MediaNoteSection({ data, onChange, title, icon }) {
               </div>
             )}
           </div>
+
+          {/* Permanent note — below photo */}
+          {permanentNote && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+              <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider">{permanentNote}</p>
+            </div>
+          )}
 
           {/* Note — below photo */}
           <div>

@@ -46,15 +46,20 @@ function CitizenWorkholdingView({ data }) {
   );
 }
 
-function MediaNoteView({ data, title }) {
+function MediaNoteView({ data, title, permanentNote }) {
   const d = data || {};
-  if (!d.photo && !d.note) return null;
+  if (!d.photo && !d.note && !permanentNote) return null;
   return (
     <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">{title}</p>
       {d.photo && (
         <div className="flex justify-center">
           <ViewPhoto url={d.photo} className="max-w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+        </div>
+      )}
+      {permanentNote && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+          <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider">{permanentNote}</p>
         </div>
       )}
       {d.note && (
@@ -413,7 +418,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                 {((preparationScreen && (preparationScreen.photo || preparationScreen.note))) && (
                   <section>
                     <SectionTitle>Preparation Screen</SectionTitle>
-                    <MediaNoteView data={preparationScreen} title="Preparation Screen" />
+                    <MediaNoteView data={preparationScreen} title="Preparation Screen" permanentNote="Offsets will need adjustments — this is for REFERENCE ONLY." />
                   </section>
                 )}
 
