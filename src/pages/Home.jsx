@@ -36,6 +36,7 @@ export default function Home() {
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -75,12 +76,13 @@ export default function Home() {
     setCustomers(customerData);
     setLoading(false);
     if (isAdmin) {
-      try {
-        const requests = await base44.entities.AccessRequest.filter({ status: "pending" });
-        setPendingRequests(requests || []);
-      } catch (e) {
-        setPendingRequests([]);
-      }
+     try {
+       const requests = await base44.entities.AccessRequest.filter({ status: "pending" });
+       setPendingRequests(requests || []);
+       if (requests && requests.length > 0) setShowRequestsModal(true);
+     } catch (e) {
+       setPendingRequests([]);
+     }
     }
   };
 
@@ -353,7 +355,7 @@ export default function Home() {
                       {pendingRequests.length > 1 && ` and ${pendingRequests.length - 1} more`}
                     </p>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => navigate("/employee-management")} className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => setShowRequestsModal(true)} className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
                     View Requests
                   </Button>
                 </div>
@@ -506,6 +508,40 @@ export default function Home() {
           existingCustomers={allCustomerNames}
         />
       )}
+
+      <AlertDialog open={showRequestsModal} onOpenChange={setShowRequestsModal}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-amber-600" />
+              Access Requests
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {pendingRequests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending requests.</p>
+                ) : pendingRequests.map((req, i) => (
+                  <div key={req.id || i} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-amber-900 truncate">
+                        {req.employee_name || req.employee_number || "Unknown"}
+                      </p>
+                      <p className="text-xs text-amber-700 truncate">Part: {req.part_number}</p>
+                    </div>
+                    <span className="text-xs font-medium text-amber-600 capitalize shrink-0 ml-2">{req.status}</span>
+                  </div>
+                ))}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowRequestsModal(false); navigate("/employee-management"); }}>
+              Go to Employee Management
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteCustomerTarget} onOpenChange={(open) => !open && setDeleteCustomerTarget(null)}>
         <AlertDialogContent>
