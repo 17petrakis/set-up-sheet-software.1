@@ -27,8 +27,14 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
   const set = (field, val) => onChange({ ...d, [field]: val });
   const setBarLoaderCollet = (val) => {
     const next = { ...d, bar_loader_collet_size: val };
-    if (val && !d.ms_collet_size) next.ms_collet_size = val;
-    if (val && !d.guide_bush_size) next.guide_bush_size = val;
+    // Keep syncing while the auto-filled fields still match the previous bar loader value
+    // (i.e. the user hasn't manually edited them independently)
+    if (val && (!d.ms_collet_size || d.ms_collet_size === d.bar_loader_collet_size)) {
+      next.ms_collet_size = val;
+    }
+    if (val && (!d.guide_bush_size || d.guide_bush_size === d.bar_loader_collet_size)) {
+      next.guide_bush_size = val;
+    }
     onChange(next);
   };
 
