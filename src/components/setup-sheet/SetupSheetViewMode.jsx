@@ -84,7 +84,7 @@ function InfoRow({ label, value }) {
   return (
     <div className="text-sm min-w-0 flex flex-col">
       <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide leading-tight">{label}</span>
-      <span className="font-semibold text-gray-900 break-words leading-snug">{value}</span>
+      <span className="font-medium text-gray-900 break-words leading-snug">{value}</span>
     </div>
   );
 }
