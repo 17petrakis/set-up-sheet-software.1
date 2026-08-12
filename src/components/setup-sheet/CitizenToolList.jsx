@@ -63,7 +63,7 @@ export default function CitizenToolList({ tools, onChange }) {
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="citizen-tool-list">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1 overflow-x-auto -mx-2 px-2">
+                <div ref={provided.innerRef} {...provided.droppableProps} className="overflow-x-auto space-y-1 pb-2">
                   {list.map((tool, i) => {
                     const tNum = getTNum(tool);
                     const showStickout = tNum !== null && tNum >= 7;
