@@ -25,7 +25,7 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Edit Tool {tool.tool_number || ""}</DialogTitle>
         </DialogHeader>

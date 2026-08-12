@@ -66,6 +66,7 @@ export const TOOL_FIELDS = [
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
   { key: "angle", label: "Tip Angle" },
+  { key: "offset_number", label: "Offset Number" },
 ];
 
 // Short labels for compact row display
@@ -87,6 +88,7 @@ export const TOOL_FIELD_SHORT = {
   blade_thickness: "Blade",
   arbor_size: "Arbor",
   angle: "Tip Ang",
+  offset_number: "Offset",
 };
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
