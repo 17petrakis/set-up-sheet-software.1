@@ -884,14 +884,19 @@ export default function SetupSheet() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
-                    <AlertDialogCancel>Nevermind</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
-                      Ask Gabe
-                    </AlertDialogAction>
-                    <AlertDialogAction onClick={() => setShowAdminPassword(true)} variant="outline" className="border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground text-foreground">
+                  <div className="w-full">
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
+                      <AlertDialogCancel>Nevermind</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
+                        Ask Gabe
+                      </AlertDialogAction>
+                    </div>
+                    <button
+                      onClick={() => setShowAdminPassword(true)}
+                      className="w-full -mx-6 px-6 py-2.5 mt-3 border-t border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
+                    >
                       Enter Admin Password
-                    </AlertDialogAction>
+                    </button>
                   </div>
                 )}
               </AlertDialogFooter>
