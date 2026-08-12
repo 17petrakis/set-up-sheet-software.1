@@ -15,17 +15,6 @@ function getTNum(tool) {
   return isNaN(n) ? null : n;
 }
 
-function sortByTNumber(arr) {
-  return [...arr].sort((a, b) => {
-    const aNum = parseInt(a.tool_number, 10);
-    const bNum = parseInt(b.tool_number, 10);
-    if (isNaN(aNum) && isNaN(bNum)) return 0;
-    if (isNaN(aNum)) return 1;
-    if (isNaN(bNum)) return -1;
-    return aNum - bNum;
-  });
-}
-
 export default function CitizenToolList({ tools, onChange }) {
   const viewMode = useContext(ViewModeContext);
   const [editingStickout, setEditingStickout] = useState({});
@@ -38,12 +27,6 @@ export default function CitizenToolList({ tools, onChange }) {
     const updated = [...list];
     updated[i] = { ...updated[i], [key]: val };
     onChange(updated);
-  };
-
-  const commitToolNumber = (i, val) => {
-    const updated = [...list];
-    updated[i] = { ...updated[i], tool_number: val };
-    onChange(sortByTNumber(updated));
   };
 
   const toggleStickout = (i) => {
@@ -103,7 +86,6 @@ export default function CitizenToolList({ tools, onChange }) {
                               <Input
                                 value={tool.tool_number || ""}
                                 onChange={(e) => updateCell(i, "tool_number", e.target.value)}
-                                onBlur={(e) => commitToolNumber(i, e.target.value)}
                                 className="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all text-center font-mono"
                               />
                             </div>

@@ -103,3 +103,17 @@ export const emptyTurningOperation = {
   min_z: "",
   max_z: "",
 };
+
+export function sortToolsByTNumber(arr) {
+  return [...arr].sort((a, b) => {
+    const aVal = (a.tool_number || "").toString().trim().toUpperCase();
+    const bVal = (b.tool_number || "").toString().trim().toUpperCase();
+    if (aVal === "N/A" || bVal === "N/A") return 0;
+    const aNum = parseInt(a.tool_number, 10);
+    const bNum = parseInt(b.tool_number, 10);
+    if (isNaN(aNum) && isNaN(bNum)) return 0;
+    if (isNaN(aNum)) return 1;
+    if (isNaN(bNum)) return -1;
+    return aNum - bNum;
+  });
+}

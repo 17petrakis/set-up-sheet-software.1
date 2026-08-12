@@ -28,7 +28,7 @@ import CitizenWorkholdingSection from "@/components/setup-sheet/CitizenWorkholdi
 import MediaNoteSection from "@/components/setup-sheet/MediaNoteSection";
 import CitizenToolList from "@/components/setup-sheet/CitizenToolList";
 
-import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote } from "@/lib/setupSheetDefaults";
+import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote, sortToolsByTNumber } from "@/lib/setupSheetDefaults";
 import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
 import { Monitor, ClipboardList } from "lucide-react";
@@ -149,9 +149,10 @@ export default function SetupSheet() {
       const ps = preparationScreenRef.current;
       // Only flush if general has real data (i.e. we've finished loading)
       if (gen && gen.part_number !== undefined) {
+        const sortedTools = sortToolsByTNumber(t);
         base44.entities.SetupSheet.update(id, {
           ...gen,
-          tools: t,
+          tools: sortedTools,
           turning_tools: tt,
           part_zero: pz,
           operations: ops,
@@ -410,7 +411,7 @@ export default function SetupSheet() {
     const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
     const snapshot = {
       ...generalRef.current,
-      tools: toolsRef.current,
+      tools: sortToolsByTNumber(toolsRef.current),
       turning_tools: turningToolsRef.current,
       part_zero: partZeroRef.current,
       operations: operationsRef.current,
@@ -463,6 +464,12 @@ export default function SetupSheet() {
   };
 
   const handleSaveAndExit = async () => {
+    // Sort tools by T# before saving so reordering happens behind the scenes
+    const sortedTools = sortToolsByTNumber(toolsRef.current);
+    if (sortedTools !== toolsRef.current) {
+      setTools(sortedTools);
+      toolsRef.current = sortedTools;
+    }
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
@@ -470,7 +477,7 @@ export default function SetupSheet() {
       try {
         await base44.entities.SetupSheet.update(id, {
           ...generalRef.current,
-          tools: toolsRef.current,
+          tools: sortedTools,
           turning_tools: turningToolsRef.current,
           part_zero: partZeroRef.current,
           operations: operationsRef.current,
