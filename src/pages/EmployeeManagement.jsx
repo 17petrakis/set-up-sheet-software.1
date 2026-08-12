@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save } from "lucide-react";
+import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound } from "lucide-react";
 
 export default function EmployeeManagement() {
   const navigate = useNavigate();
@@ -105,21 +105,40 @@ export default function EmployeeManagement() {
         <h1 className="text-2xl font-bold text-foreground mb-6">Employee Management</h1>
 
         {/* Login Code Section */}
-        <div className="bg-card border border-border rounded-2xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-foreground mb-1">Login Code</h2>
-          <p className="text-xs text-muted-foreground mb-4">3-letter code appended to every employee number at sign-in (e.g. 0001<span className="font-semibold text-foreground">{codeSaved || "SUS"}</span>). Same for all employees.</p>
-          <form onSubmit={handleSaveCode} className="flex gap-3 flex-wrap items-end">
-            <div className="flex-1 min-w-[120px]">
+        <div className="bg-card border border-border rounded-xl p-6 mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <KeyRound className="w-4 h-4" style={{ color: "#2b3990" }} />
+            <h2 className="text-base font-semibold text-foreground" style={{ color: "#2b3990" }}>Login Code</h2>
+          </div>
+          <p className="text-sm mb-5" style={{ color: "#666666" }}>
+            Employees append this 3-letter code to their employee number when logging in (e.g. 0001<span className="font-semibold" style={{ color: "#666666" }}>{codeSaved || "SUS"}</span>). Current code: <span className="font-semibold" style={{ color: "#666666" }}>{codeSaved || "SUS"}</span>
+          </p>
+          <form onSubmit={handleSaveCode} className="flex gap-3 items-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCodeInput("")}
+              className="border-gray-300 text-gray-500 hover:bg-gray-50"
+              style={{ borderColor: "#cccccc", color: "#666666" }}
+            >
+              NEW 3-LETTER CODE
+            </Button>
+            <div className="flex-1 max-w-[120px]">
               <Input
                 value={codeInput}
                 onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
                 placeholder="SUS"
                 maxLength={3}
-                className="uppercase"
+                className="uppercase text-center"
               />
             </div>
-            <Button type="submit" disabled={updateCodeMutation.isPending || codeInput.trim().length !== 3 || codeInput.trim().toUpperCase() === codeSaved} className="gap-1.5">
-              <Save className="w-4 h-4" /> Update Code
+            <Button
+              type="submit"
+              disabled={updateCodeMutation.isPending || codeInput.trim().length !== 3 || codeInput.trim().toUpperCase() === codeSaved}
+              style={{ backgroundColor: "#8c92c5", borderColor: "#8c92c5", color: "#ffffff" }}
+              className="hover:opacity-90"
+            >
+              Update Code
             </Button>
           </form>
         </div>
