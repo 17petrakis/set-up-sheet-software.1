@@ -1,7 +1,7 @@
 import React, { useState, useRef, useContext } from "react";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
-import { Textarea } from "@/components/ui/textarea";
+import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Loader2 } from "lucide-react";
 import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
@@ -76,11 +76,11 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          <Textarea
+          <AutoResizeTextarea
             value={p.note || ""}
             onChange={(e) => updateNote(i, e.target.value)}
             placeholder="Photo note…"
-            className="sm:w-56 shrink-0 h-full min-h-[320px] text-sm bg-background border-border/60 resize-none"
+            className="sm:w-56 shrink-0 text-sm bg-background border-border/60"
           />
         </div>
       ))}
