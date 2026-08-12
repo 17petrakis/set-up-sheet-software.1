@@ -189,14 +189,25 @@ export default function PartZero({ data, onChange, machineType }) {
           </>
         ) : (
           <>
-            <div className="mb-4">
-              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Program Coordinate Zero Note</Label>
-              <AutoResizeTextarea
-                value={data.program_coord_zero_note ?? ""}
-                onChange={(e) => onChange({ ...data, program_coord_zero_note: e.target.value })}
-                placeholder="Describe program coordinate zero location..."
-                className="text-sm bg-card border-border font-medium min-h-[80px]"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Program Coordinate Zero Note</Label>
+                <AutoResizeTextarea
+                  value={data.program_coord_zero_note ?? ""}
+                  onChange={(e) => onChange({ ...data, program_coord_zero_note: e.target.value })}
+                  placeholder="Describe program coordinate zero location..."
+                  className="text-sm bg-card border-border font-medium min-h-[80px]"
+                />
+              </div>
+              <div>
+                <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Work Coordinate System</Label>
+                <AutoResizeTextarea
+                  value={data.work_coordinate_system ?? ""}
+                  onChange={(e) => onChange({ ...data, work_coordinate_system: e.target.value })}
+                  placeholder="i.e. Fixed jaw center of part"
+                  className="text-sm bg-card border-border font-medium min-h-[80px]"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -217,17 +228,6 @@ export default function PartZero({ data, onChange, machineType }) {
                   className="h-9 text-sm bg-card border-border font-medium"
                 />
               </div>
-            </div>
-
-            {/* Work Coordinate System */}
-            <div className="mt-4">
-              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">Work Coordinate System</Label>
-              <AutoResizeTextarea
-                value={data.work_coordinate_system ?? ""}
-                onChange={(e) => onChange({ ...data, work_coordinate_system: e.target.value })}
-                placeholder="i.e. Fixed jaw center of part"
-                className="text-sm bg-card border-border font-medium min-h-[60px]"
-              />
             </div>
           </>
         )}
