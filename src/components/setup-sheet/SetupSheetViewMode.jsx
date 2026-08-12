@@ -82,9 +82,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="min-w-0 flex flex-col bg-white rounded px-2.5 py-1.5 border border-gray-100">
-      <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide leading-tight mb-0.5">{label}</span>
-      <span className="text-[15px] font-semibold text-gray-900 break-words leading-snug">{value}</span>
+    <div className="text-sm min-w-0 flex flex-col">
+      <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide leading-tight">{label}</span>
+      <span className="font-medium text-gray-900 break-words leading-snug">{value}</span>
     </div>
   );
 }
