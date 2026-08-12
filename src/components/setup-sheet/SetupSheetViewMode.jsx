@@ -82,9 +82,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="text-sm min-w-0">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide">{label}:</span>{" "}
-      <span className="font-semibold text-gray-900 break-words">{value}</span>
+    <div className="text-sm min-w-0 flex flex-col">
+      <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide leading-tight">{label}</span>
+      <span className="font-semibold text-gray-900 break-words leading-snug">{value}</span>
     </div>
   );
 }
@@ -161,7 +161,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
             if (fields.length === 0) return null;
             return (
               <div className="border border-gray-200 rounded p-3 bg-gray-50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3">
                   {fields.map(([label, val]) => (
                     <InfoRow key={label} label={label} value={val} />
                   ))}
