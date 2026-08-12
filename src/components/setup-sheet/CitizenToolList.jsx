@@ -104,7 +104,7 @@ export default function CitizenToolList({ tools, onChange }) {
                                 value={tool.tool_number || ""}
                                 onChange={(e) => updateCell(i, "tool_number", e.target.value)}
                                 onBlur={(e) => commitToolNumber(i, e.target.value)}
-                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
+                                className="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all text-center font-mono"
                               />
                             </div>
 
@@ -114,7 +114,7 @@ export default function CitizenToolList({ tools, onChange }) {
                               <AutoSizeInput
                                 value={tool.description || ""}
                                 onChange={(v) => updateCell(i, "description", v)}
-                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                inputClass="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all"
                                 minWidth="8rem"
                               />
                             </div>
@@ -125,7 +125,7 @@ export default function CitizenToolList({ tools, onChange }) {
                               <AutoSizeInput
                                 value={tool.insert || ""}
                                 onChange={(v) => updateCell(i, "insert", v)}
-                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                inputClass="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all"
                                 minWidth="8rem"
                               />
                             </div>
@@ -136,7 +136,7 @@ export default function CitizenToolList({ tools, onChange }) {
                               <AutoSizeInput
                                 value={tool.holder || ""}
                                 onChange={(v) => updateCell(i, "holder", v)}
-                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                inputClass="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all"
                                 minWidth="3rem"
                               />
                             </div>
@@ -151,7 +151,7 @@ export default function CitizenToolList({ tools, onChange }) {
                                       <Input
                                         value={tool.stickout || ""}
                                         onChange={(e) => updateCell(i, "stickout", e.target.value)}
-                                        className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                        className="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all"
                                       />
                                       {!viewMode && (
                                         <Button size="icon" variant="ghost" onClick={() => { updateCell(i, "stickout", ""); toggleStickout(i); }}
