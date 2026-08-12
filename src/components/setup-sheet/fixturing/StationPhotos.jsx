@@ -65,8 +65,8 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
       </div>
       {photosArr.map((p, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch">
-          <div className="relative flex-1 rounded-lg overflow-hidden border border-border/60 bg-muted/10" style={{ minHeight: "320px" }}>
-            <img src={p.url} alt="" className="w-full h-full object-contain absolute inset-0 cursor-zoom-in" style={{ minHeight: "320px" }} onClick={() => setLightboxUrl(p.url)} />
+          <div className="relative flex-1 rounded-lg overflow-hidden border border-border/60 bg-muted/10 min-h-[180px] sm:min-h-[320px]">
+            <img src={p.url} alt="" className="w-full h-full object-contain absolute inset-0 cursor-zoom-in min-h-[180px] sm:min-h-[320px]" onClick={() => setLightboxUrl(p.url)} />
             <button
               type="button"
               onClick={() => removePhoto(i)}
