@@ -805,36 +805,46 @@ export default function SetupSheet() {
       </AlertDialog>
 
       <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) setAccessRequestSent(false); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{accessRequestSent ? "Request Sent" : "Stop!"}</AlertDialogTitle>
-            {!accessRequestSent && (
-              <div className="flex justify-center my-2">
-                <img
-                  src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/0681e6a29_Screenshot2026-08-06101712.png"
-                  alt="Stop sign"
-                  className="max-h-48 rounded-lg"
-                />
-              </div>
-            )}
-            <AlertDialogDescription>
-              {accessRequestSent
-                ? "Your request has been sent to Gabe. You'll be able to edit once it's approved."
-                : "You need Gabe's permission to edit or delete this Setup Sheet."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            {accessRequestSent ? (
-              <AlertDialogAction onClick={() => { setShowAccessDialog(false); setAccessRequestSent(false); }}>OK</AlertDialogAction>
-            ) : (
-              <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2">
-                <AlertDialogCancel>Nevermind</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
-                  Ask Gabe
-                </AlertDialogAction>
-              </div>
-            )}
-          </AlertDialogFooter>
+        <AlertDialogContent className="max-w-md text-center">
+          {accessRequestSent ? (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-center">Request Sent</AlertDialogTitle>
+                <AlertDialogDescription className="text-center">
+                  Your request has been sent to Gabe. You'll be able to edit once it's approved.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <div className="flex justify-center w-full">
+                  <AlertDialogAction onClick={() => { setShowAccessDialog(false); setAccessRequestSent(false); }}>OK</AlertDialogAction>
+                </div>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-center text-2xl font-bold text-red-600">Stop!</AlertDialogTitle>
+                <div className="flex justify-center mt-2 mb-4">
+                  <img
+                    src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/0681e6a29_Screenshot2026-08-06101712.png"
+                    alt="Stop sign"
+                    className="max-h-40 rounded-lg"
+                  />
+                </div>
+                <AlertDialogDescription className="text-center text-base text-foreground">
+                  You need Gabe's permission to edit or delete this Setup Sheet.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
+                  <AlertDialogCancel>Nevermind</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
+                    Ask Gabe
+                  </AlertDialogAction>
+                </div>
+              </AlertDialogFooter>
+            </>
+          )}
         </AlertDialogContent>
       </AlertDialog>
       {showAddOp && (
