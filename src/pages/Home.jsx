@@ -33,7 +33,6 @@ export default function Home() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openFolder, setOpenFolder] = useState(null); // { partNumber, customer }
-  const [deleteFolderTarget, setDeleteFolderTarget] = useState(null); // { partNumber, customer, sheets }
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -131,18 +130,6 @@ export default function Home() {
     setCustomers(prev => prev.filter(c => c.name !== deleteCustomerTarget));
     setDeleteCustomerTarget(null);
     if (selectedCustomer === deleteCustomerTarget) setSelectedCustomer(null);
-  };
-
-  const handleDeleteFolder = async () => {
-    if (!deleteFolderTarget) return;
-    // Delete all sheets in the folder
-    await Promise.all(deleteFolderTarget.sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
-    const deletedIds = new Set(deleteFolderTarget.sheets.map(s => s.id));
-    setSheets(prev => prev.filter(s => !deletedIds.has(s.id)));
-    setDeleteFolderTarget(null);
-    if (openFolder?.partNumber === deleteFolderTarget.partNumber && openFolder?.customer === deleteFolderTarget.customer) {
-      setOpenFolder(null);
-    }
   };
 
   const handleCreated = (sheet) => {
@@ -326,7 +313,6 @@ export default function Home() {
                       customer={folder.customer}
                       sheets={folder.sheets}
                       onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
-                      onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
                     />
                   ))}
                 </div>
@@ -375,7 +361,6 @@ export default function Home() {
                             customer={folder.customer}
                             sheets={folder.sheets}
                             onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
-                            onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
                           />
                         ))}
                       </div>
@@ -392,7 +377,6 @@ export default function Home() {
                         customer={folder.customer}
                         sheets={folder.sheets}
                         onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
-                        onDelete={(pn, cust, sh) => setDeleteFolderTarget({ partNumber: pn, customer: cust, sheets: sh })}
                       />
                     ))}
                   </div>
@@ -503,22 +487,6 @@ export default function Home() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteFolderTarget} onOpenChange={(open) => !open && setDeleteFolderTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Part Folder?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <strong>{deleteFolderTarget?.partNumber}</strong> and all its operations ({deleteFolderTarget?.sheets.length})? This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
-              Delete All
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

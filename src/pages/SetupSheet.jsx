@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Printer } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowLeft, Eye, Wrench, History, Save, Plus, Menu, X, Edit3, Printer, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { ViewModeContext } from "@/lib/viewModeContext";
 
@@ -55,6 +56,7 @@ export default function SetupSheet() {
   const [loading, setLoading] = useState(!!id);
   const [showHistory, setShowHistory] = useState(false);
   const [showAddOp, setShowAddOp] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mode, setMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -488,6 +490,19 @@ export default function SetupSheet() {
     setMode("view");
   };
 
+  const handleDeleteFolder = async () => {
+    if (!id) return;
+    const folderId = general.folder_id;
+    // Delete all sheets in the folder (or just this one if no folder_id)
+    if (folderId) {
+      const allSheets = await base44.entities.SetupSheet.filter({ folder_id: folderId }, null, 500);
+      await Promise.all(allSheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+    } else {
+      await base44.entities.SetupSheet.delete(id);
+    }
+    navigate("/", { replace: true });
+  };
+
   // Close hamburger menu on outside click
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -698,6 +713,12 @@ export default function SetupSheet() {
                         <History className="w-4 h-4 shrink-0 text-muted-foreground" />
                         History
                       </button>
+                      <div className="my-1 h-px bg-border" />
+                      <button onClick={() => { setShowDeleteConfirm(true); setMobileMenuOpen(false); }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full text-left">
+                        <Trash2 className="w-4 h-4 shrink-0" />
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </>
@@ -709,6 +730,22 @@ export default function SetupSheet() {
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Part Folder?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{general.part_number}</strong> and all its operations? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {showAddOp && (
         <AddOperationDialog
           onClose={() => setShowAddOp(false)}

@@ -1,12 +1,12 @@
 import React from "react";
-import { FileText, ChevronRight, Trash2 } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getPartIconPhoto } from "@/lib/photoSlots";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
 
-export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete }) {
+export default function PartFolderCard({ partNumber, customer, sheets, onOpen }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
   const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
@@ -17,14 +17,6 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
       className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
       onClick={() => onOpen(partNumber, customer)}
     >
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete(partNumber, customer, sheets); }}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-        title="Delete part folder"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
-
       <div className="flex items-start gap-3 mb-3">
         {iconImage ? (
           <img src={iconImage} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
