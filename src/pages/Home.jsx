@@ -11,6 +11,7 @@ import MobileNav from "@/components/home/MobileNav";
 import PartFolderCard from "@/components/home/PartFolderCard";
 import PartFolderView from "@/components/home/PartFolderView";
 import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
+import MachineToolListsContent from "@/components/machine-tools/MachineToolListsContent";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -257,8 +258,11 @@ export default function Home() {
             <ClipboardList className="w-4 h-4 shrink-0" /> Quality Control
           </button>
           <button
-            onClick={() => navigate("/machine-tool-lists")}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            onClick={() => switchNav("machine_tool_lists")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "machine_tool_lists" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+            )}
           >
             <Wrench className="w-4 h-4 shrink-0" /> Machine Tool Lists
           </button>
@@ -293,6 +297,8 @@ export default function Home() {
 
           {activeNav === "quality_control" ? (
             <CMMDashboardContent customers={customers} onCustomersChange={setCustomers} />
+          ) : activeNav === "machine_tool_lists" ? (
+            <MachineToolListsContent />
           ) : openFolder ? (
             /* Part Folder drill-down */
             <PartFolderView
