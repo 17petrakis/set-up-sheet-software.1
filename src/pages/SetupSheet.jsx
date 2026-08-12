@@ -807,11 +807,20 @@ export default function SetupSheet() {
       <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) setAccessRequestSent(false); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{accessRequestSent ? "Request Sent" : "Admin Permission Required"}</AlertDialogTitle>
+            <AlertDialogTitle>{accessRequestSent ? "Request Sent" : "Stop!"}</AlertDialogTitle>
+            {!accessRequestSent && (
+              <div className="flex justify-center my-2">
+                <img
+                  src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/0681e6a29_Screenshot2026-08-06101712.png"
+                  alt="Stop sign"
+                  className="max-h-48 rounded-lg"
+                />
+              </div>
+            )}
             <AlertDialogDescription>
               {accessRequestSent
-                ? "Your request has been sent to an Admin. You'll be able to edit once it's approved."
-                : "This part file is published and locked. You need Admin permission to edit or delete it. Would you like to ask an Admin?"}
+                ? "Your request has been sent to Gabe. You'll be able to edit once it's approved."
+                : "You need Gabe's permission to edit or delete this Setup Sheet."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -821,7 +830,7 @@ export default function SetupSheet() {
               <>
                 <AlertDialogCancel>Nevermind</AlertDialogCancel>
                 <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
-                  Ask Admin
+                  Ask Gabe
                 </AlertDialogAction>
               </>
             )}
