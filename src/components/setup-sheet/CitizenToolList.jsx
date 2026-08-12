@@ -63,7 +63,7 @@ export default function CitizenToolList({ tools, onChange }) {
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="citizen-tool-list">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1">
+                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1 overflow-x-auto -mx-2 px-2">
                   {list.map((tool, i) => {
                     const tNum = getTNum(tool);
                     const showStickout = tNum !== null && tNum >= 7;
@@ -74,7 +74,7 @@ export default function CitizenToolList({ tools, onChange }) {
                           <div
                             ref={prov.innerRef}
                             {...prov.draggableProps}
-                            className="group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors flex-wrap"
+                            className="group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors min-w-max"
                           >
                             <div {...prov.dragHandleProps} className="flex items-end pb-1.5 cursor-grab active:cursor-grabbing">
                               <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
