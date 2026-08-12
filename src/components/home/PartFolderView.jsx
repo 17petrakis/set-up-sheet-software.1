@@ -32,6 +32,8 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState("");
   const [adminPasswordLoading, setAdminPasswordLoading] = useState(false);
+  const [deleteSheetId, setDeleteSheetId] = useState(null);
+  const [showDeleteSheetConfirm, setShowDeleteSheetConfirm] = useState(false);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -165,15 +167,42 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         setAdminPasswordError("Incorrect admin password.");
         return;
       }
-      const sheetIds = sheets.map(s => s.id);
-      await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(sid => ({ id: sid, published: false })));
-      onSheetsChange(sheets.map(s => ({ ...s, published: false })));
+      // Only unlock the specific sheet being accessed
+      if (deleteSheetId) {
+        await base44.entities.SetupSheet.update(deleteSheetId, { published: false });
+        onSheetsChange(sheets.map(s => s.id === deleteSheetId ? { ...s, published: false } : s));
+      } else {
+        // Folder-level unlock (e.g. from "Unlock" button or delete-folder)
+        const sheetIds = sheets.map(s => s.id);
+        await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(sid => ({ id: sid, published: false })));
+        onSheetsChange(sheets.map(s => ({ ...s, published: false })));
+      }
       setShowAccessDialog(false);
       setShowAdminPassword(false);
       setAdminPassword("");
+      setDeleteSheetId(null);
     } finally {
       setAdminPasswordLoading(false);
     }
+  };
+
+  const handleAttemptDeleteSheet = (sheetId) => {
+    const sheet = sheets.find(s => s.id === sheetId);
+    if (sheet?.published && !isAdmin) {
+      setDeleteSheetId(sheetId);
+      setShowAccessDialog(true);
+    } else {
+      setDeleteSheetId(sheetId);
+      setShowDeleteSheetConfirm(true);
+    }
+  };
+
+  const handleDeleteSheet = async () => {
+    if (!deleteSheetId) return;
+    await base44.entities.SetupSheet.delete(deleteSheetId);
+    onSheetsChange(sheets.filter(s => s.id !== deleteSheetId));
+    setShowDeleteSheetConfirm(false);
+    setDeleteSheetId(null);
   };
 
   const opLabel = (sheet) => sheet.operation_name || "Operation";
@@ -314,6 +343,13 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                           <p className="font-bold text-sm text-foreground truncate">{opLabel(sheet)}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>
                         </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleAttemptDeleteSheet(sheet.id); }}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-lg p-1 transition-all"
+                          title="Delete operation"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
 
                       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
@@ -364,7 +400,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) { setAccessRequestSent(false); setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); } }}>
+      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) { setAccessRequestSent(false); setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); setDeleteSheetId(null); } }}>
         <AlertDialogContent className="max-w-md text-center">
           {accessRequestSent ? (
             <>
@@ -435,6 +471,23 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
               </AlertDialogFooter>
             </>
           )}
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteSheetConfirm} onOpenChange={setShowDeleteSheetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Operation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this operation? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSheet} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
