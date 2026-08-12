@@ -575,8 +575,10 @@ export default function SetupSheet() {
         setAdminPasswordError("Incorrect admin password.");
         return;
       }
-      await base44.entities.SetupSheet.update(id, { published: false });
-      setGeneral(prev => ({ ...prev, published: false }));
+      const updated = await base44.entities.SetupSheet.update(id, { published: false });
+      const newGeneral = { ...generalRef.current, published: false };
+      generalRef.current = newGeneral;
+      setGeneral(newGeneral);
       setShowAccessDialog(false);
       setShowAdminPassword(false);
       setAdminPassword("");
