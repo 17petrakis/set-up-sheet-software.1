@@ -567,6 +567,13 @@ export default function Home() {
       <AlertDialog open={showRequestsModal} onOpenChange={setShowRequestsModal}>
         <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
+            <div className="flex justify-center mb-2">
+              <img
+                src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/ae6c345d0_image.png"
+                alt="Access Request"
+                className="max-h-56 rounded-lg"
+              />
+            </div>
             <AlertDialogTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-amber-600" />
               Access Requests
