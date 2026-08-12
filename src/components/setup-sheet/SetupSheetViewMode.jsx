@@ -33,7 +33,7 @@ function CitizenWorkholdingView({ data }) {
       )}
       {(d.part_ejection_description || d.part_ejection_photo) && (
         <div className="border-t border-gray-200 pt-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Part Ejection</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">Part Ejection</p>
           {d.part_ejection_description && <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.part_ejection_description}</p>}
           {d.part_ejection_photo && (
             <div className="mt-1.5">
@@ -51,7 +51,7 @@ function MediaNoteView({ data, title }) {
   if (!d.photo && !d.note) return null;
   return (
     <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">{title}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">{title}</p>
       {d.photo && (
         <div className="flex justify-center">
           <ViewPhoto url={d.photo} className="max-w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
@@ -59,7 +59,7 @@ function MediaNoteView({ data, title }) {
       )}
       {d.note && (
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Note</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-0.5">Note</p>
           <p className="text-xs text-gray-800 whitespace-pre-wrap">{d.note}</p>
         </div>
       )}
@@ -83,7 +83,7 @@ function InfoRow({ label, value }) {
   if (!value) return null;
   return (
     <div className="text-xs min-w-0">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide">{label}:</span>{" "}
+      <span className="font-semibold text-black uppercase tracking-wide">{label}:</span>{" "}
       <span className="text-gray-900 break-words">{value}</span>
     </div>
   );
@@ -171,7 +171,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           })()}
           {(gen.stops || []).filter(Boolean).length > 0 && (
             <div className="mt-2 border border-gray-200 rounded p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Program Stops</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">Program Stops</p>
               <ul className="text-xs text-gray-800 space-y-0.5">
                 {(gen.stops || []).filter(Boolean).map((s, i) => (
                   <li key={i}>#{i + 1}: {s}</li>
@@ -181,7 +181,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           )}
           {gen.has_deburring && (gen.deburring_time || gen.finishing_time || gen.wash_time || gen.deburring_notes || gen.finishing_notes || gen.wash_notes) && (
             <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Additional Handling</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">Additional Handling</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-x-6 gap-y-1.5">
                 <InfoRow label="Deburr Time" value={gen.deburring_time} />
                 <InfoRow label="Finish Time" value={gen.finishing_time} />
@@ -190,16 +190,16 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               </div>
               {(gen.deburring_notes || gen.finishing_notes || gen.wash_notes) && (
                 <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {gen.deburring_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Deburring Notes:</span> <span className="text-xs text-gray-800">{gen.deburring_notes}</span></div>}
-                  {gen.finishing_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Finishing Notes:</span> <span className="text-xs text-gray-800">{gen.finishing_notes}</span></div>}
-                  {gen.wash_notes && <div><span className="text-[10px] font-semibold uppercase text-gray-500">Wash Notes:</span> <span className="text-xs text-gray-800">{gen.wash_notes}</span></div>}
+                  {gen.deburring_notes && <div><span className="text-[10px] font-semibold uppercase text-black">Deburring Notes:</span> <span className="text-xs text-gray-800">{gen.deburring_notes}</span></div>}
+                  {gen.finishing_notes && <div><span className="text-[10px] font-semibold uppercase text-black">Finishing Notes:</span> <span className="text-xs text-gray-800">{gen.finishing_notes}</span></div>}
+                  {gen.wash_notes && <div><span className="text-[10px] font-semibold uppercase text-black">Wash Notes:</span> <span className="text-xs text-gray-800">{gen.wash_notes}</span></div>}
                 </div>
               )}
             </div>
           )}
           {gen.operation_description && (
             <div className="mt-2 border border-gray-200 rounded p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">
                 {isTurning ? "Pre-machining Notes" : "Operation Description"}
               </p>
               <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_description}</p>
@@ -207,7 +207,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
           )}
           {!isTurning && gen.work_holding_notes && (
             <div className="mt-2 border border-gray-200 rounded p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Work Holding Notes</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1">Work Holding Notes</p>
               <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.work_holding_notes}</p>
             </div>
           )}
@@ -228,7 +228,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               if (!hasData && !fix.notes && !fix.photos?.length) return null;
               return (
                 <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Saw Setup</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1.5">Saw Setup</p>
                   {hasData && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1">
                       {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
@@ -312,14 +312,14 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               <>
                 {stations.length > 0 && (
                   <div className="mt-2 border border-gray-200 rounded p-3 bg-gray-50">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Fixturing Stations</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-1.5">Fixturing Stations</p>
                     <div className="space-y-3">
                       {stations.map((s, i) => {
                         const rows = renderStationRows(s, fGroup === "hmc");
                         const header = `Station ${i + 1}`;
                         return (
                           <div key={i} className="border border-gray-200 rounded p-2 bg-white">
-                            {fGroup === "hmc" && <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>}
+                            {fGroup === "hmc" && <p className="text-[10px] font-bold uppercase tracking-wider text-black mb-1">{header}</p>}
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-1">
                               {rows.filter(([, v]) => v).map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
                             </div>
@@ -457,7 +457,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                     <div className="space-y-2">
                       {partZero.offsets.map((offset, i) => (
                         <div key={i} className="border border-gray-200 rounded p-2 bg-white">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-black mb-1">
                             {i === 0 ? "Primary Offset" : `Stage ${i + 1}`}
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
@@ -538,7 +538,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                 <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
                   {partZero.program_coord_zero_note && (
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Program Coordinate Zero Note</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-black mb-0.5">Program Coordinate Zero Note</p>
                       <p className="text-xs text-gray-800 whitespace-pre-wrap">{partZero.program_coord_zero_note}</p>
                     </div>
                   )}
@@ -607,7 +607,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
             <div className="grid grid-cols-1 gap-8">
               {allPhotoSlots.map((slot) => (
                 <div key={slot.id} className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-black border-b border-gray-200 pb-1">{slot.label}</p>
                   <ViewPhoto
                     url={slot.url}
                     label={slot.label}
