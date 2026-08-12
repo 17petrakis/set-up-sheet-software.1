@@ -32,6 +32,7 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
 import { getPartIconPhoto } from "@/lib/photoSlots";
+import { verifyAdminPassword } from "@/lib/adminPassword";
 import { Monitor, ClipboardList } from "lucide-react";
 
 export default function SetupSheet() {
@@ -60,6 +61,10 @@ export default function SetupSheet() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAccessDialog, setShowAccessDialog] = useState(false);
   const [accessRequestSent, setAccessRequestSent] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminPasswordError, setAdminPasswordError] = useState("");
+  const [adminPasswordLoading, setAdminPasswordLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mode, setMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -561,6 +566,27 @@ export default function SetupSheet() {
     setAccessRequestSent(true);
   };
 
+  const handleAdminUnlock = async () => {
+    setAdminPasswordError("");
+    setAdminPasswordLoading(true);
+    try {
+      const ok = await verifyAdminPassword(adminPassword);
+      if (!ok) {
+        setAdminPasswordError("Incorrect admin password.");
+        return;
+      }
+      await base44.entities.SetupSheet.update(id, { published: false });
+      setGeneral(prev => ({ ...prev, published: false }));
+      setShowAccessDialog(false);
+      setShowAdminPassword(false);
+      setAdminPassword("");
+      setMode("edit");
+      setMobileMenuOpen(false);
+    } finally {
+      setAdminPasswordLoading(false);
+    }
+  };
+
   // Close hamburger menu on outside click
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -805,7 +831,7 @@ export default function SetupSheet() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) setAccessRequestSent(false); }}>
+      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) { setAccessRequestSent(false); setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); } }}>
         <AlertDialogContent className="max-w-md text-center">
           {accessRequestSent ? (
             <>
@@ -836,12 +862,38 @@ export default function SetupSheet() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
-                  <AlertDialogCancel>Nevermind</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
-                    Ask Gabe
-                  </AlertDialogAction>
-                </div>
+                {showAdminPassword ? (
+                  <div className="space-y-3 w-full">
+                    <input
+                      type="password"
+                      value={adminPassword}
+                      onChange={(e) => { setAdminPassword(e.target.value); setAdminPasswordError(""); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdminUnlock(); } }}
+                      placeholder="Admin password"
+                      autoFocus
+                      className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm font-medium shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                    />
+                    {adminPasswordError && (
+                      <p className="text-sm text-destructive">{adminPasswordError}</p>
+                    )}
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
+                      <AlertDialogCancel onClick={() => { setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); }}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleAdminUnlock} disabled={adminPasswordLoading || !adminPassword.trim()} className="bg-primary hover:bg-primary/90 text-white">
+                        {adminPasswordLoading ? "Checking..." : "Unlock"}
+                      </AlertDialogAction>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
+                    <AlertDialogCancel>Nevermind</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
+                      Ask Gabe
+                    </AlertDialogAction>
+                    <AlertDialogAction onClick={() => setShowAdminPassword(true)} className="bg-amber-600 hover:bg-amber-700 text-white">
+                      Enter Admin Password
+                    </AlertDialogAction>
+                  </div>
+                )}
               </AlertDialogFooter>
             </>
           )}
