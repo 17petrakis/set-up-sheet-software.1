@@ -126,7 +126,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                               <Input
                                 value={tool.tool_number || ""}
                                 onChange={(e) => updateCell(i, "tool_number", e.target.value)}
-                                className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all text-center font-mono"
+                                className="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all text-center font-mono"
                               />
                             </div>
 
@@ -162,7 +162,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                                     <Input
                                       value={tool[f.key] || ""}
                                       onChange={(e) => updateCell(i, f.key, e.target.value)}
-                                      className="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                      className="h-8 text-xs bg-card border-input hover:border-primary/40 focus:border-primary/40 transition-all"
                                     />
                                   )}
                                 </div>

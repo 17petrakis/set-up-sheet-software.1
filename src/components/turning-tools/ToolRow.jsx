@@ -62,12 +62,12 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   if (className.includes("flex-1")) {
     return (
       <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className={`h-7 text-xs bg-background border-border/60 px-1.5 ${className}`} />
+        className={`h-7 text-xs bg-card border-input px-1.5 ${className}`} />
     );
   }
   return (
     <AutoSizeInput value={value} onChange={onChange} placeholder={placeholder}
-      inputClass="h-7 text-xs bg-background border-border/60 px-1.5" minWidth="3rem" />
+      inputClass="h-7 text-xs bg-card border-input px-1.5" minWidth="3rem" />
   );
 }
 
@@ -84,7 +84,7 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
           value={value || ""}
           onChange={onChange}
           placeholder="Custom…"
-          inputClass="h-7 text-xs px-1.5"
+          inputClass="h-7 text-xs bg-card border-input px-1.5"
           minWidth="4rem"
         />
         <button
@@ -302,9 +302,9 @@ function GeneralInfo({ tool, onUpdate, typeValue, onEditFields }) {
           <div key={i} className="flex flex-col">
             <AutoSizeInput value={cf.key} onChange={(v) => updateCustomField(i, "key", v)}
               placeholder="Field name" className="mb-0.5"
-              inputClass="h-6 text-[10px] bg-background border-border/60 px-3 uppercase tracking-wide" minWidth="5rem" />
+              inputClass="h-6 text-[10px] bg-card border-input px-3 uppercase tracking-wide" minWidth="5rem" />
             <AutoSizeInput value={cf.value} onChange={(v) => updateCustomField(i, "value", v)}
-              placeholder="Value" inputClass="h-7 text-xs bg-background border-border/60 px-3" minWidth="5rem" />
+              placeholder="Value" inputClass="h-7 text-xs bg-card border-input px-3" minWidth="5rem" />
           </div>
         ))}
 
@@ -388,7 +388,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         <div className="flex items-center gap-1 shrink-0">
           <span className="text-xs text-muted-foreground font-mono">T#</span>
           <Input value={tool.tool_number || ""} onChange={(e) => set("tool_number")(e.target.value)}
-            placeholder="#" className="h-7 w-10 text-xs bg-background border-border/60 px-1.5 text-center font-mono" />
+            placeholder="#" className="h-7 w-10 text-xs bg-card border-input px-1.5 text-center font-mono" />
         </div>
 
         {/* Kind badge */}
