@@ -376,28 +376,30 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                 {millTools.length > 0 && millTools.some(t => t.tool_number || t.description || t.insert) && (
                   <section>
                     <SectionTitle>Tools</SectionTitle>
-                    <table className="view-table w-full">
-                      <thead>
-                        <tr>
-                          <th>T#</th>
-                          <th>Description</th>
-                          <th>Insert / Part Number</th>
-                          <th>Holder</th>
-                          {millTools.some(t => t.stickout) && <th>Stickout</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {millTools.filter(t => t.tool_number || t.description || t.insert).map((t, i) => (
-                          <tr key={i}>
-                            <td className="font-mono font-bold">{t.tool_number}</td>
-                            <td>{t.description}</td>
-                            <td>{t.insert}</td>
-                            <td>{t.holder}</td>
-                            {millTools.some(t2 => t2.stickout) && <td>{t.stickout}</td>}
+                    <div className="overflow-x-auto">
+                      <table className="view-table w-full">
+                        <thead>
+                          <tr>
+                            <th>T#</th>
+                            <th>Description</th>
+                            <th>Insert / Part Number</th>
+                            <th>Holder</th>
+                            {millTools.some(t => t.stickout) && <th>Stickout</th>}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {millTools.filter(t => t.tool_number || t.description || t.insert).map((t, i) => (
+                            <tr key={i}>
+                              <td className="font-mono font-bold">{t.tool_number}</td>
+                              <td>{t.description}</td>
+                              <td>{t.insert}</td>
+                              <td>{t.holder}</td>
+                              {millTools.some(t2 => t2.stickout) && <td>{t.stickout}</td>}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </section>
                 )}
 
