@@ -35,6 +35,11 @@
     "requested_at": {
       "type": "string",
       "description": "ISO timestamp of when the request was made"
+    },
+    "employee_notified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the employee has been shown the approval popup"
     }
   },
   "required": [

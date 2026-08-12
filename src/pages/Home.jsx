@@ -37,6 +37,8 @@ export default function Home() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const [approvedRequests, setApprovedRequests] = useState([]);
+  const [showApprovedModal, setShowApprovedModal] = useState(false);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -82,6 +84,20 @@ export default function Home() {
        if (requests && requests.length > 0) setShowRequestsModal(true);
      } catch (e) {
        setPendingRequests([]);
+     }
+    } else if (session?.employeeNumber) {
+     try {
+       const approved = await base44.entities.AccessRequest.filter({
+         employee_number: session.employeeNumber,
+         status: "approved",
+       });
+       const unnotified = (approved || []).filter(r => !r.employee_notified);
+       if (unnotified.length > 0) {
+         setApprovedRequests(unnotified);
+         setShowApprovedModal(true);
+       }
+     } catch (e) {
+       // ignore
      }
     }
   };
@@ -508,6 +524,39 @@ export default function Home() {
           existingCustomers={allCustomerNames}
         />
       )}
+
+      <AlertDialog open={showApprovedModal} onOpenChange={async (open) => {
+        setShowApprovedModal(open);
+        if (!open) {
+          await Promise.all(approvedRequests.map(r =>
+            base44.entities.AccessRequest.update(r.id, { employee_notified: true })
+          ));
+          setApprovedRequests([]);
+        }
+      }}>
+        <AlertDialogContent className="max-w-sm text-center">
+          <AlertDialogHeader>
+            <div className="flex justify-center mb-2">
+              <img
+                src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/4f83c4ced_image.png"
+                alt="Approved"
+                className="max-h-64 rounded-lg"
+              />
+            </div>
+            <AlertDialogTitle className="text-center text-2xl">Approved!</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-base">
+              {approvedRequests.length === 1
+                ? `Part number ${approvedRequests[0]?.part_number} is now unlocked.`
+                : `${approvedRequests.length} parts are now unlocked.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <div className="flex justify-center w-full">
+              <AlertDialogAction>Got it</AlertDialogAction>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showRequestsModal} onOpenChange={setShowRequestsModal}>
         <AlertDialogContent className="max-w-lg">
