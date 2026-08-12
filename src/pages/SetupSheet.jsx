@@ -575,7 +575,17 @@ export default function SetupSheet() {
         setAdminPasswordError("Incorrect admin password.");
         return;
       }
-      const updated = await base44.entities.SetupSheet.update(id, { published: false });
+      // Unpublish ALL operations in the same folder (or just this sheet if no folder)
+      const folderId = generalRef.current.folder_id;
+      if (folderId) {
+        const siblings = await base44.entities.SetupSheet.filter({ folder_id: folderId }, null, 500);
+        const ids = siblings.map(s => s.id);
+        if (ids.length > 0) {
+          await base44.entities.SetupSheet.bulkUpdate(ids.map(sid => ({ id: sid, published: false })));
+        }
+      } else {
+        await base44.entities.SetupSheet.update(id, { published: false });
+      }
       const newGeneral = { ...generalRef.current, published: false };
       generalRef.current = newGeneral;
       setGeneral(newGeneral);
