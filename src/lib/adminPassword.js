@@ -1,11 +1,7 @@
-import { base44 } from "@/api/base44Client";
-
 /**
- * Fetches the admin login code from the Setting entity and compares it
- * to the supplied password. Returns true if they match (case-insensitive).
+ * Verifies the admin unlock password against the admin employee ID
+ * used to log in as admin (currently ADMIN001SUS).
  */
 export async function verifyAdminPassword(password) {
-  const rows = await base44.entities.Setting.filter({ key: "login_code" });
-  const code = (rows && rows[0] && rows[0].value) || "SUS";
-  return password.trim().toUpperCase() === code.toUpperCase();
+  return password.trim().toUpperCase() === "ADMIN001SUS";
 }
