@@ -827,12 +827,12 @@ export default function SetupSheet() {
             {accessRequestSent ? (
               <AlertDialogAction onClick={() => { setShowAccessDialog(false); setAccessRequestSent(false); }}>OK</AlertDialogAction>
             ) : (
-              <>
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2">
                 <AlertDialogCancel>Nevermind</AlertDialogCancel>
                 <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
                   Ask Gabe
                 </AlertDialogAction>
-              </>
+              </div>
             )}
           </AlertDialogFooter>
         </AlertDialogContent>
