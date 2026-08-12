@@ -29,7 +29,7 @@ export default function EmployeeLogin() {
     if (!entered) return;
 
     // Admin special case
-    if (entered === "ADMIN001") {
+    if (entered === "ADMIN001SUS") {
       localStorage.setItem("employeeSession", JSON.stringify({ employeeNumber: "ADMIN001", isAdmin: true }));
       navigate("/");
       return;
