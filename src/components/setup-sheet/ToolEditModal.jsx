@@ -9,6 +9,13 @@ import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 export default function ToolEditModal({ tool, onChange, onClose }) {
   const visible = getEffectiveVisibleFields(tool);
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   const toggleField = (key) => {
     const overrides = tool.visible_fields || {};
     onChange({ ...tool, visible_fields: { ...overrides, [key]: !visible[key] } });
@@ -31,6 +38,7 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
               <Input
                 value={tool.tool_number || ""}
                 onChange={(e) => setField("tool_number", e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="h-8 text-xs text-center font-mono"
               />
             </div>
@@ -59,6 +67,7 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
                 <Input
                   value={tool[f.key] || ""}
                   onChange={(e) => setField(f.key, e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="h-8 text-xs flex-1"
                 />
               </div>
