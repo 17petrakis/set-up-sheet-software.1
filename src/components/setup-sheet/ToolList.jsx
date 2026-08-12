@@ -134,7 +134,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                               const options = getFieldOptions(f.key, tool.tool_type);
                               const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
-                                <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
+                                <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px', maxWidth: '200px' }}>
                                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
                                   {options ? (
                                     <ComboBox
