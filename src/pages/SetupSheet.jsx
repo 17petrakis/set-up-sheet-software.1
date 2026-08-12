@@ -490,16 +490,9 @@ export default function SetupSheet() {
     setMode("view");
   };
 
-  const handleDeleteFolder = async () => {
+  const handleDeleteSheet = async () => {
     if (!id) return;
-    const folderId = general.folder_id;
-    // Delete all sheets in the folder (or just this one if no folder_id)
-    if (folderId) {
-      const allSheets = await base44.entities.SetupSheet.filter({ folder_id: folderId }, null, 500);
-      await Promise.all(allSheets.map(s => base44.entities.SetupSheet.delete(s.id)));
-    } else {
-      await base44.entities.SetupSheet.delete(id);
-    }
+    await base44.entities.SetupSheet.delete(id);
     navigate("/", { replace: true });
   };
 
@@ -733,14 +726,14 @@ export default function SetupSheet() {
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Part Folder?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Operation?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{general.part_number}</strong> and all its operations? This cannot be undone.
+              Are you sure you want to delete this operation? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
+            <AlertDialogAction onClick={handleDeleteSheet} className="bg-destructive hover:bg-destructive/90 text-white">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

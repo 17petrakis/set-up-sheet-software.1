@@ -19,8 +19,8 @@ const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 
 
 export default function PartFolderView({ partNumber, customer, sheets, onBack, onSheetsChange }) {
   const navigate = useNavigate();
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
+  const [showDeleteFolder, setShowDeleteFolder] = useState(false);
 
   const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));
   const folderId = sorted[0]?.folder_id;
@@ -100,11 +100,10 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     );
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    await base44.entities.SetupSheet.delete(deleteTarget.id);
-    onSheetsChange(sheets.filter(s => s.id !== deleteTarget.id));
-    setDeleteTarget(null);
+  const handleDeleteFolder = async () => {
+    await Promise.all(sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+    setShowDeleteFolder(false);
+    onBack();
   };
 
   const opLabel = (sheet) => sheet.operation_name || "Operation";
@@ -128,9 +127,14 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
           </h2>
           {customer && <p className="text-sm text-muted-foreground mt-0.5">{customer}</p>}
         </div>
-        <Button onClick={() => setShowAddOp(true)} className="gap-2" size="sm">
-          <Plus className="w-4 h-4" /> Add Operation
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowAddOp(true)} className="gap-2" size="sm">
+            <Plus className="w-4 h-4" /> Add Operation
+          </Button>
+          <Button onClick={() => setShowDeleteFolder(true)} variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" /> Delete Part
+          </Button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -154,23 +158,14 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                       onClick={() => navigate(`/sheet/${sheet.id}`)}
                     >
                       {sorted.length > 1 && (
-                        <>
-                          <div
-                            {...dragProvided.dragHandleProps}
-                            onClick={(e) => e.stopPropagation()}
-                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
-                            title="Drag to reorder"
-                          >
-                            <GripVertical className="w-3.5 h-3.5" />
-                          </div>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-                            title="Delete operation"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </>
+                        <div
+                          {...dragProvided.dragHandleProps}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
+                          title="Drag to reorder"
+                        >
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </div>
                       )}
                       <div className="flex items-start gap-3 mb-3">
                         {(() => { const icon = getPartIconPhoto(sheet.photos); return icon ? (
@@ -217,18 +212,18 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         />
       )}
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog open={showDeleteFolder} onOpenChange={setShowDeleteFolder}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {deleteTarget && opLabel(deleteTarget)}?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Part Folder?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{deleteTarget && opLabel(deleteTarget)}</strong>? This cannot be undone.
+              Are you sure you want to delete <strong>{partNumber}</strong> and all its operations ({sheets.length})? This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-white">
-              Delete
+            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
