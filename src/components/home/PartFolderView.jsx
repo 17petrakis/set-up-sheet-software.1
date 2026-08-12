@@ -12,6 +12,7 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
+import { getPartIconPhoto } from "@/lib/photoSlots";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
@@ -172,15 +173,13 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         </>
                       )}
                       <div className="flex items-start gap-3 mb-3">
-                        {sheet.photos?.iso ? (
-                          <img src={sheet.photos.iso} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
-                        ) : sheet.photos?.drawing ? (
-                          <img src={sheet.photos.drawing} alt="Drawing" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+                        {(() => { const icon = getPartIconPhoto(sheet.photos); return icon ? (
+                          <img src={icon} alt="Part" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
                         ) : (
                           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                             <FileText className="w-4 h-4 text-primary" />
                           </div>
-                        )}
+                        ); })()}
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm text-foreground truncate">{opLabel(sheet)}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>

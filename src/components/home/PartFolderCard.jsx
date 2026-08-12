@@ -2,15 +2,15 @@ import React from "react";
 import { FileText, ChevronRight, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getPartIconPhoto } from "@/lib/photoSlots";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
 
 export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
-  // First operation in display order; use its ISO image, then its drawing as the part icon
   const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
-  const iconImage = firstSheet?.photos?.iso || firstSheet?.photos?.drawing || primarySheet?.photos?.iso || primarySheet?.photos?.drawing;
+  const iconImage = getPartIconPhoto(firstSheet?.photos) || getPartIconPhoto(primarySheet?.photos);
 
   return (
     <div
