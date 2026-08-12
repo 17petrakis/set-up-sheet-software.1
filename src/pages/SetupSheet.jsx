@@ -865,7 +865,7 @@ export default function SetupSheet() {
                 {showAdminPassword ? (
                   <div className="space-y-3 w-full">
                     <input
-                      type="password"
+                      type="text"
                       value={adminPassword}
                       onChange={(e) => { setAdminPassword(e.target.value); setAdminPasswordError(""); }}
                       onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdminUnlock(); } }}
