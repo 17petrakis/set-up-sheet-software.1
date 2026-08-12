@@ -142,7 +142,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ["Material", gen.material],
               ...(gen.material_color_enabled && gen.material_color ? [["Material Color", gen.material_color]] : []),
               ...(gen.material_condition_enabled && gen.material_condition ? [["Material Condition", gen.material_condition]] : []),
-              ...(isTurning && gen.stock ? [["Stock", gen.stock]] : []),
+              ...(gen.stock ? [["Stock", gen.stock]] : []),
               ...(isTurning && gen.consumed_per_part ? [["Length/1pc", gen.consumed_per_part]] : []),
               ["Qty", gen.quantity],
               ...(isTurning && getProgramMode(gen.machine) !== "single" && gen.program_numbers
