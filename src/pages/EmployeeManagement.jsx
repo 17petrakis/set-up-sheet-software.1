@@ -123,15 +123,6 @@ export default function EmployeeManagement() {
             >
               NEW 3-LETTER CODE
             </Button>
-            <div className="flex-1 max-w-[120px]">
-              <Input
-                value={codeInput}
-                onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
-                placeholder="SUS"
-                maxLength={3}
-                className="uppercase text-center"
-              />
-            </div>
             <Button
               type="submit"
               disabled={updateCodeMutation.isPending || codeInput.trim().length !== 3 || codeInput.trim().toUpperCase() === codeSaved}
