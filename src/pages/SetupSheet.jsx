@@ -31,6 +31,7 @@ import CitizenToolList from "@/components/setup-sheet/CitizenToolList";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote, sortToolsByTNumber } from "@/lib/setupSheetDefaults";
 import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
+import { getPartIconPhoto } from "@/lib/photoSlots";
 import { Monitor, ClipboardList } from "lucide-react";
 
 export default function SetupSheet() {
@@ -596,13 +597,13 @@ export default function SetupSheet() {
             }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            {photos.iso ? (
-              <img src={photos.iso} alt="ISO" className="w-9 h-9 rounded-xl object-cover border border-border" />
+            {(() => { const icon = getPartIconPhoto(photos); return icon ? (
+              <img src={icon} alt="Part" className="w-9 h-9 rounded-xl object-cover border border-border" />
             ) : (
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                 <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
               </div>
-            )}
+            ); })()}
             <div>
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
