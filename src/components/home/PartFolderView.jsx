@@ -422,7 +422,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                     <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
                       Ask Gabe
                     </AlertDialogAction>
-                    <AlertDialogAction onClick={() => setShowAdminPassword(true)} className="bg-amber-600 hover:bg-amber-700 text-white">
+                    <AlertDialogAction onClick={() => setShowAdminPassword(true)} variant="outline" className="border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground text-foreground">
                       Enter Admin Password
                     </AlertDialogAction>
                   </div>
