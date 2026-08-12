@@ -15,10 +15,10 @@ export default function MachineToolListsHome() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 -ml-2 rounded-lg active:bg-muted/50"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Home</span>
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Home</span>
           </button>
           <span className="text-muted-foreground/40 text-sm">/</span>
           <span className="text-sm font-semibold text-foreground">Machine Tool Lists</span>
