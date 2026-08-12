@@ -126,7 +126,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
 
   return (
     <div className="bg-white text-gray-900 font-body">
-      <div className="max-w-[1100px] mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 space-y-5">
+      <div className="max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 space-y-5">
 
         {/* General Information */}
         <section>
