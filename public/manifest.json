@@ -1,0 +1,17 @@
+{
+  "name": "CNC Setup Sheet Manager",
+  "short_name": "CNC Setup",
+  "description": "Software for creating and organizing setup sheets to improve shop floor efficiency.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e3a5f",
+  "icons": [
+    {
+      "src": "https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/c9e493861_Circle_ColourAsset9.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
