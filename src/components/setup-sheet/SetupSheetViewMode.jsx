@@ -240,7 +240,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                       {fix.photos.map((p, pi) => (
                         <div key={pi}>
                           <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
-                          {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
+                          {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                         </div>
                       ))}
                     </div>
@@ -341,7 +341,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
                                     <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
-                                    {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
+                                    {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                                   </div>
                                 ))}
                               </div>
