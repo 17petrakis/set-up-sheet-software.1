@@ -108,7 +108,7 @@
   cursor: default !important;
   box-shadow: none !important;
   font-weight: 600 !important;
-  font-size: 0.95rem !important;
+  font-size: 1.05rem !important;
 }
 .view-mode-fieldset input[type="checkbox"] {
   opacity: 0.5 !important;
@@ -159,33 +159,33 @@
 
 /* View mode — matches print view layout */
 .view-section-title {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #374151;
-  margin-bottom: 6px;
-  padding-bottom: 3px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
   border-bottom: 1px solid #d1d5db;
 }
 .view-table {
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: 14px;
 }
 .view-table th {
   background: #f3f4f6;
   border: 1px solid #d1d5db;
-  padding: 4px 8px;
+  padding: 6px 10px;
   text-align: left;
   font-weight: 600;
-  font-size: 10px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #6b7280;
 }
 .view-table td {
   border: 1px solid #e5e7eb;
-  padding: 3px 8px;
+  padding: 5px 10px;
   color: #111827;
 }
 .view-table tr:nth-child(even) td {
