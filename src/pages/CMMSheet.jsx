@@ -3,11 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, FileSpreadsheet, Settings2, Printer, Plus, Menu } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Settings2, Printer, Plus, Menu, Trash2 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import FixturingSection from "@/components/cmm/FixturingSection";
 import WorkPlacementSection from "@/components/cmm/WorkPlacementSection";
 import CMMWorkHolding from "@/components/cmm/CMMWorkHolding";
@@ -35,6 +39,7 @@ export default function CMMSheet() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
   const [showAddOp, setShowAddOp] = useState(false);
+  const [deleteOpTarget, setDeleteOpTarget] = useState(false);
   const saveTimer = useRef(null);
   const isFirstLoad = useRef(true);
 
@@ -70,6 +75,11 @@ export default function CMMSheet() {
     }, 800);
     return () => clearTimeout(saveTimer.current);
   }, [sheet]);
+
+  const handleDeleteOperation = async () => {
+    await base44.entities.CMMSheet.delete(id);
+    navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
+  };
 
   if (loading) return (
     <div className="fixed inset-0 flex items-center justify-center">
@@ -119,6 +129,9 @@ export default function CMMSheet() {
           <Button variant="outline" size="sm" onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-1.5 text-xs no-print hidden sm:inline-flex">
             <Printer className="w-4 h-4" /> Print
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setDeleteOpTarget(true)} className="gap-1.5 text-xs no-print hidden sm:inline-flex text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" /> Delete
+          </Button>
           {/* Mobile hamburger menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -134,6 +147,9 @@ export default function CMMSheet() {
               )}
               <DropdownMenuItem onClick={() => navigate(`/cmm-sheet/${id}/print`)} className="gap-2">
                 <Printer className="w-4 h-4" /> Print
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDeleteOpTarget(true)} className="gap-2 text-destructive">
+                <Trash2 className="w-4 h-4" /> Delete Operation
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -228,6 +244,21 @@ export default function CMMSheet() {
           />
         </motion.div>
       </main>
+
+      <AlertDialog open={deleteOpTarget} onOpenChange={setDeleteOpTarget}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Operation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete <strong>{sheet.description || sheet.part_number}</strong>? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteOperation} className="bg-destructive hover:bg-destructive/90 text-white">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {showAddOp && (
         <AddCMMOperationDialog

@@ -17,6 +17,7 @@ const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 
 export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState(false);
   const [showAddOp, setShowAddOp] = useState(false);
 
   const sorted = [...(folder.sheets || [])].sort((a, b) => getSortKey(a) - getSortKey(b));
@@ -40,6 +41,13 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
     const updated = folder.sheets.filter(s => s.id !== deleteTarget.id);
     onSheetsChange(updated);
     setDeleteTarget(null);
+  };
+
+  const handleDeleteFolder = async () => {
+    await base44.entities.CMMSheet.deleteMany({ folder_id: folder.sheets[0]?.folder_id });
+    onSheetsChange([]);
+    setDeleteFolderTarget(false);
+    onBack();
   };
 
   const handleAddOperation = async (opName) => {
@@ -77,9 +85,14 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
           <h2 className="text-2xl font-bold text-foreground">{folder.partNumber}</h2>
           {folder.customer && <p className="text-sm text-muted-foreground mt-0.5">{folder.customer}</p>}
         </div>
-        <Button onClick={() => setShowAddOp(true)} size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> Add Operation
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowAddOp(true)} size="sm" className="gap-2">
+            <Plus className="w-4 h-4" /> Add Operation
+          </Button>
+          <Button onClick={() => setDeleteFolderTarget(true)} size="sm" variant="outline" className="gap-2 text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" /> Delete Part
+          </Button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -151,6 +164,21 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-white">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteFolderTarget} onOpenChange={(open) => !open && setDeleteFolderTarget(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Entire Part?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete <strong>{folder.partNumber}</strong> and all {folder.sheets.length} CMM sheet(s)? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">Delete All</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
