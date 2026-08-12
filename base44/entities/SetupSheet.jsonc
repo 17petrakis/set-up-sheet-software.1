@@ -262,6 +262,11 @@
     "sort_order": {
       "type": "number",
       "description": "Manual sort order within the folder; defaults to creation time"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this sheet is published/locked from non-admin edits"
     }
   },
   "required": [

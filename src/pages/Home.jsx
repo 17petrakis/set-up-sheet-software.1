@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import NewCMMSheetDialog from "@/components/cmm/NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
@@ -35,6 +35,7 @@ export default function Home() {
   const [openFolder, setOpenFolder] = useState(null); // { partNumber, customer }
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -73,6 +74,14 @@ export default function Home() {
     setSheets(data);
     setCustomers(customerData);
     setLoading(false);
+    if (isAdmin) {
+      try {
+        const requests = await base44.entities.AccessRequest.filter({ status: "pending" });
+        setPendingRequests(requests || []);
+      } catch (e) {
+        setPendingRequests([]);
+      }
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -208,7 +217,16 @@ export default function Home() {
               onClick={() => navigate("/employee-management")}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             >
-              <Users className="w-4 h-4 shrink-0" /> Employees
+              <div className="relative">
+                <Users className="w-4 h-4 shrink-0" />
+                {pendingRequests.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                )}
+              </div>
+              Employees
+              {pendingRequests.length > 0 && (
+                <span className="ml-auto text-xs font-semibold text-red-500">{pendingRequests.length}</span>
+              )}
             </button>
           )}
           <button
@@ -321,6 +339,25 @@ export default function Home() {
           ) : (
             /* Dashboard — Recents + Customers */
             <div>
+              {isAdmin && pendingRequests.length > 0 && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <Bell className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-amber-900">
+                      {pendingRequests.length} access request{pendingRequests.length !== 1 ? "s" : ""} pending
+                    </p>
+                    <p className="text-xs text-amber-700 truncate">
+                      {pendingRequests[0]?.employee_name || pendingRequests[0]?.employee_number} requested to edit {pendingRequests[0]?.part_number}
+                      {pendingRequests.length > 1 && ` and ${pendingRequests.length - 1} more`}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => navigate("/employee-management")} className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
+                    View Requests
+                  </Button>
+                </div>
+              )}
               <div className="flex items-start justify-between mb-4 md:mb-6">
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold text-foreground">Setup Sheets</h1>

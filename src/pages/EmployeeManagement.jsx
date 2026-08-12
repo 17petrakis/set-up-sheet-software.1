@@ -4,7 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound } from "lucide-react";
+import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound, Bell, Check, X } from "lucide-react";
+import { format } from "date-fns";
 
 export default function EmployeeManagement() {
   const navigate = useNavigate();
@@ -19,6 +20,30 @@ export default function EmployeeManagement() {
     queryKey: ["employees"],
     queryFn: () => base44.entities.Employee.list("-created_date"),
     enabled: authorized,
+  });
+
+  const { data: accessRequests = [] } = useQuery({
+    queryKey: ["access_requests"],
+    queryFn: () => base44.entities.AccessRequest.filter({ status: "pending" }),
+    enabled: authorized,
+  });
+
+  const approveRequestMutation = useMutation({
+    mutationFn: async (request) => {
+      if (request.folder_id) {
+        const sheets = await base44.entities.SetupSheet.filter({ folder_id: request.folder_id }, null, 500);
+        if (sheets.length > 0) {
+          await base44.entities.SetupSheet.bulkUpdate(sheets.map(s => ({ id: s.id, published: false })));
+        }
+      }
+      return base44.entities.AccessRequest.update(request.id, { status: "approved" });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["access_requests"] }),
+  });
+
+  const ignoreRequestMutation = useMutation({
+    mutationFn: (id) => base44.entities.AccessRequest.update(id, { status: "ignored" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["access_requests"] }),
   });
 
   const { data: loginSetting } = useQuery({
@@ -103,6 +128,36 @@ export default function EmployeeManagement() {
         </button>
 
         <h1 className="text-2xl font-bold text-foreground mb-6">Employee Management</h1>
+
+        {/* Access Requests Section */}
+        {accessRequests.length > 0 && (
+          <div className="bg-card border border-amber-200 rounded-xl p-5 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-semibold text-foreground">Access Requests ({accessRequests.length})</h2>
+            </div>
+            <ul className="divide-y divide-border">
+              {accessRequests.map((req) => (
+                <li key={req.id} className="flex items-center gap-3 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      <span className="text-muted-foreground">Employee</span> {req.employee_name || req.employee_number} <span className="text-muted-foreground">requested to edit</span> {req.part_number}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {req.requested_at ? format(new Date(req.requested_at), "MMM d, yyyy 'at' h:mm a") : ""}
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={() => approveRequestMutation.mutate(req)} disabled={approveRequestMutation.isPending} className="gap-1.5 bg-green-600 hover:bg-green-700">
+                    <Check className="w-3.5 h-3.5" /> Approve
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => ignoreRequestMutation.mutate(req.id)} disabled={ignoreRequestMutation.isPending} className="gap-1.5">
+                    <X className="w-3.5 h-3.5" /> Ignore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Login Code Section */}
         <div className="bg-card border border-border rounded-xl p-6 mb-6">

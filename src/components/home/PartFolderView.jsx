@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Plus, Trash2, GripVertical } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, GripVertical, Lock, Unlock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -21,9 +21,14 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const navigate = useNavigate();
   const [showAddOp, setShowAddOp] = useState(false);
   const [showDeleteFolder, setShowDeleteFolder] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+
+  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const isAdmin = session?.isAdmin === true;
 
   const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));
   const folderId = sorted[0]?.folder_id;
+  const isPublished = sorted.some(s => s.published);
 
   const handleAddOperation = async (machineType, opName) => {
     const isTurning = machineType === "turning";
@@ -107,6 +112,19 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     onBack();
   };
 
+  const handlePublish = async () => {
+    const sheetIds = sheets.map(s => s.id);
+    await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(id => ({ id, published: true })));
+    onSheetsChange(sheets.map(s => ({ ...s, published: true })));
+    setShowPublishConfirm(false);
+  };
+
+  const handleUnlock = async () => {
+    const sheetIds = sheets.map(s => s.id);
+    await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(id => ({ id, published: false })));
+    onSheetsChange(sheets.map(s => ({ ...s, published: false })));
+  };
+
   const opLabel = (sheet) => sheet.operation_name || "Operation";
 
   return (
@@ -132,6 +150,19 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
           <Button onClick={() => setShowAddOp(true)} className="gap-2" size="sm">
             <Plus className="w-4 h-4" /> Add Operation
           </Button>
+          {!isPublished ? (
+            <Button onClick={() => setShowPublishConfirm(true)} variant="outline" size="sm" className="gap-2">
+              <Lock className="w-4 h-4" /> Publish (Lock)
+            </Button>
+          ) : isAdmin ? (
+            <Button onClick={handleUnlock} variant="outline" size="sm" className="gap-2 text-amber-600 hover:text-amber-700">
+              <Unlock className="w-4 h-4" /> Unlock
+            </Button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+              <Lock className="w-3.5 h-3.5" /> Published
+            </span>
+          )}
           <Button onClick={() => setShowDeleteFolder(true)} variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
             <Trash2 className="w-4 h-4" /> Delete Part
           </Button>
@@ -225,6 +256,23 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">
               Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publish (Lock) Part Folder?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to publish <strong>{partNumber}</strong>? This will lock the part file — non-admin users will need Admin permission to edit or delete any operation in this folder.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePublish} className="bg-amber-600 hover:bg-amber-700 text-white">
+              <Lock className="w-4 h-4 mr-1" /> Publish & Lock
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

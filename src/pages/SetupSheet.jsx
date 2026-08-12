@@ -57,11 +57,15 @@ export default function SetupSheet() {
   const [showHistory, setShowHistory] = useState(false);
   const [showAddOp, setShowAddOp] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAccessDialog, setShowAccessDialog] = useState(false);
+  const [accessRequestSent, setAccessRequestSent] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mode, setMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("mode") === "edit" ? "edit" : "view";
   });
+  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const isAdmin = session?.isAdmin === true;
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
@@ -87,6 +91,7 @@ export default function SetupSheet() {
         setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
         setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
         setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
+        if (sheet.published && !isAdmin) setMode("view");
         setLoading(false);
       } catch (err) {
         // Sheet not found or deleted — go back to home
@@ -520,6 +525,41 @@ export default function SetupSheet() {
     navigate("/", { replace: true });
   };
 
+  const isLocked = general.published && !isAdmin;
+
+  const handleAttemptEdit = () => {
+    if (isLocked) {
+      setShowAccessDialog(true);
+      setMobileMenuOpen(false);
+    } else {
+      setMode("edit");
+      setMobileMenuOpen(false);
+    }
+  };
+
+  const handleAttemptDelete = () => {
+    if (isLocked) {
+      setShowAccessDialog(true);
+      setMobileMenuOpen(false);
+    } else {
+      setShowDeleteConfirm(true);
+      setMobileMenuOpen(false);
+    }
+  };
+
+  const handleRequestAccess = async () => {
+    await base44.entities.AccessRequest.create({
+      employee_number: session?.employeeNumber || "",
+      employee_name: session?.name || "Unknown",
+      part_number: general.part_number || "",
+      folder_id: general.folder_id || "",
+      sheet_id: id || "",
+      status: "pending",
+      requested_at: new Date().toISOString(),
+    });
+    setAccessRequestSent(true);
+  };
+
   // Close hamburger menu on outside click
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -641,7 +681,7 @@ export default function SetupSheet() {
                     <span>Add Op</span>
                   </Button>
                 )}
-                <Button size="default" onClick={() => setMode("edit")} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
+                <Button size="default" onClick={handleAttemptEdit} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Edit3 className="w-4 h-4" />
                   Edit
                 </Button>
@@ -661,7 +701,7 @@ export default function SetupSheet() {
                     <div className="py-1.5 flex flex-col gap-0.5">
                       {mode === "view" && (
                         <>
-                          <button onClick={() => { setMode("edit"); setMobileMenuOpen(false); }}
+                          <button onClick={handleAttemptEdit}
                             className="md:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                             <Edit3 className="w-4 h-4 shrink-0 text-muted-foreground" />
                             Edit
@@ -731,7 +771,7 @@ export default function SetupSheet() {
                         History
                       </button>
                       <div className="my-1 h-px bg-border" />
-                      <button onClick={() => { setShowDeleteConfirm(true); setMobileMenuOpen(false); }}
+                      <button onClick={handleAttemptDelete}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full text-left">
                         <Trash2 className="w-4 h-4 shrink-0" />
                         Delete
@@ -760,6 +800,31 @@ export default function SetupSheet() {
             <AlertDialogAction onClick={handleDeleteSheet} className="bg-destructive hover:bg-destructive/90 text-white">
               Delete
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) setAccessRequestSent(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{accessRequestSent ? "Request Sent" : "Admin Permission Required"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {accessRequestSent
+                ? "Your request has been sent to an Admin. You'll be able to edit once it's approved."
+                : "This part file is published and locked. You need Admin permission to edit or delete it. Would you like to ask an Admin?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {accessRequestSent ? (
+              <AlertDialogAction onClick={() => { setShowAccessDialog(false); setAccessRequestSent(false); }}>OK</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel>Nevermind</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRequestAccess} className="bg-primary hover:bg-primary/90 text-white">
+                  Ask Admin
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

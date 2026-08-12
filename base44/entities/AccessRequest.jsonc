@@ -1,0 +1,44 @@
+{
+  "name": "AccessRequest",
+  "type": "object",
+  "properties": {
+    "employee_number": {
+      "type": "string",
+      "description": "Employee number of the requester"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Employee name of the requester"
+    },
+    "part_number": {
+      "type": "string",
+      "description": "Part number of the locked part"
+    },
+    "folder_id": {
+      "type": "string",
+      "description": "Folder ID of the locked part"
+    },
+    "sheet_id": {
+      "type": "string",
+      "description": "Specific sheet ID that was attempted to edit"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "ignored"
+      ],
+      "default": "pending",
+      "description": "Status of the access request"
+    },
+    "requested_at": {
+      "type": "string",
+      "description": "ISO timestamp of when the request was made"
+    }
+  },
+  "required": [
+    "employee_number",
+    "part_number"
+  ]
+}
