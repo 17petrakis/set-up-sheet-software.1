@@ -1,8 +1,8 @@
 import React from "react";
-import { ClipboardList, Trash2 } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 
-export default function CMMFolderCard({ folder, onOpen, onDelete }) {
+export default function CMMFolderCard({ folder, onOpen }) {
   const sheet = folder.sheets[0];
 
   return (
@@ -10,14 +10,6 @@ export default function CMMFolderCard({ folder, onOpen, onDelete }) {
       className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-emerald-400/40 transition-all group"
       onClick={() => onOpen(folder)}
     >
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete(folder); }}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
-        title="Delete"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
-
       <div className="flex items-start gap-3 mb-3">
         <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
           <ClipboardList className="w-4 h-4 text-emerald-600" />

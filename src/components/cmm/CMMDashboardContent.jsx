@@ -24,7 +24,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
-  const [deleteFolderTarget, setDeleteFolderTarget] = useState(null);
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
 
   useEffect(() => {
@@ -104,15 +103,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
     }
   };
 
-  const handleDeleteFolder = async () => {
-    if (!deleteFolderTarget) return;
-    await Promise.all(deleteFolderTarget.sheets.map(s => base44.entities.CMMSheet.delete(s.id)));
-    const deletedIds = new Set(deleteFolderTarget.sheets.map(s => s.id));
-    setSheets(prev => prev.filter(s => !deletedIds.has(s.id)));
-    if (openFolder?.key === deleteFolderTarget.key) setOpenFolder(null);
-    setDeleteFolderTarget(null);
-  };
-
   const handleDeleteCustomer = async () => {
     if (!deleteCustomerTarget) return;
     const match = customers.find(c => c.name === deleteCustomerTarget);
@@ -123,11 +113,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   };
 
   const handleOpenFolder = (folder) => {
-    if (folder.sheets.length === 1) {
-      navigate(`/cmm-sheet/${folder.sheets[0].id}`);
-    } else {
-      setOpenFolder(folder);
-    }
+    setOpenFolder(folder);
   };
 
   if (openFolder) {
@@ -187,7 +173,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
                 key={folder.key}
                 folder={folder}
                 onOpen={handleOpenFolder}
-                onDelete={f => setDeleteFolderTarget(f)}
               />
             ))}
           </div>
@@ -264,7 +249,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
                     key={folder.key}
                     folder={folder}
                     onOpen={handleOpenFolder}
-                    onDelete={f => setDeleteFolderTarget(f)}
                   />
                 ))}
               </div>
@@ -279,7 +263,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
                 key={folder.key}
                 folder={folder}
                 onOpen={handleOpenFolder}
-                onDelete={f => setDeleteFolderTarget(f)}
               />
             ))}
           </div>
@@ -358,20 +341,6 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
         />
       )}
 
-      <AlertDialog open={!!deleteFolderTarget} onOpenChange={(open) => !open && setDeleteFolderTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete CMM Part Folder?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Delete <strong>{deleteFolderTarget?.partNumber}</strong> and all its CMM sheets ({deleteFolderTarget?.sheets.length})? This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteFolder} className="bg-destructive hover:bg-destructive/90 text-white">Delete All</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
