@@ -880,7 +880,7 @@ export default function SetupSheet() {
                     )}
                     <div className="flex flex-col-reverse sm:flex-row sm:justify-center sm:space-x-2 w-full">
                       <AlertDialogCancel onClick={() => { setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); }}>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleAdminUnlock} disabled={adminPasswordLoading || !adminPassword.trim()} className="bg-primary hover:bg-primary/90 text-white">
+                      <AlertDialogAction onClick={(e) => { e.preventDefault(); handleAdminUnlock(); }} disabled={adminPasswordLoading || !adminPassword.trim()} className="bg-primary hover:bg-primary/90 text-white">
                         {adminPasswordLoading ? "Checking..." : "Unlock"}
                       </AlertDialogAction>
                     </div>
