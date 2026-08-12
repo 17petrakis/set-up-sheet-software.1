@@ -102,6 +102,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   const handleDeleteFolder = async () => {
     await Promise.all(sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+    onSheetsChange([]);
     setShowDeleteFolder(false);
     onBack();
   };
