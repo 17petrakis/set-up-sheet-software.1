@@ -19,7 +19,7 @@ function CitizenWorkholdingView({ data }) {
     ["Guide Bush — Material", d.guide_bush_material],
     ["SS Collet — Size", d.ss_collet_size],
     ["SS Collet — Shape", d.ss_collet_shape],
-    ["SS Collet — Stickout", d.ss_collet_stickout],
+    ["SS Collet — Extension", d.ss_collet_stickout],
     ["SS Collet — Special", d.ss_collet_special],
   ].filter(([, v]) => v);
   const hasData = fields.length > 0 || d.part_ejection_description || d.part_ejection_photo;
@@ -381,7 +381,8 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                         <tr>
                           <th>T#</th>
                           <th>Description</th>
-                          <th>Insert</th>
+                          <th>Insert / Part Number</th>
+                          <th>Holder</th>
                           {millTools.some(t => t.stickout) && <th>Stickout</th>}
                         </tr>
                       </thead>
@@ -391,6 +392,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                             <td className="font-mono font-bold">{t.tool_number}</td>
                             <td>{t.description}</td>
                             <td>{t.insert}</td>
+                            <td>{t.holder}</td>
                             {millTools.some(t2 => t2.stickout) && <td>{t.stickout}</td>}
                           </tr>
                         ))}

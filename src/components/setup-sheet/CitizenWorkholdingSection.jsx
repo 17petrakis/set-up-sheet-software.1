@@ -122,7 +122,7 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
               <Input value={d.ss_collet_shape || ""} onChange={(e) => set("ss_collet_shape", e.target.value)} placeholder="e.g. Round" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
-          <FieldWrap label="SS Collet — Stickout">
+          <FieldWrap label="SS Collet — Extension">
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_collet_stickout || "—"}</p>
             ) : (

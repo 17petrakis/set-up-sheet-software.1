@@ -8,7 +8,7 @@ import { Wrench, Plus, Trash2, GripVertical, Ruler } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import AutoSizeInput from "@/components/turning-tools/AutoSizeInput";
 
-const emptyCitizenTool = { tool_number: "", description: "", insert: "", stickout: "" };
+const emptyCitizenTool = { tool_number: "", description: "", insert: "", holder: "", stickout: "" };
 
 function getTNum(tool) {
   const n = parseInt(tool.tool_number, 10);
@@ -119,12 +119,23 @@ export default function CitizenToolList({ tools, onChange }) {
                               />
                             </div>
 
-                            {/* Insert — shrinks to fit */}
+                            {/* Insert / Part Number — shrinks to fit */}
                             <div className="min-w-[3rem]">
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Insert</span>
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Insert / Part Number</span>
                               <AutoSizeInput
                                 value={tool.insert || ""}
                                 onChange={(v) => updateCell(i, "insert", v)}
+                                inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
+                                minWidth="3rem"
+                              />
+                            </div>
+
+                            {/* Holder — shrinks to fit */}
+                            <div className="min-w-[3rem]">
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Holder</span>
+                              <AutoSizeInput
+                                value={tool.holder || ""}
+                                onChange={(v) => updateCell(i, "holder", v)}
                                 inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
                                 minWidth="3rem"
                               />
