@@ -119,14 +119,14 @@ export default function CitizenToolList({ tools, onChange }) {
                               />
                             </div>
 
-                            {/* Insert / Part Number — shrinks to fit */}
-                            <div className="min-w-[3rem]">
+                            {/* Insert / Part Number — expands to fit title */}
+                            <div className="min-w-[8rem]">
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Insert / Part Number</span>
                               <AutoSizeInput
                                 value={tool.insert || ""}
                                 onChange={(v) => updateCell(i, "insert", v)}
                                 inputClass="h-8 text-xs border-transparent bg-transparent hover:border-border/60 focus:border-primary/40 focus:bg-background transition-all"
-                                minWidth="3rem"
+                                minWidth="8rem"
                               />
                             </div>
 
