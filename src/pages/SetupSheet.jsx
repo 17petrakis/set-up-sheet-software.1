@@ -492,7 +492,24 @@ export default function SetupSheet() {
 
   const handleDeleteSheet = async () => {
     if (!id) return;
+    const folderId = general.folder_id;
     await base44.entities.SetupSheet.delete(id);
+    if (folderId) {
+      try {
+        const siblings = await base44.entities.SetupSheet.filter({ folder_id: folderId }, null, 500);
+        if (siblings.length > 0) {
+          const params = new URLSearchParams({
+            folder: folderId,
+            pn: general.part_number || "",
+            cu: general.customer || "",
+          });
+          navigate(`/?${params.toString()}`, { replace: true });
+          return;
+        }
+      } catch (e) {
+        // fall through to dashboard
+      }
+    }
     navigate("/", { replace: true });
   };
 
