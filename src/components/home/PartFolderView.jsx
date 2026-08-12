@@ -32,6 +32,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const [adminPassword, setAdminPassword] = useState("");
   const [adminPasswordError, setAdminPasswordError] = useState("");
   const [adminPasswordLoading, setAdminPasswordLoading] = useState(false);
+  const [unlockSheetId, setUnlockSheetId] = useState(null);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -137,6 +138,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   const handleAttemptDeleteFolder = () => {
     if (isPublished && !isAdmin) {
+      setUnlockSheetId(null);
       setShowAccessDialog(true);
     } else {
       setShowDeleteFolder(true);
@@ -165,12 +167,23 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         setAdminPasswordError("Incorrect admin password.");
         return;
       }
-      const sheetIds = sheets.map(s => s.id);
-      await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(sid => ({ id: sid, published: false })));
-      onSheetsChange(sheets.map(s => ({ ...s, published: false })));
-      setShowAccessDialog(false);
-      setShowAdminPassword(false);
-      setAdminPassword("");
+      if (unlockSheetId) {
+        await base44.entities.SetupSheet.update(unlockSheetId, { published: false });
+        onSheetsChange(sheets.map(s => s.id === unlockSheetId ? { ...s, published: false } : s));
+        const targetId = unlockSheetId;
+        setShowAccessDialog(false);
+        setShowAdminPassword(false);
+        setUnlockSheetId(null);
+        setAdminPassword("");
+        navigate(`/sheet/${targetId}?mode=edit`);
+      } else {
+        const sheetIds = sheets.map(s => s.id);
+        await base44.entities.SetupSheet.bulkUpdate(sheetIds.map(sid => ({ id: sid, published: false })));
+        onSheetsChange(sheets.map(s => ({ ...s, published: false })));
+        setShowAccessDialog(false);
+        setShowAdminPassword(false);
+        setAdminPassword("");
+      }
     } finally {
       setAdminPasswordLoading(false);
     }
@@ -290,7 +303,14 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         "relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group",
                         snapshot.isDragging && "shadow-lg border-primary/50 ring-2 ring-primary/20"
                       )}
-                      onClick={() => navigate(`/sheet/${sheet.id}`)}
+                      onClick={() => {
+                        if (sheet.published && !isAdmin) {
+                          setUnlockSheetId(sheet.id);
+                          setShowAccessDialog(true);
+                        } else {
+                          navigate(`/sheet/${sheet.id}`);
+                        }
+                      }}
                     >
                       {sorted.length > 1 && (
                         <div
@@ -364,7 +384,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) { setAccessRequestSent(false); setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); } }}>
+      <AlertDialog open={showAccessDialog} onOpenChange={(open) => { setShowAccessDialog(open); if (!open) { setAccessRequestSent(false); setShowAdminPassword(false); setAdminPassword(""); setAdminPasswordError(""); setUnlockSheetId(null); } }}>
         <AlertDialogContent className="max-w-md text-center">
           {accessRequestSent ? (
             <>
@@ -391,7 +411,9 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                   />
                 </div>
                 <AlertDialogDescription className="text-center text-base text-foreground">
-                  You need Gabe's permission to edit or delete this Setup Sheet.
+                  {unlockSheetId
+                    ? "You need Gabe's permission to edit this operation."
+                    : "You need Gabe's permission to edit or delete this Setup Sheet."}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
