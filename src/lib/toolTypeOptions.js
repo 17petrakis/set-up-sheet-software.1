@@ -155,7 +155,7 @@ export function getEffectiveVisibleFields(tool) {
 // ── Field-specific dropdown options (returns null when no chips apply) ──────────
 export function getFieldOptions(fieldKey, toolType) {
   if (fieldKey === "holder") {
-    return ["ER16", "ER20", "ER25", "ER32", "ER40", "Shrink Fit", "Hydraulic", "Weldon", "Milling Chuck"];
+    return ["ER16", "ER20", "ER25", "ER32", "ER40", "Shrink Fit", "Hydraulic", "Weldon", "Milling Chuck", "Face mill arbour", "Slitting Saw arbour", "Integral"];
   }
   if (fieldKey === "flutes" && ENDMILL_TYPES.includes(toolType)) {
     return ["2", "3", "4", "5", "6"];

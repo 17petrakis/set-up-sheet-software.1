@@ -1,6 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
@@ -63,6 +64,10 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <Button onClick={onClose} size="sm">OK</Button>
         </div>
       </DialogContent>
     </Dialog>
