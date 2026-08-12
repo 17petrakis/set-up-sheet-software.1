@@ -88,7 +88,7 @@ export const TOOL_FIELD_SHORT = {
   blade_thickness: "Blade",
   arbor_size: "Arbor",
   angle: "Tip Ang",
-  offset_number: "Offset",
+  offset_number: "Offset #",
 };
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
