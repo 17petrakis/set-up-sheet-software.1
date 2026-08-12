@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Plus, Trash2, GripVertical, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, GripVertical, Lock, Unlock, Menu } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -152,14 +155,66 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   return (
     <div>
+      {/* Mobile: back + hamburger menu inline */}
+      <div className="sm:hidden flex items-center justify-between mb-3">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Menu className="w-4 h-4" /> Actions
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => setShowAddOp(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Add Operation
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {!isPublished ? (
+              <DropdownMenuItem onClick={() => setShowPublishConfirm(true)} className="gap-2">
+                <Lock className="w-4 h-4" /> Publish (Lock)
+              </DropdownMenuItem>
+            ) : isAdmin ? (
+              <DropdownMenuItem onClick={handleUnlock} className="gap-2 text-amber-600 focus:text-amber-700">
+                <Unlock className="w-4 h-4" /> Unlock
+              </DropdownMenuItem>
+            ) : (
+              <div className="px-2 py-1.5 text-xs font-semibold text-amber-700 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" /> Published
+              </div>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleAttemptDeleteFolder} className="gap-2 text-destructive focus:text-destructive">
+              <Trash2 className="w-4 h-4" /> Delete Part
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {/* Mobile: title row */}
+      <div className="sm:hidden mb-5">
+        <h2 className="text-xl font-bold text-foreground">
+          {partNumber}
+          {sorted[0]?.part_name && sorted[0].part_name.trim() && (
+            <span className="text-muted-foreground"> — {sorted[0].part_name}</span>
+          )}
+        </h2>
+        {customer && <p className="text-sm text-muted-foreground mt-0.5">{customer}</p>}
+      </div>
+
+      {/* Desktop: back button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
+        className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back
       </button>
 
-      <div className="flex items-start justify-between mb-6">
+      {/* Desktop: title + actions */}
+      <div className="hidden sm:flex items-start justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">
             {partNumber}
