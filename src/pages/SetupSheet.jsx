@@ -823,12 +823,11 @@ export default function SetupSheet() {
           ) : (
             <>
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-center text-2xl font-bold text-red-600">Stop!</AlertDialogTitle>
-                <div className="flex justify-center mt-2 mb-4">
+                <div className="flex justify-center mt-1 mb-4">
                   <img
                     src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/0681e6a29_Screenshot2026-08-06101712.png"
                     alt="Stop sign"
-                    className="max-h-40 rounded-lg"
+                    className="max-h-56 rounded-lg"
                   />
                 </div>
                 <AlertDialogDescription className="text-center text-base text-foreground">
