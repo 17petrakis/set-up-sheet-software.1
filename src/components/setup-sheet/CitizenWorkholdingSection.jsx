@@ -25,6 +25,12 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
 
   const d = data || {};
   const set = (field, val) => onChange({ ...d, [field]: val });
+  const setBarLoaderCollet = (val) => {
+    const next = { ...d, bar_loader_collet_size: val };
+    if (val && !d.ms_collet_size) next.ms_collet_size = val;
+    if (val && !d.guide_bush_size) next.guide_bush_size = val;
+    onChange(next);
+  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0];
@@ -52,7 +58,7 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
             {viewMode ? (
               <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.bar_loader_collet_size || "—"}</p>
             ) : (
-              <Input value={d.bar_loader_collet_size || ""} onChange={(e) => set("bar_loader_collet_size", e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
+              <Input value={d.bar_loader_collet_size || ""} onChange={(e) => setBarLoaderCollet(e.target.value)} placeholder="e.g. 12mm" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
 
