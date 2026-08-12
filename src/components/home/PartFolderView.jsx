@@ -163,9 +163,11 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
               <Lock className="w-3.5 h-3.5" /> Published
             </span>
           )}
-          <Button onClick={() => setShowDeleteFolder(true)} variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
-            <Trash2 className="w-4 h-4" /> Delete Part
-          </Button>
+          {(!isPublished || isAdmin) && (
+            <Button onClick={() => setShowDeleteFolder(true)} variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+              <Trash2 className="w-4 h-4" /> Delete Part
+            </Button>
+          )}
         </div>
       </div>
 
