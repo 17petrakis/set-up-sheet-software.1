@@ -405,7 +405,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Insert/Tool/Name (Turn only, in header) — directly after tool type */}
         {tool.tool_kind === "Turn" && typeValue && (
-          <div className="flex-1 flex items-center gap-1 min-w-0 ml-4">
+          <div className="flex-1 flex items-center gap-1 min-w-[120px] ml-4">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{isTap(typeValue) ? "Name" : isHoleMakingOrTap(typeValue) && !isInsertDrill(typeValue) ? "Tool" : "Insert"}</span>
             <SmallInput value={isTap(typeValue) ? tool.name : tool.insert} onChange={isTap(typeValue) ? set("name") : set("insert")} className="flex-1 w-full min-w-0" />
           </div>
@@ -485,7 +485,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
 
         {/* Name/Tool (Mill, in header) */}
         {millShowNameField && (
-          <div className="flex-1 flex items-center gap-1 min-w-0">
+          <div className="flex-1 flex items-center gap-1 min-w-[120px]">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">{millIsHoleMakingNonTap ? "Tool" : "Name"}</span>
             <SmallInput value={millIsHoleMakingNonTap ? tool.insert : tool.name} onChange={millIsHoleMakingNonTap ? set("insert") : set("name")} className="flex-1 w-full min-w-0" />
           </div>
