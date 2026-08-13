@@ -647,7 +647,7 @@ export default function SetupSheet() {
               <div className="flex items-center gap-2 min-w-0 sm:hidden">
                 <span className="text-sm font-bold tracking-tight text-foreground shrink-0 truncate max-w-[45%]">{general.part_number}</span>
                 {general.customer && (
-                  <span className="text-sm font-bold tracking-tight text-muted-foreground truncate min-w-0">{general.customer}</span>
+                  <span className="text-sm font-bold tracking-tight text-muted-foreground truncate min-w-0 max-w-[120px]">{general.customer}</span>
                 )}
               </div>
               {general.part_name && general.part_name.trim() && (
