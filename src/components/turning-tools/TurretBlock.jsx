@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChevronDown, ChevronRight, GripVertical, Copy } from "lucide-react";
+import { Trash2, GripVertical, Copy } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -14,7 +14,6 @@ import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions }) {
-  const [collapsed, setCollapsed] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const setField = (k, v) => onChange({ ...turret, [k]: v });
@@ -68,73 +67,68 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
     <div className="border border-border/50 rounded-xl mb-4 shadow-sm">
       {/* Turret header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-muted/40 border-b border-border/40">
-        <button type="button" onClick={() => setCollapsed(c => !c)} className="text-muted-foreground hover:text-foreground">
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+        <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
+          className="h-8 w-8 text-destructive hover:text-destructive shrink-0">
+          <Trash2 className="w-4 h-4" />
+        </Button>
         <span className="text-sm font-semibold text-foreground">Turret {index + 1}</span>
         <div className="flex-1 max-w-xs">
           <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} options={turretOptions} />
         </div>
-        <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
-          className="h-8 w-8 ml-auto text-destructive hover:text-destructive shrink-0">
-          <Trash2 className="w-4 h-4" />
-        </Button>
       </div>
 
-      {!collapsed && (
-        <div className="px-4 py-4 bg-background">
-          {turret.turret_type && (
-            <div className="mb-3">
-              <AddToolButton onAdd={addTool} />
-            </div>
-          )}
-          {(turret.tools || []).length === 0 && (
-            <p className="text-xs text-muted-foreground mb-3">No tools added yet.</p>
-          )}
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId={`turret-${index}`}>
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}>
-                  {(turret.tools || []).map((tool, i) => (
-                    <Draggable key={tool._id ? String(tool._id) : `tool-${i}`} draggableId={tool._id ? String(tool._id) : `tool-${i}`} index={i}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={snapshot.isDragging ? "opacity-80 shadow-lg" : ""}
-                        >
-                          <div className="flex items-start gap-1">
-                            <div {...provided.dragHandleProps} className="mt-2 p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
-                              <GripVertical className="w-4 h-4" />
-                            </div>
-                            <ContextMenu>
-                              <ContextMenuTrigger asChild>
-                                <div className="flex-1 min-w-0">
-                                  <ToolRow
-                                    tool={tool}
-                                    onUpdate={(updated) => updateTool(i, updated)}
-                                    onRemove={() => removeTool(i)}
-                                  />
-                                </div>
-                              </ContextMenuTrigger>
-                              <ContextMenuContent>
-                                <ContextMenuItem onClick={() => duplicateTool(i)} className="gap-2">
-                                  <Copy className="w-3.5 h-3.5" /> Duplicate Tool
-                                </ContextMenuItem>
-                              </ContextMenuContent>
-                            </ContextMenu>
+      <div className="px-4 py-4 bg-background">
+        {turret.turret_type && (
+          <div className="mb-3">
+            <AddToolButton onAdd={addTool} />
+          </div>
+        )}
+        {(turret.tools || []).length === 0 && (
+          <p className="text-xs text-muted-foreground mb-3">No tools added yet.</p>
+        )}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId={`turret-${index}`}>
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps}>
+                {(turret.tools || []).map((tool, i) => (
+                  <Draggable key={tool._id ? String(tool._id) : `tool-${i}`} draggableId={tool._id ? String(tool._id) : `tool-${i}`} index={i}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={snapshot.isDragging ? "opacity-80 shadow-lg" : ""}
+                      >
+                        <div className="flex items-start gap-1">
+                          <div {...provided.dragHandleProps} className="mt-2 p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-4 h-4" />
                           </div>
+                          <ContextMenu>
+                            <ContextMenuTrigger asChild>
+                              <div className="flex-1 min-w-0">
+                                <ToolRow
+                                  tool={tool}
+                                  onUpdate={(updated) => updateTool(i, updated)}
+                                  onRemove={() => removeTool(i)}
+                                />
+                              </div>
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                              <ContextMenuItem onClick={() => duplicateTool(i)} className="gap-2">
+                                <Copy className="w-3.5 h-3.5" /> Duplicate Tool
+                              </ContextMenuItem>
+                            </ContextMenuContent>
+                          </ContextMenu>
                         </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </div>
-      )}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
