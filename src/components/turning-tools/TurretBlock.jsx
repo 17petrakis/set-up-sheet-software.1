@@ -75,7 +75,6 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
         <div className="flex-1 max-w-xs">
           <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} options={turretOptions} />
         </div>
-        {turret.turret_type && <AddToolButton onAdd={addTool} />}
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className="h-8 w-8 ml-auto text-destructive hover:text-destructive shrink-0">
           <Trash2 className="w-4 h-4" />
@@ -84,6 +83,11 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
 
       {!collapsed && (
         <div className="px-4 py-4 bg-background">
+          {turret.turret_type && (
+            <div className="mb-3">
+              <AddToolButton onAdd={addTool} />
+            </div>
+          )}
           {(turret.tools || []).length === 0 && (
             <p className="text-xs text-muted-foreground mb-3">No tools added yet.</p>
           )}
