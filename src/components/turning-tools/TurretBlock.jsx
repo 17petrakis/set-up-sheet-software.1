@@ -9,6 +9,7 @@ import {
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
 } from "@/components/ui/context-menu";
+import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
@@ -71,6 +72,9 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         <span className="text-sm font-semibold text-foreground">Turret {index + 1}</span>
+        <div className="flex-1 max-w-xs">
+          <TurretDropdown value={turret.turret_type || ""} onChange={(v) => setField("turret_type", v)} options={turretOptions} />
+        </div>
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className="h-8 w-8 ml-auto text-destructive hover:text-destructive shrink-0">
           <Trash2 className="w-4 h-4" />
