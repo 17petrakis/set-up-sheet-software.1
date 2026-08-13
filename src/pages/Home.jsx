@@ -199,7 +199,7 @@ export default function Home() {
       />
 
       {/* Sidebar — desktop only */}
-      <aside className="hidden md:flex w-56 bg-background text-foreground flex-col shrink-0">
+      <aside className="hidden lg:flex w-56 bg-background text-foreground flex-col shrink-0">
         <button onClick={() => switchNav("dashboard")} className="px-4 py-5 border-b border-white/10 bg-background w-full text-left">
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
@@ -278,7 +278,7 @@ export default function Home() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
           <button onClick={() => setMobileNavOpen(true)} className="p-2.5 -ml-2.5 rounded-lg hover:bg-muted transition-colors">
             <Menu className="w-6 h-6 text-foreground" />
           </button>
@@ -293,7 +293,7 @@ export default function Home() {
             <FilePlus className="w-6 h-6 text-foreground" />
           </button>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
 
           {activeNav === "quality_control" ? (
             <CMMDashboardContent customers={customers} onCustomersChange={setCustomers} />
@@ -347,7 +347,7 @@ export default function Home() {
               {(grouped[selectedCustomer] || []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No sheets for this customer yet.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {(grouped[selectedCustomer] || []).map(folder => (
                     <PartFolderCard
                       key={folder.key}
@@ -382,12 +382,12 @@ export default function Home() {
                   </Button>
                 </div>
               )}
-              <div className="flex items-start justify-between mb-4 md:mb-6">
+              <div className="flex items-start justify-between mb-4 lg:mb-6">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-foreground">Setup Sheets</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden sm:block">Manage and organize your machine shop setup documentation</p>
+                  <h1 className="text-xl lg:text-2xl font-bold text-foreground">Setup Sheets</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden lg:block">Manage and organize your machine shop setup documentation</p>
                 </div>
-                <Button onClick={() => setShowNewDialog(true)} className="gap-2 hidden md:flex">
+                <Button onClick={() => setShowNewDialog(true)} className="gap-2 hidden lg:flex">
                   <FilePlus className="w-4 h-4" /> New Setup Sheet
                 </Button>
               </div>
@@ -414,7 +414,7 @@ export default function Home() {
                     );
                     if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
                     return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                         {matches.map(folder => (
                           <PartFolderCard
                             key={folder.key}
@@ -430,7 +430,7 @@ export default function Home() {
                 ) : recentFolders.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No setup sheets yet.</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
                     {recentFolders.map(folder => (
                       <PartFolderCard
                         key={folder.key}

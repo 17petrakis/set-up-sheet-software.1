@@ -625,12 +625,12 @@ export default function SetupSheet() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 sm:hidden" onClick={() => {
+            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 lg:hidden" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:inline-flex" onClick={() => {
+            <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:inline-flex" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-4 h-4" />
@@ -644,20 +644,20 @@ export default function SetupSheet() {
             ); })()}
             <div className="min-w-0">
               {/* Mobile: part number + customer on top, part name below */}
-              <div className="flex items-center gap-2 min-w-0 sm:hidden">
+              <div className="flex items-center gap-2 min-w-0 lg:hidden">
                 <span className="text-sm font-bold tracking-tight text-foreground shrink-0 truncate max-w-[45%]">{general.part_number}</span>
                 {general.customer && (
                   <span className="text-sm font-bold tracking-tight text-muted-foreground truncate min-w-0 max-w-[80px]">{general.customer}</span>
                 )}
               </div>
               {general.part_name && general.part_name.trim() && (
-                <p className="sm:hidden text-xs text-muted-foreground mt-0.5 truncate">{general.part_name}</p>
+                <p className="lg:hidden text-xs text-muted-foreground mt-0.5 truncate">{general.part_name}</p>
               )}
-              <p className="sm:hidden text-xs text-muted-foreground mt-0.5 truncate">
+              <p className="lg:hidden text-xs text-muted-foreground mt-0.5 truncate">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.operation_name || "")}
               </p>
               {/* Desktop: unchanged layout */}
-              <div className="hidden sm:flex items-center gap-2 min-w-0">
+              <div className="hidden lg:flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
                 <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
                 <div className="hidden md:block">
@@ -673,7 +673,7 @@ export default function SetupSheet() {
                   </>
                 )}
               </div>
-              <p className="hidden sm:block text-xs text-muted-foreground mt-0.5 truncate">
+              <p className="hidden lg:block text-xs text-muted-foreground mt-0.5 truncate">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.customer || "Machine Shop Manager")}
               </p>
             </div>
@@ -685,27 +685,27 @@ export default function SetupSheet() {
 
             {mode === "edit" && (
               <>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                   <Wrench className="w-3.5 h-3.5" />
                   <span>Tool List</span>
                 </Button>
                 {general.folder_id && (
-                  <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Op</span>
                   </Button>
                 )}
                 {general.machine_type !== "turning" && (
-                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                     <Upload className="w-3.5 h-3.5" />
                     <span>{importing ? "Importing..." : "Import"}</span>
                   </Button>
                 )}
-                <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
+                <Button size="default" onClick={handleSaveAndExit} disabled={saving} className="hidden lg:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Eye className="w-4 h-4" />
                   View
                 </Button>
@@ -714,21 +714,21 @@ export default function SetupSheet() {
 
             {mode === "view" && (
               <>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print`)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/sheet/${id}/print-tools`)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                   <Wrench className="w-3.5 h-3.5" />
                   <span>Tool List</span>
                 </Button>
                 {general.folder_id && (
-                  <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="hidden md:inline-flex h-9 gap-1.5 shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => setShowAddOp(true)} className="hidden lg:inline-flex h-9 gap-1.5 shrink-0">
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Op</span>
                   </Button>
                 )}
-                <Button size="default" onClick={handleAttemptEdit} className="hidden md:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
+                <Button size="default" onClick={handleAttemptEdit} className="hidden lg:flex h-11 px-6 text-sm font-bold gap-2 ml-1 shrink-0">
                   <Edit3 className="w-4 h-4" />
                   Edit
                 </Button>
@@ -736,10 +736,10 @@ export default function SetupSheet() {
             )}
 
             <div ref={menuRef} className="relative shrink-0">
-              <Button variant="ghost" size="icon" className="h-10 w-10 -mr-1 sm:hidden" onClick={() => setMobileMenuOpen(v => !v)}>
+              <Button variant="ghost" size="icon" className="h-10 w-10 -mr-1 lg:hidden" onClick={() => setMobileMenuOpen(v => !v)}>
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:inline-flex" onClick={() => setMobileMenuOpen(v => !v)}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 hidden lg:inline-flex" onClick={() => setMobileMenuOpen(v => !v)}>
                 {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               </Button>
               {mobileMenuOpen && (
@@ -749,23 +749,23 @@ export default function SetupSheet() {
                       {mode === "view" && (
                         <>
                           <button onClick={handleAttemptEdit}
-                            className="md:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            className="lg:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                             <Edit3 className="w-4 h-4 shrink-0 text-muted-foreground" />
                             Edit
                           </button>
                           <button onClick={() => { navigate(`/sheet/${id}/print`); setMobileMenuOpen(false); }}
-                            className="md:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            className="lg:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                             <Printer className="w-4 h-4 shrink-0 text-muted-foreground" />
                             Print
                           </button>
                           <button onClick={() => { navigate(`/sheet/${id}/print-tools`); setMobileMenuOpen(false); }}
-                            className="md:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                            className="lg:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                             <Wrench className="w-4 h-4 shrink-0 text-muted-foreground" />
                             Tool List
                           </button>
                           {general.folder_id && (
                             <button onClick={() => { setShowAddOp(true); setMobileMenuOpen(false); }}
-                              className="md:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
+                              className="lg:hidden flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                               <Plus className="w-4 h-4 shrink-0 text-muted-foreground" />
                               Add Op
                             </button>
@@ -774,7 +774,7 @@ export default function SetupSheet() {
                         </>
                       )}
                       {mode === "edit" && (
-                        <div className="md:hidden">
+                        <div className="lg:hidden">
                           <button onClick={() => { handleSaveAndExit(); setMobileMenuOpen(false); }}
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors w-full text-left">
                             <Eye className="w-4 h-4 shrink-0 text-muted-foreground" />

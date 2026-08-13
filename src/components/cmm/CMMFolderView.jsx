@@ -101,7 +101,7 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
             >
               {sorted.map((sheet, index) => (
                 <Draggable key={sheet.id} draggableId={sheet.id} index={index}>

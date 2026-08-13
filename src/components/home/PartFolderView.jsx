@@ -210,7 +210,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   return (
     <div>
       {/* Mobile: back + hamburger menu inline */}
-      <div className="sm:hidden flex items-center justify-between mb-3">
+      <div className="lg:hidden flex items-center justify-between mb-3">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -249,7 +249,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
         </DropdownMenu>
       </div>
       {/* Mobile: title row */}
-      <div className="sm:hidden mb-5">
+      <div className="lg:hidden mb-5">
         <h2 className="text-xl font-bold text-foreground">
           {partNumber}
           {sorted[0]?.part_name && sorted[0].part_name.trim() && (
@@ -262,13 +262,13 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
       {/* Desktop: back button */}
       <button
         onClick={onBack}
-        className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
+        className="hidden lg:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back
       </button>
 
       {/* Desktop: title + actions */}
-      <div className="hidden sm:flex items-start justify-between mb-6">
+      <div className="hidden lg:flex items-start justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-foreground">
             {partNumber}
@@ -307,7 +307,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
             >
               {sorted.map((sheet, index) => (
                 <Draggable key={sheet.id} draggableId={sheet.id} index={index}>

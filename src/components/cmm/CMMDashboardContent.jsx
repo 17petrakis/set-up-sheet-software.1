@@ -167,7 +167,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
         {(grouped[selectedCustomer] || []).length === 0 ? (
           <p className="text-sm text-muted-foreground">No CMM sheets for this customer yet.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             {(grouped[selectedCustomer] || []).map(folder => (
               <CMMFolderCard
                 key={folder.key}
@@ -209,15 +209,15 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-4 md:mb-6">
+      <div className="flex items-start justify-between mb-4 lg:mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">CMM Setup Sheets</h1>
-          <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden sm:block">Quality control documentation for CMM measurements</p>
+          <h1 className="text-xl lg:text-2xl font-bold text-foreground">CMM Setup Sheets</h1>
+          <p className="text-xs lg:text-sm text-muted-foreground mt-0.5 lg:mt-1 hidden lg:block">Quality control documentation for CMM measurements</p>
         </div>
         <Button onClick={() => setShowNewDialog(true)} className="gap-2">
           <FilePlus className="w-4 h-4" />
-          <span className="hidden sm:inline">New CMM Sheet</span>
-          <span className="sm:hidden">New</span>
+          <span className="hidden lg:inline">New CMM Sheet</span>
+          <span className="lg:hidden">New</span>
         </Button>
       </div>
 
@@ -243,7 +243,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
             );
             if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
             return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {matches.map(folder => (
                   <CMMFolderCard
                     key={folder.key}
@@ -257,7 +257,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
         ) : recentFolders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No CMM setup sheets yet.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
             {recentFolders.map(folder => (
               <CMMFolderCard
                 key={folder.key}
@@ -277,7 +277,7 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
             <Plus className="w-3.5 h-3.5" /> Add Customer
           </Button>
         </div>
-        <div className="relative mb-4 md:mb-5">
+        <div className="relative mb-4 lg:mb-5">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={search}
