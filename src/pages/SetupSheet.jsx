@@ -642,8 +642,22 @@ export default function SetupSheet() {
                 <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
               </div>
             ); })()}
-            <div>
-              <div className="flex items-center gap-2 min-w-0">
+            <div className="min-w-0">
+              {/* Mobile: part number + customer on top, part name below */}
+              <div className="flex items-center gap-2 min-w-0 sm:hidden">
+                <span className="text-sm font-bold tracking-tight text-foreground shrink-0 truncate max-w-[45%]">{general.part_number}</span>
+                {general.customer && (
+                  <span className="text-sm font-bold tracking-tight text-muted-foreground truncate min-w-0">{general.customer}</span>
+                )}
+              </div>
+              {general.part_name && general.part_name.trim() && (
+                <p className="sm:hidden text-xs text-muted-foreground mt-0.5 truncate">{general.part_name}</p>
+              )}
+              <p className="sm:hidden text-xs text-muted-foreground mt-0.5 truncate">
+                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.operation_name || "")}
+              </p>
+              {/* Desktop: unchanged layout */}
+              <div className="hidden sm:flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
                 <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
                 <div className="hidden md:block">
@@ -659,14 +673,8 @@ export default function SetupSheet() {
                   </>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (
-                  <>
-                    {general.customer || "Machine Shop Manager"}
-                    {general.operation_name && <span className="md:hidden"> • {general.operation_name}</span>}
-                    {general.part_name && general.part_name.trim() && <span className="md:hidden"> • {general.part_name}</span>}
-                  </>
-                )}
+              <p className="hidden sm:block text-xs text-muted-foreground mt-0.5 truncate">
+                {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.customer || "Machine Shop Manager")}
               </p>
             </div>
           </div>
