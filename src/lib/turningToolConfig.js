@@ -122,7 +122,7 @@ export const EXTRA_FIELD_DEFS = [
 ];
 
 // Fields visible by default in the expanded section
-export const DEFAULT_VISIBLE_EXTRA = ["holder", "insert", "stickout"];
+export const DEFAULT_VISIBLE_EXTRA = ["holder", "insert", "stickout", "extension"];
 
 // View mode formatting
 export const FIELD_ABBREV = {
