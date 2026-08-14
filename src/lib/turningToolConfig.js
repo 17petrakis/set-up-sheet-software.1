@@ -154,6 +154,11 @@ const EXTRA_LABELS = {
 };
 
 export function formatToolLine(tool) {
+  const { tNum, shape } = formatToolParts(tool);
+  return `${tNum}  ${shape}`;
+}
+
+export function formatToolParts(tool) {
   const typeValue = migrateToolType(tool.tool_kind, tool.tool_type);
   const fields = getTypeFields(tool.tool_kind, typeValue);
 
@@ -175,7 +180,7 @@ export function formatToolLine(tool) {
   const name = tool.name || tool.insert || "";
   if (name) parts.push(name);
 
-  return `${tNum}  ${parts.join("  ")}`;
+  return { tNum, shape: parts.join("  ") };
 }
 
 export function formatToolExtraLine(tool) {
