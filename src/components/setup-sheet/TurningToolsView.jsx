@@ -23,14 +23,14 @@ export default function TurningToolsView({ turningTools }) {
         return (
           <div key={ti}>
             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
-            <div className="font-mono text-xs space-y-0 border border-gray-200 rounded bg-white">
+            <div className="text-sm space-y-0 border border-gray-200 rounded bg-white">
               {tools.map((tool, i) => {
                 const mainLine = formatToolLine(tool);
                 const extraLine = formatToolExtraLine(tool);
                 return (
                   <div key={i} className={i % 2 === 1 ? "bg-gray-50" : ""}>
-                    <div className="px-2 py-0.5 break-words">( {mainLine} )</div>
-                    {extraLine && <div className="px-2 py-0.5 break-words">( {extraLine} )</div>}
+                    <div className="px-3 py-1 break-words">{mainLine}</div>
+                    {extraLine && <div className="px-3 py-0.5 break-words text-muted-foreground">{extraLine}</div>}
                   </div>
                 );
               })}

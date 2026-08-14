@@ -3,78 +3,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
-import { isHoleMaking } from "./ToolTypeDropdown";
-
-function isTap(v) { return v === "Hole Making – Tap" || v === "Mill Hole Making – Tap"; }
-function isHoleMakingOrTap(v) { return isHoleMaking(v) || isTap(v); }
-
-function getFixedFields(typeValue, isMill) {
-  const isHoleMakingType = isHoleMakingOrTap(typeValue);
-  return [
-    { key: "holder", label: "Holder" },
-    { key: "direction", label: "Direction" },
-    ...(isMill ? [] : [{ key: "orientation", label: "Orientation" }]),
-    { key: "stickout", label: (isHoleMakingType || isMill) ? "Stickout (from holder)" : "Stickout" },
-  ];
-}
-
-function getExtraFieldDefs(typeValue, isMill) {
-  const isHoleMakingType = isHoleMakingOrTap(typeValue);
-  if (isMill) return [
-    { key: "num_flutes", label: "#-Flt" },
-    { key: "flute_length", label: "Flute length" },
-    { key: "oal", label: "OAL" },
-    { key: "reach", label: "Reach" },
-    { key: "shank_dia", label: "Shank Dia." },
-    { key: "neck_dia", label: "Neck Dia." },
-    { key: "tip_dia", label: "Tip" },
-    { key: "extension", label: "Extension" },
-    { key: "part_number_desc", label: "Part #/Desc." },
-    { key: "insert", label: "Insert" },
-    { key: "note", label: "Note" },
-  ];
-  return [
-    ...(typeValue === "Thread" ? [{ key: "angle", label: "Angle" }] : []),
-    ...(typeValue === "Profile" ? [{ key: "relief_angle", label: "Relief Angle" }] : []),
-    ...(!isHoleMakingType ? [{ key: "sleeve_shim", label: "Sleeve/Shim" }] : []),
-    ...(isHoleMakingType ? [
-      { key: "holder_collet", label: "Holder + Collet size" },
-      { key: "num_flutes", label: "#-Flt" },
-      { key: "flute_length", label: "Flute length" },
-      { key: "oal", label: "OAL" },
-      { key: "reach", label: "Reach" },
-      { key: "shank_dia", label: "Shank Dia." },
-      { key: "neck_dia", label: "Neck Dia." },
-      { key: "tip_dia", label: "Tip Dia." },
-      { key: "coolant", label: "Coolant" },
-      { key: "extension", label: "Extension" },
-      { key: "part_number_desc", label: "Part #/Desc." },
-      { key: "note", label: "Note" },
-    ] : []),
-    ...(!isHoleMakingType ? [{ key: "material", label: "Material" }, { key: "name", label: "Name/Description" }] : []),
-    ...(isTap(typeValue) ? [{ key: "chamfer_x_p", label: "Chamfer x P" }] : []),
-  ];
-}
+import { EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
 
 export default function TurningToolEditModal({ tool, onUpdate, onClose, typeValue }) {
-  const isMill = tool.tool_kind === "Mill";
   const removed = tool._removed_fields || [];
   const added = tool._added_fields || [];
   const customFields = tool.custom_fields || [];
 
-  const fixedFields = getFixedFields(typeValue, isMill);
-  const extraFieldDefs = getExtraFieldDefs(typeValue, isMill);
-
-  const isFixedVisible = (k) => !removed.includes(k);
-  const isExtraVisible = (k) => added.includes(k);
-
-  const toggleFixed = (k) => {
-    if (isFixedVisible(k)) onUpdate({ ...tool, _removed_fields: [...removed, k] });
-    else onUpdate({ ...tool, _removed_fields: removed.filter(x => x !== k) });
+  const isFieldVisible = (k) => {
+    if (removed.includes(k)) return false;
+    if (added.includes(k)) return true;
+    return DEFAULT_VISIBLE_EXTRA.includes(k);
   };
-  const toggleExtra = (k) => {
-    if (isExtraVisible(k)) onUpdate({ ...tool, _added_fields: added.filter(x => x !== k) });
-    else onUpdate({ ...tool, _added_fields: [...added, k] });
+
+  const toggleField = (k) => {
+    if (DEFAULT_VISIBLE_EXTRA.includes(k)) {
+      if (removed.includes(k)) onUpdate({ ...tool, _removed_fields: removed.filter(x => x !== k) });
+      else onUpdate({ ...tool, _removed_fields: [...removed, k] });
+    } else {
+      if (added.includes(k)) onUpdate({ ...tool, _added_fields: added.filter(x => x !== k) });
+      else onUpdate({ ...tool, _added_fields: [...added, k] });
+    }
   };
 
   const addCustomField = () => onUpdate({ ...tool, custom_fields: [...customFields, { key: "", value: "" }] });
@@ -90,15 +39,9 @@ export default function TurningToolEditModal({ tool, onUpdate, onClose, typeValu
           <div>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Fields — toggle to show/hide</p>
             <div className="space-y-0.5">
-              {fixedFields.map(f => (
+              {EXTRA_FIELD_DEFS.map(f => (
                 <label key={f.key} className="flex items-center gap-2.5 py-1.5 cursor-pointer hover:bg-muted/40 rounded px-1">
-                  <Checkbox checked={isFixedVisible(f.key)} onCheckedChange={() => toggleFixed(f.key)} />
-                  <span className="text-xs font-medium">{f.label}</span>
-                </label>
-              ))}
-              {extraFieldDefs.map(f => (
-                <label key={f.key} className="flex items-center gap-2.5 py-1.5 cursor-pointer hover:bg-muted/40 rounded px-1">
-                  <Checkbox checked={isExtraVisible(f.key)} onCheckedChange={() => toggleExtra(f.key)} />
+                  <Checkbox checked={isFieldVisible(f.key)} onCheckedChange={() => toggleField(f.key)} />
                   <span className="text-xs font-medium">{f.label}</span>
                 </label>
               ))}

@@ -11,7 +11,7 @@ import {
 
 import ToolTypeDropdown from "./ToolTypeDropdown";
 import AutoSizeInput from "./AutoSizeInput";
-import { getTypeFields, migrateToolType } from "@/lib/turningToolConfig";
+import { getTypeFields, migrateToolType, EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
 
 // ── Small field helpers ────────────────────────────────────────────────────────
 function Label({ children }) {
@@ -102,6 +102,14 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const odIdOptions = isMill ? ["Axial", "Radial"] : ["OD", "ID"];
   const toolName = tool.name || tool.insert || "";
 
+  const removed = tool._removed_fields || [];
+  const added = tool._added_fields || [];
+  const visibleExtraFields = EXTRA_FIELD_DEFS.filter(f => {
+    if (removed.includes(f.key)) return false;
+    if (added.includes(f.key)) return true;
+    return DEFAULT_VISIBLE_EXTRA.includes(f.key);
+  });
+
   return (
     <div className="border border-border/40 rounded-lg mb-2">
       {/* ── Header row ── */}
@@ -158,18 +166,12 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
       {expanded && typeValue && (
         <div className="px-4 py-3 bg-background border-t border-border/30">
           <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-            <div className="flex flex-col">
-              <Label>Holder</Label>
-              <SmallInput value={tool.holder} onChange={set("holder")} className="w-32" />
-            </div>
-            <div className="flex flex-col">
-              <Label>Insert</Label>
-              <SmallInput value={tool.insert} onChange={set("insert")} className="w-32" />
-            </div>
-            <div className="flex flex-col">
-              <Label>Stickout</Label>
-              <SmallInput value={tool.stickout} onChange={set("stickout")} className="w-24" />
-            </div>
+            {visibleExtraFields.map(f => (
+              <div key={f.key} className="flex flex-col">
+                <Label>{f.label}</Label>
+                <SmallInput value={tool[f.key]} onChange={set(f.key)} className="w-28" />
+              </div>
+            ))}
             <div className="flex flex-col">
               <Label>{isMill ? "Axial/Radial" : "OD/ID"}</Label>
               <SmallSelect value={tool.od_id} onChange={set("od_id")} options={odIdOptions} allowOther={false} />

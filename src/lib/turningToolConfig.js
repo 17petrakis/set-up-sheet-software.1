@@ -25,15 +25,15 @@ export function getTypeFields(toolKind, typeValue) {
   if (isMill) {
     switch (typeValue) {
       case "Mill": return [
-        { key: "dia", label: "Tool Dia.", type: "input" },
+        { key: "dia", label: "Dia.", type: "input" },
         { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
       ];
       case "Drill": return [
-        { key: "dia", label: "Tool Dia.", type: "input" },
+        { key: "dia", label: "Dia.", type: "input" },
         { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
       ];
       case "Taps": return [
-        { key: "dia", label: "Tool Dia.", type: "input" },
+        { key: "dia", label: "Dia.", type: "input" },
         { key: "pitch", label: "Thread Lead", type: "input" },
       ];
       default: return [];
@@ -49,11 +49,11 @@ export function getTypeFields(toolKind, typeValue) {
       { key: "width", label: "Tool Width", type: "select", options: WIDTH_OPTIONS },
     ];
     case "Drill": return [
-      { key: "dia", label: "Tool Dia.", type: "input" },
+      { key: "dia", label: "Dia.", type: "input" },
       { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
     ];
     case "Taps": return [
-      { key: "dia", label: "Tool Dia.", type: "input" },
+      { key: "dia", label: "Dia.", type: "input" },
       { key: "pitch", label: "Thread Lead", type: "input" },
     ];
     case "Thread": return [
@@ -103,6 +103,27 @@ export function migrateToolType(toolKind, oldType) {
   return OLD_TO_NEW[oldType] || (toolKind === "Mill" ? "Mill" : "Turning");
 }
 
+// Extra toggleable fields for the edit modal (matches screenshot)
+export const EXTRA_FIELD_DEFS = [
+  { key: "holder", label: "Holder" },
+  { key: "direction", label: "Direction" },
+  { key: "stickout", label: "Stickout (from holder)" },
+  { key: "num_flutes", label: "#-Flt" },
+  { key: "flute_length", label: "Flute length" },
+  { key: "oal", label: "OAL" },
+  { key: "reach", label: "Reach" },
+  { key: "shank_dia", label: "Shank Dia." },
+  { key: "neck_dia", label: "Neck Dia." },
+  { key: "tip_dia", label: "Tip" },
+  { key: "extension", label: "Extension" },
+  { key: "part_number_desc", label: "Part #/Desc." },
+  { key: "insert", label: "Insert" },
+  { key: "note", label: "Note" },
+];
+
+// Fields visible by default in the expanded section
+export const DEFAULT_VISIBLE_EXTRA = ["holder", "insert", "stickout"];
+
 // View mode formatting
 const FIELD_ABBREV = {
   dia: { abbrev: "DIA.", sep: " " },
@@ -114,10 +135,27 @@ const FIELD_ABBREV = {
   reach: { abbrev: "REACH.", sep: " " },
 };
 
+// Extra field labels for view mode
+const EXTRA_LABELS = {
+  holder: "Holder",
+  direction: "Direction",
+  stickout: "Stickout",
+  num_flutes: "#-Flt",
+  flute_length: "Flute length",
+  oal: "OAL",
+  reach: "Reach",
+  shank_dia: "Shank Dia.",
+  neck_dia: "Neck Dia.",
+  tip_dia: "Tip",
+  extension: "Extension",
+  part_number_desc: "Part #/Desc.",
+  insert: "Insert",
+  note: "Note",
+};
+
 export function formatToolLine(tool) {
   const typeValue = migrateToolType(tool.tool_kind, tool.tool_type);
   const fields = getTypeFields(tool.tool_kind, typeValue);
-  const kindLabel = tool.tool_kind === "Mill" ? "mill" : "turn";
 
   const tNum = tool.tool_number ? `T${String(tool.tool_number).padStart(2, "0")}` : "T--";
   const parts = [];
@@ -136,22 +174,24 @@ export function formatToolLine(tool) {
 
   const name = tool.name || tool.insert || "";
   if (name) parts.push(name);
-  parts.push(`[${kindLabel}]`);
 
-  return `${tNum}: ${parts.join(" ")}`;
+  return `${tNum}  ${parts.join("  ")}`;
 }
 
 export function formatToolExtraLine(tool) {
   const parts = [];
-  if (tool.holder) parts.push(`Holder: ${tool.holder}`);
-  if (tool.insert) parts.push(`Insert: ${tool.insert}`);
-  if (tool.stickout) parts.push(`Stickout: ${tool.stickout}`);
-  return parts.join(" | ");
+  EXTRA_FIELD_DEFS.forEach(f => {
+    const val = tool[f.key];
+    if (val) parts.push(`${EXTRA_LABELS[f.key]}: ${val}`);
+  });
+  return parts.join("  |  ");
 }
 
 export function toolHasData(tool) {
   return !!(tool.tool_number || tool.tool_type || tool.name || tool.insert || tool.holder || tool.stickout ||
-    tool.dia || tool.rad || tool.width || tool.deg || tool.angle || tool.pitch || tool.reach);
+    tool.dia || tool.rad || tool.width || tool.deg || tool.angle || tool.pitch || tool.reach ||
+    tool.direction || tool.num_flutes || tool.flute_length || tool.oal || tool.shank_dia ||
+    tool.neck_dia || tool.tip_dia || tool.extension || tool.part_number_desc || tool.note);
 }
 
 // Sort turning tools (within each turret) by T#
