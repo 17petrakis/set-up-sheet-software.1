@@ -988,6 +988,24 @@ export default function SetupSheet() {
       )}
 
       {/* Content */}
+      {/* Floating save button for mobile edit mode */}
+      {mode === "edit" && (
+        <div className="lg:hidden fixed top-16 right-3 z-40 no-print">
+          <Button
+            size="sm"
+            onClick={handleSaveAndExit}
+            disabled={saving}
+            className="h-11 w-11 rounded-full shadow-lg bg-primary hover:bg-primary/90 p-0"
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
+      )}
+
       <ViewModeContext.Provider value={mode === "view"}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
         {importError && (
