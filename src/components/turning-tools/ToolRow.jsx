@@ -182,7 +182,11 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
             {visibleExtraFields.map(f => (
               <div key={f.key} className="flex flex-col">
                 <Label>{f.label}</Label>
-                <SmallInput value={tool[f.key]} onChange={set(f.key)} className="w-28" />
+                {f.type === "select" ? (
+                  <SmallSelect value={tool[f.key]} onChange={set(f.key)} options={f.options} />
+                ) : (
+                  <SmallInput value={tool[f.key]} onChange={set(f.key)} className="w-28" />
+                )}
               </div>
             ))}
             <div className="flex flex-col">

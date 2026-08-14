@@ -115,7 +115,7 @@ export const EXTRA_FIELD_DEFS = [
   { key: "shank_dia", label: "Shank Dia." },
   { key: "neck_dia", label: "Neck Dia." },
   { key: "tip_dia", label: "Tip" },
-  { key: "extension", label: "Extension" },
+  { key: "extension", label: "Extension", type: "select", options: ["ER11-ER25", "ER11-5/8x4", "ER25 + ER11-5/8x4", "ER25 + ER11-ER25", "Arbor", "5/8 Weldon"] },
   { key: "part_number_desc", label: "Part #/Desc." },
   { key: "insert", label: "Insert" },
   { key: "note", label: "Note" },
