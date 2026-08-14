@@ -154,8 +154,8 @@ const EXTRA_LABELS = {
 };
 
 export function formatToolLine(tool) {
-  const { tNum, shape } = formatToolParts(tool);
-  return `${tNum}  ${shape}`;
+  const { tNum, shape, name } = formatToolParts(tool);
+  return `${tNum}  ${shape}${name ? "  " + name : ""}`;
 }
 
 export function formatToolParts(tool) {
@@ -178,9 +178,8 @@ export function formatToolParts(tool) {
   });
 
   const name = tool.name || tool.insert || "";
-  if (name) parts.push(name);
 
-  return { tNum, shape: parts.join("  ") };
+  return { tNum, shape: parts.join("  "), name };
 }
 
 export function formatToolExtraLine(tool) {

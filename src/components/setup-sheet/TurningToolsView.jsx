@@ -29,17 +29,19 @@ export default function TurningToolsView({ turningTools }) {
                   <tr className="border-b border-gray-300">
                     <th className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 px-3 py-1.5 w-16">T#</th>
                     <th className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 px-3 py-1.5">Shape</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 px-3 py-1.5">Name</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tools.map((tool, i) => {
-                    const { tNum, shape } = formatToolParts(tool);
+                    const { tNum, shape, name } = formatToolParts(tool);
                     const extraLine = formatToolExtraLine(tool);
                     return (
                       <React.Fragment key={i}>
                         <tr className={i > 0 ? "border-t border-gray-100" : ""}>
                           <td className="px-3 py-1.5 text-base font-mono font-medium align-top whitespace-nowrap">{tNum}</td>
                           <td className="px-3 py-1.5 text-base font-medium break-words">{shape}</td>
+                          <td className="px-3 py-1.5 text-base font-medium break-words">{name}</td>
                         </tr>
                         {extraLine && (
                           <tr className="border-t border-gray-50">
