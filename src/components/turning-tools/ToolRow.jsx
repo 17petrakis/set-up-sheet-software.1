@@ -154,10 +154,10 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         ))}
 
         {/* Tool Name */}
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-w-[200px]">
           <Label>Tool Name</Label>
-          <AutoSizeInput value={toolName} onChange={set("name")}
-            inputClass="h-9 text-sm bg-card border-input px-2" minWidth="6rem" maxWidth={400} />
+          <Input value={toolName || ""} onChange={(e) => set("name")(e.target.value)}
+            placeholder="Tool name…" className="h-9 text-sm bg-card border-input px-2 w-full" />
         </div>
 
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
