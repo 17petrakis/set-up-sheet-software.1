@@ -103,7 +103,6 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const isMill = tool.tool_kind === "Mill";
   const fields = getTypeFields(tool.tool_kind, typeValue);
   const odIdOptions = isMill ? ["Axial", "Radial"] : ["OD", "ID"];
-  const toolName = tool.name || tool.insert || "";
 
   const removed = tool._removed_fields || [];
   const added = tool._added_fields || [];
@@ -156,7 +155,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {/* Tool Name */}
         <div className="flex flex-col flex-1 min-w-[200px]">
           <Label>Tool Name</Label>
-          <Input value={toolName || ""} onChange={(e) => set("name")(e.target.value)}
+          <Input value={tool.name || ""} onChange={(e) => set("name")(e.target.value)}
             placeholder="Tool name…" className="h-9 text-sm bg-card border-input px-2 w-full" />
         </div>
 
