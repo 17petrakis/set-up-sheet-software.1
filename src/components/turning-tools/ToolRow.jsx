@@ -24,12 +24,12 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   if (className.includes("flex-1")) {
     return (
       <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className={`h-9 text-sm bg-card border-input px-2 ${className}`} />
+        className={`h-7 text-xs bg-card border-input px-1.5 ${className}`} />
     );
   }
   return (
     <AutoSizeInput value={value} onChange={onChange} placeholder={placeholder}
-      inputClass="h-9 text-sm bg-card border-input px-2" minWidth="3.5rem" />
+      inputClass="h-7 text-xs bg-card border-input px-1.5" minWidth="3rem" />
   );
 }
 
@@ -125,7 +125,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         <div className="flex flex-col shrink-0">
           <Label>T#</Label>
           <Input value={tool.tool_number || ""} onChange={(e) => set("tool_number")(e.target.value)}
-            placeholder="#" className="h-9 w-14 text-sm bg-card border-input px-2 text-center font-mono" />
+            placeholder="#" className="h-7 w-12 text-xs bg-card border-input px-1.5 text-center font-mono" />
         </div>
 
         {/* Kind badge */}
@@ -156,18 +156,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         {/* Tool Name */}
         <div className="flex flex-col flex-1 min-w-[120px]">
           <Label>Tool Name</Label>
-          <textarea
-            value={toolName || ""}
-            onChange={(e) => set("name")(e.target.value)}
-            placeholder=""
-            rows={1}
-            className="w-full min-w-0 text-sm bg-card border border-input rounded-md px-2 py-1.5 resize-none overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:border-primary/40"
-            style={{ height: "auto", minHeight: "2.25rem" }}
-            onInput={(e) => {
-              e.target.style.height = "auto";
-              e.target.style.height = e.target.scrollHeight + "px";
-            }}
-          />
+          <SmallInput value={toolName} onChange={set("name")} className="flex-1 w-full min-w-0" />
         </div>
 
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
