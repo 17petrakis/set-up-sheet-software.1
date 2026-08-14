@@ -125,7 +125,7 @@ export const EXTRA_FIELD_DEFS = [
 export const DEFAULT_VISIBLE_EXTRA = ["holder", "insert", "stickout"];
 
 // View mode formatting
-const FIELD_ABBREV = {
+export const FIELD_ABBREV = {
   dia: { abbrev: "DIA.", sep: " " },
   rad: { abbrev: "RAD.", sep: " " },
   width: { abbrev: "WIDTH.", sep: " " },

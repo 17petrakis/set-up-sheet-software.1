@@ -1,5 +1,12 @@
 import React from "react";
-import { formatToolParts, formatToolExtraLine, toolHasData, sortTurningToolsByTNumber, getTypeFields, migrateToolType } from "@/lib/turningToolConfig";
+import { formatToolParts, formatToolExtraLine, toolHasData, sortTurningToolsByTNumber, getTypeFields, migrateToolType, FIELD_ABBREV } from "@/lib/turningToolConfig";
+
+function formatFieldLabel(fv) {
+  if (!fv.value) return "";
+  const abbrev = FIELD_ABBREV[fv.key];
+  if (abbrev) return `${fv.value}${abbrev.sep}${abbrev.abbrev}`;
+  return fv.value;
+}
 
 export function hasTurningToolsData(turningTools) {
   const turrets = turningTools?.turrets || [];
@@ -36,8 +43,8 @@ export default function TurningToolsView({ turningTools }) {
                   {tools.map((tool, i) => {
                     const { tNum, fieldValues, name } = formatToolParts(tool);
                     const extraLine = formatToolExtraLine(tool);
-                    const fv1 = fieldValues[0]?.value || "";
-                    const fv2 = fieldValues[1]?.value || "";
+                    const fv1 = fieldValues[0] ? formatFieldLabel(fieldValues[0]) : "";
+                    const fv2 = fieldValues[1] ? formatFieldLabel(fieldValues[1]) : "";
                     return (
                       <React.Fragment key={i}>
                         <tr className={i > 0 ? "border-t border-gray-100" : ""}>
