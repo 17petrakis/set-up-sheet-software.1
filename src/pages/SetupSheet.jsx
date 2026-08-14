@@ -29,6 +29,7 @@ import MediaNoteSection from "@/components/setup-sheet/MediaNoteSection";
 import CitizenToolList from "@/components/setup-sheet/CitizenToolList";
 
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation, emptyCitizenWorkholding, emptyMediaNote, sortToolsByTNumber } from "@/lib/setupSheetDefaults";
+import { sortTurningToolsByTNumber } from "@/lib/turningToolConfig";
 import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
 import { getPartIconPhoto } from "@/lib/photoSlots";
@@ -149,7 +150,7 @@ export default function SetupSheet() {
       // Use refs which are always up-to-date — latestData.current can be stale/empty
       const gen = generalRef.current;
       const t = toolsRef.current;
-      const tt = turningToolsRef.current;
+      const tt = sortTurningToolsByTNumber(turningToolsRef.current);
       const pz = partZeroRef.current;
       const ops = operationsRef.current;
       const ph = photosRef.current;
@@ -461,8 +462,13 @@ export default function SetupSheet() {
     setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
     setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
     setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
-    // Persist the restored snapshot
-    await base44.entities.SetupSheet.update(id, snap);
+    // Persist the restored snapshot (with sorted tools)
+    const snapToSave = {
+      ...snap,
+      tools: sortToolsByTNumber(snap.tools || []),
+      turning_tools: sortTurningToolsByTNumber(snap.turning_tools),
+    };
+    await base44.entities.SetupSheet.update(id, snapToSave);
     setShowHistory(false);
   };
 
@@ -477,33 +483,36 @@ export default function SetupSheet() {
   const handleSaveAndExit = async () => {
     // Sort tools by T# before saving so reordering happens behind the scenes
     const sortedTools = sortToolsByTNumber(toolsRef.current);
-    if (sortedTools !== toolsRef.current) {
-      setTools(sortedTools);
-      toolsRef.current = sortedTools;
-    }
+    setTools(sortedTools);
+    toolsRef.current = sortedTools;
+    // Sort turning tools by T# within each turret
+    const sortedTurningTools = sortTurningToolsByTNumber(turningToolsRef.current);
+    setTurningTools(sortedTurningTools);
+    turningToolsRef.current = sortedTurningTools;
+
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
-      setSaving(true);
-      try {
-        await base44.entities.SetupSheet.update(id, {
-          ...generalRef.current,
-          tools: sortedTools,
-          turning_tools: turningToolsRef.current,
-          part_zero: partZeroRef.current,
-          operations: operationsRef.current,
-          photos: photosRef.current,
-          fixturing_notes: fixturingNotesRef.current,
-          turning_chuck: turningChuckRef.current,
-          citizen_workholding: citizenWorkholdingRef.current,
-          mc_machining_data: mcMachiningDataRef.current,
-          preparation_screen: preparationScreenRef.current,
-        });
-      } catch (err) {
-        // ignore
-      } finally {
-        setSaving(false);
-      }
+    }
+    setSaving(true);
+    try {
+      await base44.entities.SetupSheet.update(id, {
+        ...generalRef.current,
+        tools: sortedTools,
+        turning_tools: sortedTurningTools,
+        part_zero: partZeroRef.current,
+        operations: operationsRef.current,
+        photos: photosRef.current,
+        fixturing_notes: fixturingNotesRef.current,
+        turning_chuck: turningChuckRef.current,
+        citizen_workholding: citizenWorkholdingRef.current,
+        mc_machining_data: mcMachiningDataRef.current,
+        preparation_screen: preparationScreenRef.current,
+      });
+    } catch (err) {
+      // ignore
+    } finally {
+      setSaving(false);
     }
     setMode("view");
   };

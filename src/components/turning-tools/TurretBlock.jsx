@@ -20,26 +20,13 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
 
   const addTool = (kind) => {
     const newTool = { _id: Date.now() + Math.random(), tool_kind: kind, tool_number: "", tool_type: "" };
-    const tools = [...(turret.tools || []), newTool];
-    // Sort by tool number after adding
-    const sorted = sortTools(tools);
-    setField("tools", sorted);
-  };
-
-  const sortTools = (tools) => {
-    return [...tools].sort((a, b) => {
-      const na = parseFloat(a.tool_number) || 0;
-      const nb = parseFloat(b.tool_number) || 0;
-      return na - nb;
-    });
+    setField("tools", [...(turret.tools || []), newTool]);
   };
 
   const updateTool = (i, updated) => {
     const tools = [...(turret.tools || [])];
     tools[i] = updated;
-    // Re-sort by tool number when tool_number changes
-    const sorted = sortTools(tools);
-    setField("tools", sorted);
+    setField("tools", tools);
   };
 
   const removeTool = (i) => {
