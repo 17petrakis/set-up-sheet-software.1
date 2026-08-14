@@ -990,7 +990,7 @@ export default function SetupSheet() {
       {/* Content */}
       {/* Floating save button for mobile edit mode */}
       {mode === "edit" && (
-        <div className="lg:hidden fixed top-16 right-3 z-40 no-print">
+        <div className="lg:hidden fixed top-20 right-3 z-40 no-print">
           <Button
             size="sm"
             onClick={handleSaveAndExit}
