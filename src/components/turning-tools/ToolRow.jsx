@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -103,7 +103,15 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const isMill = tool.tool_kind === "Mill";
   const fields = getTypeFields(tool.tool_kind, typeValue);
   const odIdOptions = isMill ? ["Axial", "Radial"] : ["OD", "ID"];
-  const toolName = tool.name || tool.insert || "";
+  const toolName = tool.name || "";
+
+  // One-time migration: if name is empty but insert has text, move it to name
+  useEffect(() => {
+    if (!tool.name && tool.insert) {
+      onUpdate({ ...tool, name: tool.insert });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const removed = tool._removed_fields || [];
   const added = tool._added_fields || [];
