@@ -181,10 +181,16 @@ export function formatToolLine(tool) {
 export function formatToolExtraLine(tool) {
   const parts = [];
   EXTRA_FIELD_DEFS.forEach(f => {
+    if (f.key === "direction") return;
     const val = tool[f.key];
-    if (val) parts.push(`${EXTRA_LABELS[f.key]}: ${val}`);
+    if (!val) return;
+    if (f.key === "holder" || f.key === "insert") {
+      parts.push(`${val} ${EXTRA_LABELS[f.key]}`);
+    } else {
+      parts.push(`${EXTRA_LABELS[f.key]}: ${val}`);
+    }
   });
-  return parts.join("  |  ");
+  return parts.join("   ");
 }
 
 export function toolHasData(tool) {
