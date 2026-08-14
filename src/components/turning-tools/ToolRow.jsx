@@ -11,6 +11,8 @@ import {
 
 import ToolTypeDropdown from "./ToolTypeDropdown";
 import AutoSizeInput from "./AutoSizeInput";
+import TurningToolEditModal from "./TurningToolEditModal";
+import { Settings2 } from "lucide-react";
 import { getTypeFields, migrateToolType, EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
 
 // ── Small field helpers ────────────────────────────────────────────────────────
@@ -94,6 +96,7 @@ export { AddToolButton };
 export default function ToolRow({ tool, onUpdate, onRemove }) {
   const [expanded, setExpanded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
 
   const typeValue = migrateToolType(tool.tool_kind, tool.tool_type);
@@ -156,11 +159,24 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <SmallInput value={toolName} onChange={set("name")} className="flex-1 w-full min-w-0" />
         </div>
 
+        <Button type="button" size="icon" variant="ghost" onClick={() => setShowEditModal(true)}
+          className="mt-5 h-7 w-7 text-muted-foreground hover:text-foreground shrink-0" title="Edit fields">
+          <Settings2 className="w-3.5 h-3.5" />
+        </Button>
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className="mt-5 h-7 w-7 text-destructive hover:text-destructive shrink-0">
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
+
+      {showEditModal && (
+        <TurningToolEditModal
+          tool={tool}
+          onUpdate={onUpdate}
+          onClose={() => setShowEditModal(false)}
+          typeValue={typeValue}
+        />
+      )}
 
       {/* ── Expanded: Extra Information ── */}
       {expanded && typeValue && (
