@@ -23,8 +23,8 @@ export default function TurningToolsView({ turningTools }) {
         return (
           <div key={ti}>
             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
-            <div className="border border-gray-200 rounded bg-white overflow-hidden">
-              <table className="w-full">
+            <div className="border border-gray-200 rounded bg-white overflow-x-auto">
+              <table className="w-full min-w-[500px]">
                 <thead>
                   <tr className="border-b border-gray-300">
                     <th className="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 px-3 py-1.5 w-16">T#</th>
