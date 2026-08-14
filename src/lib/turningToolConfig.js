@@ -174,10 +174,19 @@ export function formatToolParts(tool) {
   return { tNum, fieldValues, name };
 }
 
+export function isExtraFieldVisible(tool, key) {
+  const removed = tool._removed_fields || [];
+  const added = tool._added_fields || [];
+  if (removed.includes(key)) return false;
+  if (added.includes(key)) return true;
+  return DEFAULT_VISIBLE_EXTRA.includes(key);
+}
+
 export function formatToolExtraLine(tool) {
   const parts = [];
   EXTRA_FIELD_DEFS.forEach(f => {
     if (f.key === "direction") return;
+    if (!isExtraFieldVisible(tool, f.key)) return;
     const val = tool[f.key];
     if (!val) return;
     if (f.key === "holder" || f.key === "insert") {
