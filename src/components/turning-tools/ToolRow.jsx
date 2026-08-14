@@ -159,10 +159,6 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
           <SmallInput value={toolName} onChange={set("name")} className="flex-1 w-full min-w-0" />
         </div>
 
-        <Button type="button" size="icon" variant="ghost" onClick={() => setShowEditModal(true)}
-          className="mt-5 h-7 w-7 text-muted-foreground hover:text-foreground shrink-0" title="Edit fields">
-          <Settings2 className="w-3.5 h-3.5" />
-        </Button>
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
           className="mt-5 h-7 w-7 text-destructive hover:text-destructive shrink-0">
           <Trash2 className="w-3.5 h-3.5" />
@@ -192,6 +188,10 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
               <Label>{isMill ? "Axial/Radial" : "OD/ID"}</Label>
               <SmallSelect value={tool.od_id} onChange={set("od_id")} options={odIdOptions} allowOther={false} />
             </div>
+            <Button type="button" size="icon" variant="ghost" onClick={() => setShowEditModal(true)}
+              className="mt-5 h-7 w-7 text-muted-foreground hover:text-foreground shrink-0" title="Edit fields">
+              <Settings2 className="w-3.5 h-3.5" />
+            </Button>
           </div>
         </div>
       )}

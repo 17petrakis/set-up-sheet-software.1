@@ -2,6 +2,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
 
@@ -75,6 +76,11 @@ export default function TurningToolEditModal({ tool, onUpdate, onClose, typeValu
                 </button>
               </div>
             ))}
+          </div>
+          <div className="flex justify-end pt-2 border-t border-border">
+            <Button type="button" onClick={onClose} className="bg-primary hover:bg-primary/90 text-white">
+              OK
+            </Button>
           </div>
         </div>
       </DialogContent>
