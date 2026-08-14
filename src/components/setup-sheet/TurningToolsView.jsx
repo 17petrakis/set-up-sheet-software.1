@@ -40,8 +40,8 @@ export default function TurningToolsView({ turningTools }) {
                       <React.Fragment key={i}>
                         <tr className={i > 0 ? "border-t border-gray-100" : ""}>
                           <td className="px-3 py-1.5 text-base font-mono font-medium align-top whitespace-nowrap">{tNum}</td>
-                          <td className="px-3 py-1.5 text-base font-medium break-words">{shape}</td>
-                          <td className="px-3 py-1.5 text-base font-medium break-words">{name}</td>
+                          <td className="px-3 py-1.5 text-base font-medium whitespace-nowrap">{shape}</td>
+                          <td className="px-3 py-1.5 text-base font-medium whitespace-nowrap">{name}</td>
                         </tr>
                         {extraLine && (
                           <tr className="border-t border-gray-50">
