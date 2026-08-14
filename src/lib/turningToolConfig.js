@@ -163,23 +163,15 @@ export function formatToolParts(tool) {
   const fields = getTypeFields(tool.tool_kind, typeValue);
 
   const tNum = tool.tool_number ? `T${String(tool.tool_number).padStart(2, "0")}` : "T--";
-  const parts = [];
-
-  fields.forEach(f => {
-    const val = tool[f.key];
-    if (val) {
-      const abbrev = FIELD_ABBREV[f.key];
-      if (abbrev) {
-        parts.push(`${val}${abbrev.sep}${abbrev.abbrev}`);
-      } else {
-        parts.push(val);
-      }
-    }
-  });
+  const fieldValues = fields.map(f => ({
+    key: f.key,
+    label: f.label,
+    value: tool[f.key] || "",
+  }));
 
   const name = tool.name || tool.insert || "";
 
-  return { tNum, shape: parts.join("  "), name };
+  return { tNum, fieldValues, name };
 }
 
 export function formatToolExtraLine(tool) {
