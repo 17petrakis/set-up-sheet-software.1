@@ -24,12 +24,12 @@ function SmallInput({ value, onChange, placeholder = "", className = "w-16" }) {
   if (className.includes("flex-1")) {
     return (
       <Input value={value || ""} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className={`h-7 text-xs bg-card border-input px-1.5 ${className}`} />
+        className={`h-9 text-sm bg-card border-input px-2 ${className}`} />
     );
   }
   return (
     <AutoSizeInput value={value} onChange={onChange} placeholder={placeholder}
-      inputClass="h-7 text-xs bg-card border-input px-1.5" minWidth="3rem" />
+      inputClass="h-9 text-sm bg-card border-input px-2" minWidth="3rem" />
   );
 }
 
@@ -46,7 +46,7 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
           value={value || ""}
           onChange={onChange}
           placeholder="Custom…"
-          inputClass="h-7 text-xs bg-card border-input px-1.5"
+          inputClass="h-9 text-sm bg-card border-input px-2"
           minWidth="4rem"
         />
         <button
@@ -65,12 +65,12 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
     <Select value={value || undefined} onValueChange={(v) => {
       if (v === "__other__") { setForcedOther(true); onChange(""); } else { onChange(v); }
     }}>
-      <SelectTrigger className={`h-7 text-xs px-1.5 [&>span]:line-clamp-none ${className}`} style={{ width: "fit-content", minWidth: "3rem" }}>
+      <SelectTrigger className={`h-9 text-sm px-2 [&>span]:line-clamp-none ${className}`} style={{ width: "fit-content", minWidth: "3rem" }}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {normalizedOptions.map(opt => <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>)}
-        {allowOther && <SelectItem value="__other__" className="text-xs italic text-muted-foreground">Other…</SelectItem>}
+        {normalizedOptions.map(opt => <SelectItem key={opt.value} value={opt.value} className="text-sm">{opt.label}</SelectItem>)}
+        {allowOther && <SelectItem value="__other__" className="text-sm italic text-muted-foreground">Other…</SelectItem>}
       </SelectContent>
     </Select>
   );
@@ -125,7 +125,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         <div className="flex flex-col shrink-0">
           <Label>T#</Label>
           <Input value={tool.tool_number || ""} onChange={(e) => set("tool_number")(e.target.value)}
-            placeholder="#" className="h-7 w-12 text-xs bg-card border-input px-1.5 text-center font-mono" />
+            placeholder="#" className="h-9 w-14 text-sm bg-card border-input px-2 text-center font-mono" />
         </div>
 
         {/* Kind badge */}
@@ -154,9 +154,10 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         ))}
 
         {/* Tool Name */}
-        <div className="flex flex-col flex-1 min-w-[120px]">
+        <div className="flex flex-col">
           <Label>Tool Name</Label>
-          <SmallInput value={toolName} onChange={set("name")} className="flex-1 w-full min-w-0" />
+          <AutoSizeInput value={toolName} onChange={set("name")}
+            inputClass="h-9 text-sm bg-card border-input px-2" minWidth="6rem" maxWidth={400} />
         </div>
 
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}

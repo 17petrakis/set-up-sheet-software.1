@@ -17,7 +17,7 @@ function measureCtx() {
  * and sets its width to exactly fit the text. Whatever the input actually
  * renders, the measurement matches.
  */
-export default function AutoSizeInput({ value, onChange, placeholder = "", inputClass = "", minWidth = "3rem", className = "", ...props }) {
+export default function AutoSizeInput({ value, onChange, placeholder = "", inputClass = "", minWidth = "3rem", maxWidth = null, className = "", ...props }) {
   const ref = useRef(null);
 
   useLayoutEffect(() => {
@@ -37,10 +37,15 @@ export default function AutoSizeInput({ value, onChange, placeholder = "", input
 
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
     const borderX = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
-    const needed = cs.boxSizing === "border-box" ? totalTextW + padX + borderX : totalTextW;
+    let needed = cs.boxSizing === "border-box" ? totalTextW + padX + borderX : totalTextW;
+
+    if (maxWidth) {
+      const max = typeof maxWidth === "number" ? maxWidth : parseFloat(maxWidth);
+      if (!isNaN(max)) needed = Math.min(needed, max);
+    }
 
     el.style.width = `${Math.max(needed, 0)}px`;
-  }, [value, placeholder, inputClass, className]);
+  }, [value, placeholder, inputClass, className, maxWidth]);
 
   return (
     <Input
@@ -49,7 +54,7 @@ export default function AutoSizeInput({ value, onChange, placeholder = "", input
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       className={`${inputClass} ${className}`}
-      style={{ minWidth }}
+      style={{ minWidth, maxWidth: maxWidth || undefined }}
       {...props}
     />
   );
