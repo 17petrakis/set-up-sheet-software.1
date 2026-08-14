@@ -11,7 +11,6 @@ import {
 
 import ToolTypeDropdown from "./ToolTypeDropdown";
 import AutoSizeInput from "./AutoSizeInput";
-import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import TurningToolEditModal from "./TurningToolEditModal";
 import { Settings2 } from "lucide-react";
 import { getTypeFields, migrateToolType, EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
@@ -155,10 +154,10 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
         ))}
 
         {/* Tool Name */}
-        <div className="flex flex-col flex-1 min-w-[200px]">
+        <div className="flex flex-col">
           <Label>Tool Name</Label>
-          <AutoResizeTextarea value={toolName || ""} onChange={(e) => set("name")(e.target.value)}
-            placeholder="" className="text-sm bg-card border-input px-2 py-1.5 min-h-[2.25rem]" />
+          <AutoSizeInput value={toolName} onChange={set("name")}
+            inputClass="h-9 text-sm bg-card border-input px-2" minWidth="6rem" maxWidth={400} />
         </div>
 
         <Button type="button" size="icon" variant="ghost" onClick={() => setConfirmDelete(true)}
