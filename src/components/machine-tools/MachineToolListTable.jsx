@@ -147,7 +147,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                     {full ? (
                       <>
                         {/* Comment (name) — expandable */}
-                        <div className="shrink-0" style={{ width: `${Math.max(15, (tool.name || '').length + 3)}ch`, minWidth: '120px', maxWidth: '400px' }}>
+                        <div className="shrink-0 max-w-full" style={{ width: `${Math.max(15, (tool.name || '').length + 3)}ch`, minWidth: '120px', maxWidth: 'min(400px, 100%)' }}>
                           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">Comment</span>
                           <Input
                             value={tool.name || ""}
@@ -176,7 +176,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                             );
                           }
                           return (
-                            <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px' }}>
+                            <div key={f.key} className="shrink-0 max-w-full" style={{ width: `${fieldW}ch`, minWidth: '80px', maxWidth: 'min(200px, 100%)' }}>
                               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
                               {options ? (
                                 <ComboBox
