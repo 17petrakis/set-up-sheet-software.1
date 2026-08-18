@@ -48,21 +48,9 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
+      {photosArr.length === 0 && (
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="h-8 px-3 text-xs gap-1.5"
-        >
-          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-          Add Photo
-        </Button>
-        <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-      </div>
+      )}
       {photosArr.map((p, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch">
           <div className="relative flex-1 rounded-lg overflow-hidden border border-border/60 bg-muted/10 min-h-[180px] sm:min-h-[320px]">
@@ -84,6 +72,20 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
           />
         </div>
       ))}
+      {!viewMode && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="h-8 px-3 text-xs gap-1.5"
+        >
+          {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+          Add Photo
+        </Button>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       {lightboxUrl && (
         <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
       )}
