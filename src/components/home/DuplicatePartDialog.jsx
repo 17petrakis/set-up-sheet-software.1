@@ -90,7 +90,7 @@ export default function DuplicatePartDialog({
         <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md">
           <div className="relative">
             <img
-              src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/5d0984da3_image.png"
+              src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/785ad66fa_image.png"
               alt="Stop"
               className="w-full max-w-[200px] h-auto object-contain mx-auto block"
             />
