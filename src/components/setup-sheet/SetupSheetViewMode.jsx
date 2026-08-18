@@ -331,7 +331,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                             {s.notes && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{s.notes}</p>}
                             {s.fixture_photos?.length > 0 && (
                               <div className="space-y-3 mt-1.5">
-                                {[...s.fixture_photos].reverse().map((p, pi) => (
+                                {s.fixture_photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
                                     <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
@@ -342,7 +342,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                             )}
                             {s.photos?.length > 0 && (
                               <div className="space-y-3 mt-1.5">
-                                {[...s.photos].reverse().map((p, pi) => (
+                                {s.photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
                                     <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
