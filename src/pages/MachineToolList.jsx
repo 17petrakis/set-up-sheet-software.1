@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Wrench } from "lucide-react";
+import { ArrowLeft, Wrench, Eye, Edit3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import MachineToolListTable from "@/components/machine-tools/MachineToolListTable";
+import MachineToolListView from "@/components/machine-tools/MachineToolListView";
 import TurningToolList from "@/components/setup-sheet/TurningToolList";
+import TurningToolsView from "@/components/setup-sheet/TurningToolsView";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { MACHINES, getToolSlots } from "@/lib/machines";
 
@@ -19,6 +22,7 @@ export default function MachineToolList() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [mode, setMode] = useState("edit");
   const isInitialLoad = useRef(true);
   const saveTimer = useRef(null);
   const recordRef = useRef(null);
@@ -147,6 +151,15 @@ export default function MachineToolList() {
             ) : autoSaved ? (
               <span className="text-xs text-muted-foreground">All changes saved ✓</span>
             ) : null}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setMode(mode === "edit" ? "view" : "edit")}
+              className="gap-1.5"
+            >
+              {mode === "edit" ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+              {mode === "edit" ? "View" : "Edit"}
+            </Button>
           </div>
         </div>
       </header>
@@ -161,7 +174,13 @@ export default function MachineToolList() {
         </div>
 
         {machine.type === "lathe" ? (
-          <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} showSync={false} narrowTurretOptions={false} />
+          mode === "view" ? (
+            <TurningToolsView turningTools={turningTools} />
+          ) : (
+            <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} showSync={false} narrowTurretOptions={false} />
+          )
+        ) : mode === "view" ? (
+          <MachineToolListView tools={tools} slotCount={getToolSlots(machine)} machineName={decodedName} />
         ) : (
           <MachineToolListTable tools={tools} onChange={setTools} slotCount={getToolSlots(machine)} machineName={decodedName} />
         )}
