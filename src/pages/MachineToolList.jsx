@@ -136,10 +136,10 @@ export default function MachineToolList() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate("/machine-tool-lists")}
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 -ml-2 rounded-lg active:bg-muted/50"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm hidden sm:inline">Machine Tool Lists</span>
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Machine Tool Lists</span>
           </button>
           <div className="flex items-center gap-2">
             {saving ? (
