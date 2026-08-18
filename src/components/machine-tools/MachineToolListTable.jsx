@@ -130,7 +130,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
               <ContextMenu key={i}>
                 <ContextMenuTrigger asChild>
                   <div
-                    className={`group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors ${full ? "" : "bg-muted/10"}`}
+                    className={`group flex items-end gap-2 px-2 py-2 rounded-lg hover:bg-muted/20 border-b border-border/30 last:border-b-0 transition-colors flex-wrap ${full ? "" : "bg-muted/10"}`}
                   >
                     {/* T# */}
                     <div className="shrink-0 w-14">
