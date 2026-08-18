@@ -13,12 +13,13 @@ import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions }) {
+export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions, maxTools }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const setField = (k, v) => onChange({ ...turret, [k]: v });
 
   const addTool = (kind) => {
+    if (maxTools != null && (turret.tools || []).length >= maxTools) return;
     const newTool = { _id: Date.now() + Math.random(), tool_kind: kind, tool_number: "", tool_type: "" };
     setField("tools", [...(turret.tools || []), newTool]);
   };
@@ -66,8 +67,13 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
 
       <div className="px-4 py-4 bg-background">
         {turret.turret_type && (
-          <div className="mb-3">
-            <AddToolButton onAdd={addTool} />
+          <div className="mb-3 flex items-center gap-3">
+            <AddToolButton onAdd={addTool} disabled={maxTools != null && (turret.tools || []).length >= maxTools} />
+            {maxTools != null && (
+              <span className="text-xs text-muted-foreground">
+                {(turret.tools || []).length}/{maxTools} tools
+              </span>
+            )}
           </div>
         )}
         {(turret.tools || []).length === 0 && (

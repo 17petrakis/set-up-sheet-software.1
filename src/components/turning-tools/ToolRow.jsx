@@ -77,13 +77,13 @@ function SmallSelect({ value, onChange, options, placeholder = "—", className 
 }
 
 // ── Add Tool buttons ───────────────────────────────────────────────────────────
-function AddToolButton({ onAdd }) {
+function AddToolButton({ onAdd, disabled }) {
   return (
     <div className="flex items-center gap-1.5">
-      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Turn")} className="h-7 text-xs gap-1">
+      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Turn")} disabled={disabled} className="h-7 text-xs gap-1">
         + Turning Tool
       </Button>
-      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Mill")} className="h-7 text-xs gap-1">
+      <Button type="button" size="sm" variant="outline" onClick={() => onAdd("Mill")} disabled={disabled} className="h-7 text-xs gap-1">
         + Milling Tool
       </Button>
     </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, ExternalLink } from "lucide-react";
 import TurretBlock from "@/components/turning-tools/TurretBlock";
-import { isKnownMachine } from "@/lib/machines";
+import { isKnownMachine, getTurretToolSlots } from "@/lib/machines";
 import {
   getProgramMode, getProgramKeys, getTurretTypeForProgram,
   getPreferredTurretOrder, getTurretOptionsForTurret,
@@ -106,6 +106,7 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
             onChange={(updated) => updateTurret(i, updated)}
             onRemove={() => removeTurret(i)}
             turretOptions={getTurretOptionsForTurret(programMode, turret.turret_type)}
+            maxTools={getTurretToolSlots(machine, turret.turret_type)}
           />
         ))}
       </CardContent>
