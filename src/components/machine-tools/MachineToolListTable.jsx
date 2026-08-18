@@ -101,16 +101,16 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
           <Wrench className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
           <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount + 1} slots filled</span>
-        </div>
-        <div className="flex items-center gap-2 mb-4">
           <Button
             variant="outline"
             onClick={() => setMode(mode === "edit" ? "view" : "edit")}
-            className="h-10 gap-2"
+            className="h-10 gap-2 ml-auto"
           >
             {mode === "edit" ? <Eye className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
             {mode === "edit" ? "View" : "Edit"}
           </Button>
+        </div>
+        <div className="flex items-center gap-2 mb-4">
           <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
             <Input

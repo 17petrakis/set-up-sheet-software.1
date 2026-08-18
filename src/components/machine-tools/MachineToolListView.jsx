@@ -55,12 +55,10 @@ export default function MachineToolListView({ tools, slotCount, machineName, onE
             <Wrench className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
             <span className="text-xs text-muted-foreground ml-1">0/{slotCount + 1} slots filled</span>
-          </div>
-          <div className="mb-4">
             <Button
               variant="outline"
               onClick={onEdit}
-              className="h-10 gap-2"
+              className="h-10 gap-2 ml-auto"
             >
               <Edit3 className="w-4 h-4" /> Edit
             </Button>
@@ -78,12 +76,10 @@ export default function MachineToolListView({ tools, slotCount, machineName, onE
           <Wrench className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
           <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount + 1} slots filled</span>
-        </div>
-        <div className="mb-4">
           <Button
             variant="outline"
             onClick={onEdit}
-            className="h-10 gap-2"
+            className="h-10 gap-2 ml-auto"
           >
             <Edit3 className="w-4 h-4" /> Edit
           </Button>
