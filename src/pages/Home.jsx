@@ -208,14 +208,6 @@ export default function Home() {
           />
         </button>
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <a
-            href="https://straightline-precision-industries-procedures.base44.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 shrink-0" /> Procedures
-          </a>
           <button
             onClick={() => switchNav("dashboard")}
             className={cn(
@@ -266,6 +258,14 @@ export default function Home() {
           >
             <Wrench className="w-4 h-4 shrink-0" /> Machine Tool Lists
           </button>
+          <a
+            href="https://straightline-precision-industries-procedures.base44.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          >
+            <BookOpen className="w-4 h-4 shrink-0" /> Procedures
+          </a>
           <button
             onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors mt-2"
