@@ -152,9 +152,11 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           </div>
           )}
           <Field label="Operation Name" value={data.operation_name} onChange={update("operation_name")} placeholder="e.g. Op 10, Face & Drill" className="sm:col-span-4" />
+          <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} className="sm:col-span-4" />
+          <Field label="Date" value={data.date} onChange={update("date")} type="date" className="sm:col-span-4" />
         </div>
 
-        {/* Row: Cycle Time, Program Desc, Date */}
+        {/* Row: Cycle Time */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 mb-3">
           <Field
             label="Cycle Time (Includes Handling)"
@@ -164,8 +166,6 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             hrs={data.cycle_time_hrs}
             onHrsChange={update("cycle_time_hrs")}
           />
-          <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} />
-          <Field label="Date" value={data.date} onChange={update("date")} type="date" />
         </div>
 
         {/* Stops */}
