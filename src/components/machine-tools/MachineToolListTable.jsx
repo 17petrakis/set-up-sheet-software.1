@@ -203,6 +203,13 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                             <Lock className="w-3.5 h-3.5 text-amber-500" />
                           </div>
                         )}
+
+                        {/* Edit */}
+                        <div className="flex items-end gap-0.5 shrink-0">
+                          <Button size="icon" variant="ghost" onClick={() => setEditingIndex(i)} className="h-7 w-7">
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </>
                     ) : (
                       <button
