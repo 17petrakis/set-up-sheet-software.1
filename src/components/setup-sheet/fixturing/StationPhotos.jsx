@@ -48,8 +48,21 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
 
   return (
     <div className="space-y-3">
-      {photosArr.length === 0 && (
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+      {photosArr.length === 0 && !viewMode && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="h-8 px-3 text-xs gap-1.5"
+          >
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            Add Photo
+          </Button>
+        </div>
       )}
       {photosArr.map((p, i) => (
         <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch">
@@ -72,7 +85,7 @@ export default function StationPhotos({ photos, onChange, label = "Photos" }) {
           />
         </div>
       ))}
-      {!viewMode && (
+      {!viewMode && photosArr.length > 0 && (
         <Button
           type="button"
           size="sm"
