@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wrench, Plus, Lock, Unlock, Pencil, Trash2, Filter, Search } from "lucide-react";
+import { Wrench, Plus, Lock, Unlock, Pencil, Trash2, Filter, Search, Eye, Edit3 } from "lucide-react";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions, getAllFields } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
@@ -17,7 +17,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export default function MachineToolListTable({ tools, onChange, slotCount, machineName }) {
+export default function MachineToolListTable({ tools, onChange, slotCount, machineName, mode, setMode }) {
   const [editingIndex, setEditingIndex] = useState(null);
   const [showOnlyFull, setShowOnlyFull] = useState(false);
   const [search, setSearch] = useState("");
@@ -103,6 +103,14 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
           <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount + 1} slots filled</span>
         </div>
         <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setMode(mode === "edit" ? "view" : "edit")}
+            className="h-10 gap-2"
+          >
+            {mode === "edit" ? <Eye className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+            {mode === "edit" ? "View" : "Edit"}
+          </Button>
           <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2" />
             <Input

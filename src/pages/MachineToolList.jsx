@@ -22,7 +22,7 @@ export default function MachineToolList() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaved, setAutoSaved] = useState(false);
-  const [mode, setMode] = useState("edit");
+  const [mode, setMode] = useState("view");
   const isInitialLoad = useRef(true);
   const saveTimer = useRef(null);
   const recordRef = useRef(null);
@@ -151,15 +151,6 @@ export default function MachineToolList() {
             ) : autoSaved ? (
               <span className="text-xs text-muted-foreground">All changes saved ✓</span>
             ) : null}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setMode(mode === "edit" ? "view" : "edit")}
-              className="gap-1.5"
-            >
-              {mode === "edit" ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-              {mode === "edit" ? "View" : "Edit"}
-            </Button>
           </div>
         </div>
       </header>
@@ -174,15 +165,25 @@ export default function MachineToolList() {
         </div>
 
         {machine.type === "lathe" ? (
-          mode === "view" ? (
-            <TurningToolsView turningTools={turningTools} />
-          ) : (
-            <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} showSync={false} narrowTurretOptions={false} />
-          )
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setMode(mode === "edit" ? "view" : "edit")}
+              className="gap-2 mb-4 h-10"
+            >
+              {mode === "edit" ? <Eye className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+              {mode === "edit" ? "View" : "Edit"}
+            </Button>
+            {mode === "view" ? (
+              <TurningToolsView turningTools={turningTools} />
+            ) : (
+              <TurningToolList tools={turningTools} onChange={setTurningTools} machine={decodedName} showSync={false} narrowTurretOptions={false} />
+            )}
+          </>
         ) : mode === "view" ? (
-          <MachineToolListView tools={tools} slotCount={getToolSlots(machine)} machineName={decodedName} />
+          <MachineToolListView tools={tools} slotCount={getToolSlots(machine)} machineName={decodedName} onEdit={() => setMode("edit")} />
         ) : (
-          <MachineToolListTable tools={tools} onChange={setTools} slotCount={getToolSlots(machine)} machineName={decodedName} />
+          <MachineToolListTable tools={tools} onChange={setTools} slotCount={getToolSlots(machine)} machineName={decodedName} mode={mode} setMode={setMode} />
         )}
       </section>
     </div>

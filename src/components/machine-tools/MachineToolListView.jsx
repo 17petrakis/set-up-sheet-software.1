@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench } from "lucide-react";
+import { Wrench, Edit3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getAllFields } from "@/lib/toolTypeOptions";
 
-export default function MachineToolListView({ tools, slotCount, machineName }) {
+export default function MachineToolListView({ tools, slotCount, machineName, onEdit }) {
   const slots = useMemo(() => {
     const arr = Array.isArray(tools) ? tools : [];
     const total = slotCount + 1;
@@ -54,6 +55,13 @@ export default function MachineToolListView({ tools, slotCount, machineName }) {
             <Wrench className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
             <span className="text-xs text-muted-foreground ml-1">0/{slotCount + 1} slots filled</span>
+            <Button
+              variant="outline"
+              onClick={onEdit}
+              className="h-10 gap-2 ml-auto"
+            >
+              <Edit3 className="w-4 h-4" /> Edit
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground">No tools in this machine yet.</p>
         </CardContent>
@@ -68,6 +76,13 @@ export default function MachineToolListView({ tools, slotCount, machineName }) {
           <Wrench className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
           <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount + 1} slots filled</span>
+          <Button
+            variant="outline"
+            onClick={onEdit}
+            className="h-10 gap-2 ml-auto"
+          >
+            <Edit3 className="w-4 h-4" /> Edit
+          </Button>
         </div>
 
         <div className="border border-border rounded-lg overflow-x-auto">
