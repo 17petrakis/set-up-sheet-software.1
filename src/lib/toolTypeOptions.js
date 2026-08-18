@@ -66,6 +66,8 @@ export const TOOL_FIELDS = [
   { key: "blade_thickness", label: "Blade Thickness" },
   { key: "arbor_size", label: "Arbor Size" },
   { key: "angle", label: "Tip Angle" },
+  { key: "gauge_length", label: "Gauge Length" },
+  { key: "corner_rad_chamfer", label: "Corner Rad/Chamfer" },
   { key: "offset_number", label: "Offset Number" },
 ];
 
@@ -88,6 +90,8 @@ export const TOOL_FIELD_SHORT = {
   blade_thickness: "Blade",
   arbor_size: "Arbor",
   angle: "Tip Ang",
+  gauge_length: "Gauge Len",
+  corner_rad_chamfer: "Cor Rad/Cham",
   offset_number: "Offset #",
 };
 
