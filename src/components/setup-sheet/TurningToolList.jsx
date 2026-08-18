@@ -13,7 +13,7 @@ import {
 
 const MAX_TURRETS = 3;
 
-export default function TurningToolList({ tools, onChange, machine, showSync = true, sheetId, programNumbers }) {
+export default function TurningToolList({ tools, onChange, machine, showSync = true, sheetId, programNumbers, narrowTurretOptions = true }) {
   const navigate = useNavigate();
 
   const handleViewMachineList = () => {
@@ -105,7 +105,7 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
             turret={turret}
             onChange={(updated) => updateTurret(i, updated)}
             onRemove={() => removeTurret(i)}
-            turretOptions={getTurretOptionsForTurret(programMode, turret.turret_type)}
+            turretOptions={narrowTurretOptions ? getTurretOptionsForTurret(programMode, turret.turret_type) : undefined}
             maxTools={getTurretToolSlots(machine, turret.turret_type)}
           />
         ))}
