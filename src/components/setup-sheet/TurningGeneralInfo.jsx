@@ -232,6 +232,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               className="h-9 text-sm bg-card border-border font-medium focus:border-primary/40 transition-colors"
             />
           </div>
+          <Field label="Operation Name" value={data.operation_name} onChange={update("operation_name")} placeholder="e.g. Op 10, Face & Drill" className="sm:col-span-3" />
           <Field label="Cycle Time" value={data.cycle_time} onChange={update("cycle_time")} time className="sm:col-span-3" />
           <Field
             label="Handling Time"
