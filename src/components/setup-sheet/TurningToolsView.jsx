@@ -55,7 +55,7 @@ export default function TurningToolsView({ turningTools }) {
                         </tr>
                         {extraLine && (
                           <tr className="border-t border-gray-100 bg-muted/20">
-                            <td colSpan="4" className="px-3 py-1 text-sm text-muted-foreground break-words">{extraLine}</td>
+                            <td colSpan="4" className="px-3 py-1 text-base text-foreground break-words">{extraLine}</td>
                           </tr>
                         )}
                       </React.Fragment>
