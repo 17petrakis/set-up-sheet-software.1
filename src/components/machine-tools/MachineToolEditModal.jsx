@@ -44,8 +44,8 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
     setNumberError("");
     if (newNumber && newNumber !== (tool.tool_number || "")) {
       const num = parseInt(newNumber, 10);
-      if (slotCount && !isNaN(num) && (num < 1 || num > slotCount)) {
-        setNumberError(`Tool number out of bounds (1–${slotCount})`);
+      if (slotCount && !isNaN(num) && (num < 0 || num > slotCount)) {
+        setNumberError(`Tool number out of bounds (0–${slotCount})`);
         return;
       }
       const targetIndex = allSlots.findIndex((s, idx) => idx !== currentIndex && s.tool_number === newNumber);

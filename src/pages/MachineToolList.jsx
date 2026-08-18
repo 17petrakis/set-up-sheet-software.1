@@ -31,22 +31,23 @@ export default function MachineToolList() {
 
   const buildSlotTools = (loaded, slotCount) => {
     const source = Array.isArray(loaded) ? loaded : [];
-    const slots = Array.from({ length: slotCount }, (_, i) => ({ ...emptyTool, tool_number: String(i + 1) }));
-    const placed = new Array(slotCount).fill(false);
+    const total = slotCount + 1; // +1 for T#0
+    const slots = Array.from({ length: total }, (_, i) => ({ ...emptyTool, tool_number: String(i) }));
+    const placed = new Array(total).fill(false);
     const leftovers = [];
     source.forEach((t) => {
       const n = parseInt(t.tool_number, 10);
-      if (!isNaN(n) && n >= 1 && n <= slotCount && !placed[n - 1]) {
-        slots[n - 1] = { ...t, tool_number: String(n) };
-        placed[n - 1] = true;
+      if (!isNaN(n) && n >= 0 && n <= slotCount && !placed[n]) {
+        slots[n] = { ...t, tool_number: String(n) };
+        placed[n] = true;
       } else {
         leftovers.push(t);
       }
     });
     let li = 0;
-    for (let i = 0; i < slotCount && li < leftovers.length; i++) {
+    for (let i = 0; i < total && li < leftovers.length; i++) {
       if (!placed[i]) {
-        slots[i] = { ...leftovers[li], tool_number: String(i + 1) };
+        slots[i] = { ...leftovers[li], tool_number: String(i) };
         placed[i] = true;
         li++;
       }

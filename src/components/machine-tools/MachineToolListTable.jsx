@@ -24,15 +24,16 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmUnlock, setConfirmUnlock] = useState(null);
 
-  // Ensure we always have exactly slotCount slots
+  // Ensure we always have exactly slotCount + 1 slots (T#0 .. T#slotCount)
   const slots = useMemo(() => {
     const arr = Array.isArray(tools) ? tools : [];
-    const result = Array.from({ length: slotCount }, (_, i) =>
-      arr[i] ? { ...arr[i] } : { ...emptyTool, tool_number: String(i + 1) }
+    const total = slotCount + 1;
+    const result = Array.from({ length: total }, (_, i) =>
+      arr[i] ? { ...arr[i] } : { ...emptyTool, tool_number: String(i) }
     );
     // Ensure every slot has a tool_number
     result.forEach((t, i) => {
-      if (!t.tool_number) t.tool_number = String(i + 1);
+      if (!t.tool_number) t.tool_number = String(i);
     });
     return result;
   }, [tools, slotCount]);
@@ -78,7 +79,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
 
   const clearTool = (i) => {
     const next = [...slots];
-    next[i] = { ...emptyTool, tool_number: String(i + 1) };
+    next[i] = { ...emptyTool, tool_number: String(i) };
     onChange(next);
   };
 
@@ -99,7 +100,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
         <div className="flex items-center gap-2 mb-3">
           <Wrench className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold font-heading text-foreground">{machineName}</h2>
-          <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount} slots filled</span>
+          <span className="text-xs text-muted-foreground ml-1">{fullCount}/{slotCount + 1} slots filled</span>
         </div>
         <div className="flex items-center gap-2 mb-4">
           <div className="relative flex-1">
