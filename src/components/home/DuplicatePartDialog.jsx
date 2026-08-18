@@ -88,8 +88,12 @@ export default function DuplicatePartDialog({
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md">
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
-            <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+          <div className="flex items-start gap-3 px-5 py-4 border-b border-border">
+            <img
+              src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/5d0984da3_image.png"
+              alt="Stop"
+              className="w-16 h-auto object-contain shrink-0"
+            />
             <div className="flex-1">
               <h2 className="font-semibold text-sm text-foreground">Duplicate Part Number</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
