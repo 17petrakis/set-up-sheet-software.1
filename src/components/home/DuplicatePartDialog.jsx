@@ -88,21 +88,21 @@ export default function DuplicatePartDialog({
     return (
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md">
-          <div className="flex items-start gap-3 px-5 py-4 border-b border-border">
+          <div className="relative">
             <img
               src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/5d0984da3_image.png"
               alt="Stop"
-              className="w-16 h-auto object-contain shrink-0"
+              className="w-full max-w-[200px] h-auto object-contain mx-auto block"
             />
-            <div className="flex-1">
-              <h2 className="font-semibold text-sm text-foreground">Duplicate Part Number</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                A part file already exists for <strong>{partNumber}</strong>.
-              </p>
-            </div>
-            <Button size="icon" variant="ghost" onClick={onClose} className="h-7 w-7">
+            <Button size="icon" variant="ghost" onClick={onClose} className="absolute top-2 right-2 h-7 w-7">
               <X className="w-4 h-4" />
             </Button>
+          </div>
+          <div className="px-5 py-4 text-center border-b border-border">
+            <h2 className="text-lg font-bold text-foreground">Duplicate Part Number</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              A part file already exists for <strong>{partNumber}</strong>.
+            </p>
           </div>
 
           <div className="p-4 space-y-2">
