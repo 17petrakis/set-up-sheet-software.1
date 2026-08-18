@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wrench } from "lucide-react";
-import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getAllFields } from "@/lib/toolTypeOptions";
 
 export default function MachineToolListView({ tools, slotCount, machineName }) {
   const slots = useMemo(() => {
@@ -29,11 +29,21 @@ export default function MachineToolListView({ tools, slotCount, machineName }) {
     const keys = new Set();
     for (const tool of fullSlots) {
       const visible = getEffectiveVisibleFields(tool);
-      for (const f of TOOL_FIELDS) {
+      for (const f of getAllFields(tool)) {
         if (visible[f.key] && tool[f.key]) keys.add(f.key);
       }
     }
-    return TOOL_FIELDS.filter((f) => keys.has(f.key));
+    // Preserve order: standard fields first, then custom fields
+    const standard = TOOL_FIELDS.filter((f) => keys.has(f.key));
+    const custom = new Set([...keys].filter((k) => k.startsWith("custom_")));
+    const customFields = fullSlots
+      .flatMap((t) => getAllFields(t))
+      .filter((f) => custom.has(f.key));
+    const seen = new Set();
+    const customOrdered = customFields.filter((f) =>
+      seen.has(f.key) ? false : (seen.add(f.key), true)
+    );
+    return [...standard, ...customOrdered];
   }, [fullSlots]);
 
   if (fullCount === 0) {

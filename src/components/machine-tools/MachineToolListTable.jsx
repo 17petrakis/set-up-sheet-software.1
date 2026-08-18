@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wrench, Plus, Lock, Unlock, Pencil, Trash2, Filter, Search } from "lucide-react";
 import { emptyTool } from "@/lib/setupSheetDefaults";
-import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
+import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions, getAllFields } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import MachineToolEditModal from "./MachineToolEditModal";
@@ -157,13 +157,13 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                         </div>
 
                         {/* Dynamic fields (including tool_type) */}
-                        {TOOL_FIELDS.filter(f => f.key !== "name" && visible[f.key]).map(f => {
+                        {getAllFields(tool).filter(f => f.key !== "name" && visible[f.key]).map(f => {
                           const options = getFieldOptions(f.key, tool.tool_type);
                           const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                           if (f.key === "tool_type") {
                             return (
                               <div key={f.key} className="shrink-0 w-40">
-                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key] || f.label}</span>
                                 <TreeCascadingDropdown
                                   value={tool.tool_type || ""}
                                   onChange={(v) => handleTypeChange(i, v)}
@@ -177,7 +177,7 @@ export default function MachineToolListTable({ tools, onChange, slotCount, machi
                           }
                           return (
                             <div key={f.key} className="shrink-0 max-w-full" style={{ width: `${fieldW}ch`, minWidth: '80px', maxWidth: 'min(200px, 100%)' }}>
-                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key] || f.label}</span>
                               {options ? (
                                 <ComboBox
                                   value={tool[f.key] || ""}

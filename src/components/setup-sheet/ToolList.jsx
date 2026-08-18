@@ -8,7 +8,7 @@ import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, ExternalLink } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
-import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions } from "@/lib/toolTypeOptions";
+import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions, getAllFields } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
@@ -130,12 +130,12 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                             </div>
 
                             {/* Dynamic fields */}
-                            {TOOL_FIELDS.filter(f => visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
+                            {getAllFields(tool).filter(f => f.key !== "tool_type" && f.key !== "name" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
                               const options = getFieldOptions(f.key, tool.tool_type);
                               const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
                                 <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px', maxWidth: '200px' }}>
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key]}</span>
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-0.5">{TOOL_FIELD_SHORT[f.key] || f.label}</span>
                                   {options ? (
                                     <ComboBox
                                       value={tool[f.key] || ""}

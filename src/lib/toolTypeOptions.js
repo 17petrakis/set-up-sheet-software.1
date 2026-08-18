@@ -158,6 +158,24 @@ export function getEffectiveVisibleFields(tool) {
   return { ...defaults, ...overrides };
 }
 
+// ── Custom fields (user-defined) ───────────────────────────────────────────────
+const RESERVED_KEYS = new Set(["tool_number", "tool_type", "locked", "visible_fields"]);
+
+export function getCustomFields(tool) {
+  if (!tool) return [];
+  return Object.keys(tool)
+    .filter(k => k.startsWith("custom_") && !RESERVED_KEYS.has(k))
+    .map(k => ({ key: k, label: k.replace(/^custom_/, "").replace(/_/g, " ") }));
+}
+
+export function getAllFields(tool) {
+  return [...TOOL_FIELDS, ...getCustomFields(tool)];
+}
+
+export function makeCustomFieldKey(label) {
+  return "custom_" + (label || "").trim().replace(/\s+/g, "_");
+}
+
 // ── Field-specific dropdown options (returns null when no chips apply) ──────────
 export function getFieldOptions(fieldKey, toolType) {
   if (fieldKey === "holder") {

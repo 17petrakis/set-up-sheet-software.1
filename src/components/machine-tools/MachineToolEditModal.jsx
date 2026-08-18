@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TOOL_FIELDS, TOOL_TYPE_OPTIONS, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
+import { TOOL_TYPE_OPTIONS, getAllFields, getEffectiveVisibleFields, makeCustomFieldKey } from "@/lib/toolTypeOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -14,6 +16,7 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
   const [toolNumberInput, setToolNumberInput] = useState(tool.tool_number || "");
   const [confirmOverwrite, setConfirmOverwrite] = useState(null); // { newNumber, targetIndex }
   const [numberError, setNumberError] = useState("");
+  const [newFieldLabel, setNewFieldLabel] = useState("");
   const nameInputRef = useRef(null);
 
   const isEmpty = !Object.entries(tool).some(
@@ -65,10 +68,32 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
 
   // Tool type first, then name, then the rest
   const orderedFields = [
-    ...TOOL_FIELDS.filter(f => f.key === "tool_type"),
-    ...TOOL_FIELDS.filter(f => f.key === "name"),
-    ...TOOL_FIELDS.filter(f => f.key !== "tool_type" && f.key !== "name"),
+    ...getAllFields(tool).filter(f => f.key === "tool_type"),
+    ...getAllFields(tool).filter(f => f.key === "name"),
+    ...getAllFields(tool).filter(f => f.key !== "tool_type" && f.key !== "name"),
   ];
+  const customKeys = new Set(orderedFields.filter(f => f.key.startsWith("custom_")).map(f => f.key));
+
+  const addCustomField = () => {
+    const label = newFieldLabel.trim();
+    if (!label) return;
+    const key = makeCustomFieldKey(label);
+    if (tool[key] !== undefined) { setNewFieldLabel(""); return; }
+    const overrides = tool.visible_fields || {};
+    onChange({ ...tool, [key]: "", visible_fields: { ...overrides, [key]: true } });
+    setNewFieldLabel("");
+  };
+
+  const removeCustomField = (key) => {
+    const next = { ...tool };
+    delete next[key];
+    if (next.visible_fields) {
+      const vf = { ...next.visible_fields };
+      delete vf[key];
+      next.visible_fields = vf;
+    }
+    onChange(next);
+  };
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -129,8 +154,27 @@ export default function MachineToolEditModal({ tool, onChange, onClose, allSlots
                     className="h-8 text-xs flex-1"
                   />
                 )}
+                {customKeys.has(f.key) && (
+                  <Button size="icon" variant="ghost" onClick={() => removeCustomField(f.key)} className="h-7 w-7 text-destructive hover:text-destructive shrink-0">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
               </div>
             ))}
+          </div>
+
+          {/* Add custom field */}
+          <div className="flex items-center gap-2 pt-1">
+            <Input
+              value={newFieldLabel}
+              onChange={(e) => setNewFieldLabel(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomField(); } }}
+              placeholder="Custom field name…"
+              className="h-8 text-xs flex-1"
+            />
+            <Button size="sm" variant="outline" onClick={addCustomField} className="gap-1.5 shrink-0">
+              <Plus className="w-3.5 h-3.5" /> Add Field
+            </Button>
           </div>
 
           <div className="flex justify-end pt-4">
