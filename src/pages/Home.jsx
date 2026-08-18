@@ -507,6 +507,7 @@ export default function Home() {
           onCreate={handleCreated}
           existingCustomers={allCustomerNames}
           defaultCustomer={newSheetDefaultCustomer}
+          existingSheets={sheets}
         />
       )}
 

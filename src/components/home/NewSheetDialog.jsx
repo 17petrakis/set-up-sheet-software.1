@@ -6,16 +6,29 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import ComboBox from "@/components/ui/ComboBox";
+import DuplicatePartDialog from "./DuplicatePartDialog";
 
-export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [], defaultCustomer = "" }) {
+export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [], defaultCustomer = "", existingSheets = [] }) {
   const [partNumber, setPartNumber] = useState("");
   const [machineType, setMachineType] = useState("milling");
   const [customer, setCustomer] = useState(defaultCustomer);
   const [saving, setSaving] = useState(false);
+  const [duplicateMatch, setDuplicateMatch] = useState(null);
 
   const handleCreate = async () => {
     if (!partNumber.trim()) return;
     setSaving(true);
+
+    // Check for existing sheets with the same part number (case-insensitive)
+    const matches = existingSheets.filter(
+      s => s.part_number?.toLowerCase() === partNumber.trim().toLowerCase()
+    );
+
+    if (matches.length > 0) {
+      setSaving(false);
+      setDuplicateMatch(matches);
+      return;
+    }
 
     if (customer.trim()) {
       const alreadyExists = existingCustomers.some(
@@ -113,6 +126,20 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
           </Button>
         </div>
       </div>
+
+      {duplicateMatch && (
+        <DuplicatePartDialog
+          partNumber={partNumber.trim()}
+          customer={customer}
+          machineType={machineType}
+          existingSheets={duplicateMatch}
+          onClose={() => setDuplicateMatch(null)}
+          onCreated={(sheet) => {
+            setDuplicateMatch(null);
+            onCreate(sheet);
+          }}
+        />
+      )}
     </div>
   );
 }
