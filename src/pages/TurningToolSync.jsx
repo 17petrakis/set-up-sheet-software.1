@@ -26,7 +26,8 @@ const isToolEmpty = (t) =>
   );
 
 const toolKey = (t) =>
-  [t.tool_type, t.diameter, t.flutes, t.holder, t.name, t.angle]
+  [t.tool_type, t.diameter, t.flutes, t.holder, t.name, t.angle,
+   t.rad, t.deg, t.width, t.pitch, t.reach, t.insert, t.direction, t.tool_number]
     .map((v) => (v || "").toString().trim().toLowerCase())
     .join("|");
 
@@ -98,8 +99,8 @@ export default function TurningToolSync() {
 
   // Add a single tool from sheet → machine (matching turret)
   const addToolToMachine = (sheetTool, turretType) => {
-    const key = toolKey(sheetTool);
-    if (addedKeys.has(key) || isToolInMachine(sheetTool, turretType)) return;
+    const addedKey = `${turretType}|${toolKey(sheetTool)}`;
+    if (addedKeys.has(addedKey) || isToolInMachine(sheetTool, turretType)) return;
 
     const next = cloneTurrets(machineTurrets);
     let mt = next.find(t => t.turret_type === turretType);
@@ -109,7 +110,7 @@ export default function TurningToolSync() {
     }
     mt.tools = [...(mt.tools || []), cleanTool(sheetTool)];
     setMachineTurrets(next);
-    setAddedKeys(prev => new Set(prev).add(key));
+    setAddedKeys(prev => new Set(prev).add(addedKey));
     saveMachine(next);
   };
 
@@ -130,7 +131,7 @@ export default function TurningToolSync() {
         if (!k || existingKeys.has(k)) continue;
         existingKeys.add(k);
         mt.tools = [...(mt.tools || []), cleanTool(st)];
-        newKeys.add(k);
+        newKeys.add(`${sheetTurret.turret_type}|${k}`);
       }
     }
     setMachineTurrets(next);
@@ -317,9 +318,6 @@ export default function TurningToolSync() {
             <h1 className="text-2xl font-bold font-heading text-foreground">Turret Tool Sync</h1>
             <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">{machineName}</span>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Tools are synced by turret type. {sheetToolCount} sheet tool(s) · {machineToolCount} machine tool(s).
-          </p>
         </div>
 
         <DragDropContext onDragEnd={onDragEnd}>
@@ -356,7 +354,7 @@ export default function TurningToolSync() {
                                 <p className="text-xs text-muted-foreground text-center py-4">No tools in this turret.</p>
                               ) : (
                                 tools.map((tool, i) => {
-                                  const inMachine = isToolInMachine(tool, turretType) || addedKeys.has(toolKey(tool));
+                                  const inMachine = isToolInMachine(tool, turretType) || addedKeys.has(`${turretType}|${toolKey(tool)}`);
                                   return (
                                     <Draggable key={`s-${turretType}-${i}`} draggableId={`s-${turretType}-${i}`} index={i}>
                                       {(prov) => (
