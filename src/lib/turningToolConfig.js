@@ -119,6 +119,7 @@ export const EXTRA_FIELD_DEFS = [
   { key: "part_number_desc", label: "Part #/Desc." },
   { key: "insert", label: "Insert" },
   { key: "note", label: "Note" },
+  { key: "coolant", label: "Coolant", type: "select", options: ["No Coolant", "From outside", "Thru collet", "Thru tool"] },
 ];
 
 // Fields visible by default in the expanded section
@@ -151,6 +152,7 @@ const EXTRA_LABELS = {
   part_number_desc: "Part #/Desc.",
   insert: "Insert",
   note: "Note",
+  coolant: "Coolant",
 };
 
 export function formatToolLine(tool) {
