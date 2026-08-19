@@ -171,6 +171,12 @@ export default function MachineToolSync() {
     saveSheet(next);
   };
 
+  const deleteSheetTool = (index) => {
+    const next = sheetTools.filter((_, i) => i !== index);
+    setSheetTools(next);
+    saveSheet(next);
+  };
+
   const dragMachineToSheet = (machineTool) => {
     addToolToSheet(machineTool);
     const targetSlot = parseInt(machineTool.tool_number, 10);
@@ -350,28 +356,37 @@ export default function MachineToolSync() {
                           return (
                             <Draggable key={`sheet-${i}`} draggableId={`sheet-${i}`} index={i}>
                               {(prov) => (
-                                <div
-                                  ref={prov.innerRef}
-                                  {...prov.draggableProps}
-                                  className="flex items-center gap-2 group"
-                                >
-                                  <div {...prov.dragHandleProps} className="flex items-center pb-1.5 cursor-grab active:cursor-grabbing">
-                                    <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
-                                  </div>
-                                  <div className="shrink-0 w-10 text-center text-xs font-mono font-semibold text-foreground">{tool.tool_number || "—"}</div>
-                                  <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/20 border-b border-border/30 last:border-b-0 flex-1 min-w-0">
-                                    {renderToolFields(tool)}
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant={inMachine ? "secondary" : "outline"}
-                                    disabled={inMachine}
-                                    onClick={() => addToolToMachine(tool)}
-                                    className="h-7 text-xs gap-1 shrink-0"
-                                  >
-                                    {inMachine ? <><Check className="w-3 h-3" /> Added</> : <><ArrowRight className="w-3 h-3" /> Add</>}
-                                  </Button>
-                                </div>
+                                <ContextMenu>
+                                  <ContextMenuTrigger asChild>
+                                    <div
+                                      ref={prov.innerRef}
+                                      {...prov.draggableProps}
+                                      className="flex items-center gap-2 group"
+                                    >
+                                      <div {...prov.dragHandleProps} className="flex items-center pb-1.5 cursor-grab active:cursor-grabbing">
+                                        <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground/70" />
+                                      </div>
+                                      <div className="shrink-0 w-10 text-center text-xs font-mono font-semibold text-foreground">{tool.tool_number || "—"}</div>
+                                      <div className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/20 border-b border-border/30 last:border-b-0 flex-1 min-w-0">
+                                        {renderToolFields(tool)}
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant={inMachine ? "secondary" : "outline"}
+                                        disabled={inMachine}
+                                        onClick={() => addToolToMachine(tool)}
+                                        className="h-7 text-xs gap-1 shrink-0"
+                                      >
+                                        {inMachine ? <><Check className="w-3 h-3" /> Added</> : <><ArrowRight className="w-3 h-3" /> Add</>}
+                                      </Button>
+                                    </div>
+                                  </ContextMenuTrigger>
+                                  <ContextMenuContent>
+                                    <ContextMenuItem onClick={() => deleteSheetTool(i)} className="gap-2 text-destructive">
+                                      <Trash2 className="w-3.5 h-3.5" /> Delete from Sheet
+                                    </ContextMenuItem>
+                                  </ContextMenuContent>
+                                </ContextMenu>
                               )}
                             </Draggable>
                           );
@@ -447,9 +462,6 @@ export default function MachineToolSync() {
                                   <ContextMenuContent>
                                     <ContextMenuItem onClick={() => addToolToSheet(tool)} className="gap-2">
                                       <ArrowLeft className="w-3.5 h-3.5" /> Add to Setup Sheet
-                                    </ContextMenuItem>
-                                    <ContextMenuItem onClick={() => dragMachineToSheet(tool)} className="gap-2">
-                                      <ArrowLeft className="w-3.5 h-3.5" /> Move to Setup Sheet
                                     </ContextMenuItem>
                                     <ContextMenuItem onClick={() => deleteMachineTool(slotIdx)} className="gap-2 text-destructive">
                                       <Trash2 className="w-3.5 h-3.5" /> Delete from Machine
