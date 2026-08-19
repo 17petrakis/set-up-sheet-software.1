@@ -105,7 +105,7 @@ export function migrateToolType(toolKind, oldType) {
 
 // Extra toggleable fields for the edit modal (matches screenshot)
 export const EXTRA_FIELD_DEFS = [
-  { key: "holder", label: "Holder" },
+  { key: "holder", label: "Holder", type: "select", options: ['ER25X1"', 'ER32X1"', 'ER16X3/4"', 'ER11X5/8"', "DA"] },
   { key: "direction", label: "Direction" },
   { key: "stickout", label: "Stickout (from holder)" },
   { key: "num_flutes", label: "#-Flt" },

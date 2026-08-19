@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import SectionHeader from "./SectionHeader";
 import { Wrench, Plus, ExternalLink } from "lucide-react";
 import TurretBlock from "@/components/turning-tools/TurretBlock";
-import { isKnownMachine, getTurretToolSlots } from "@/lib/machines";
+import { getTurretToolSlots } from "@/lib/machines";
 import {
   getProgramMode, getProgramKeys, getTurretTypeForProgram,
   getPreferredTurretOrder, getTurretOptionsForTurret,
@@ -17,7 +17,7 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
   const navigate = useNavigate();
 
   const handleViewMachineList = () => {
-    if (machine && isKnownMachine(machine) && sheetId) {
+    if (machine && sheetId) {
       navigate(`/turning-tool-sync/${sheetId}`);
     }
   };
@@ -81,7 +81,7 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List (Turret)">
           <div className="flex items-center gap-2">
-            {showSync && machine && isKnownMachine(machine) && sheetId && (
+            {showSync && machine && sheetId && (
               <Button type="button" size="sm" variant="outline" onClick={handleViewMachineList} className="h-8 text-xs gap-1.5">
                 <ExternalLink className="w-3.5 h-3.5" /> Machine Tool List
               </Button>

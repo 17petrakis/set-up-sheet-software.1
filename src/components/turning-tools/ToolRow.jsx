@@ -193,7 +193,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
                 {f.type === "select" ? (
                   <SmallSelect value={tool[f.key]} onChange={set(f.key)} options={f.options} />
                 ) : (
-                  <SmallInput value={tool[f.key]} onChange={set(f.key)} className="w-28" />
+                  <SmallInput value={tool[f.key]} onChange={set(f.key)} className={f.key === "stickout" ? "flex-1 min-w-[160px]" : "w-28"} />
                 )}
               </div>
             ))}
