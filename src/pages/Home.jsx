@@ -18,6 +18,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -32,6 +33,9 @@ export default function Home() {
   const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
   const [activeNav, setActiveNav] = useState("dashboard");
   const [customerSearch, setCustomerSearch] = useState("");
+  const [groupingMode, setGroupingMode] = useState("customer");
+  const [selectedMachine, setSelectedMachine] = useState(null);
+  const [machineTools, setMachineTools] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [openFolder, setOpenFolder] = useState(null); // { partNumber, customer }
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState(null);
@@ -71,12 +75,14 @@ export default function Home() {
 
   const load = async () => {
     setLoading(true);
-    const [data, customerData] = await Promise.all([
+    const [data, customerData, mtData] = await Promise.all([
       base44.entities.SetupSheet.list("-updated_date", PAGE_SIZE, 0),
       base44.entities.Customer.list("name", 200),
+      base44.entities.MachineTool.list("machine_name", 200),
     ]);
     setSheets(data);
     setCustomers(customerData);
+    setMachineTools(mtData);
     setLoading(false);
     if (isAdmin) {
      try {
@@ -145,6 +151,25 @@ export default function Home() {
   );
   const allCustomerNames = sortedCustomers.filter(c => c !== "No Customer");
 
+  // Build machine grouping for machine view
+  const machineGrouped = {};
+  for (const mt of machineTools) {
+    const name = mt.machine_name?.trim();
+    if (name && !machineGrouped[name]) machineGrouped[name] = [];
+  }
+  for (const folder of allFolders) {
+    for (const sheet of folder.sheets) {
+      const mach = sheet.machine?.trim();
+      if (mach) {
+        if (!machineGrouped[mach]) machineGrouped[mach] = [];
+        if (!machineGrouped[mach].some(f => f.key === folder.key)) {
+          machineGrouped[mach].push(folder);
+        }
+      }
+    }
+  }
+  const sortedMachines = Object.keys(machineGrouped).sort((a, b) => a.localeCompare(b));
+
   // Most recent 8 part folders (by latest updated sheet in each folder)
   const recentFolders = allFolders
     .map(f => ({ ...f, _last: Math.max(...f.sheets.map(s => new Date(s.updated_date || s.created_date || 0).getTime())) }))
@@ -167,6 +192,7 @@ export default function Home() {
   const switchNav = (nav) => {
     setActiveNav(nav);
     setSelectedCustomer(null);
+    setSelectedMachine(null);
     setOpenFolder(null);
     setCustomerSearch("");
     setSearch("");
@@ -314,6 +340,42 @@ export default function Home() {
                 });
               }}
             />
+          ) : selectedMachine ? (
+            /* Machine drill-down — shows part folders for selected machine */
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <button
+                  onClick={() => setSelectedMachine(null)}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
+                <Button
+                  onClick={() => setShowNewDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <FilePlus className="w-4 h-4" /> Add Setup Sheet
+                </Button>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-5">{selectedMachine}</h2>
+              {(machineGrouped[selectedMachine] || []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No sheets for this machine yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                  {(machineGrouped[selectedMachine] || []).map(folder => (
+                    <PartFolderCard
+                      key={folder.key}
+                      partNumber={folder.partNumber}
+                      customer={folder.customer}
+                      sheets={folder.sheets}
+                      onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ) : selectedCustomer ? (
             /* Customer drill-down (within dashboard) — shows part folders + delete customer */
             <div>
@@ -410,7 +472,9 @@ export default function Home() {
                   (() => {
                     const q = search.trim().toLowerCase();
                     const matches = allFolders.filter(f =>
-                      f.partNumber.toLowerCase().includes(q) || f.customer.toLowerCase().includes(q)
+                      f.partNumber.toLowerCase().includes(q) ||
+                      f.customer.toLowerCase().includes(q) ||
+                      f.sheets.some(s => (s.machine || "").toLowerCase().includes(q))
                     );
                     if (matches.length === 0) return <p className="text-sm text-muted-foreground">No parts found.</p>;
                     return (
@@ -444,56 +508,115 @@ export default function Home() {
                 )}
               </section>
 
-              {/* Customers — list of customer files */}
+              {/* Customers / Machines — toggle between customer and machine grouping */}
               <section>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">Customers</h2>
-                  <Button onClick={() => setShowAddCustomerDialog(true)} variant="outline" size="sm" className="gap-1.5">
-                    <Plus className="w-3.5 h-3.5" /> Add Customer
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
+                      {groupingMode === "customer" ? "Customers" : "Machines"}
+                    </h2>
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox
+                          checked={groupingMode === "customer"}
+                          onCheckedChange={() => { setGroupingMode("customer"); setSelectedMachine(null); }}
+                        />
+                        <span className="text-xs font-medium">Customer</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <Checkbox
+                          checked={groupingMode === "machine"}
+                          onCheckedChange={() => { setGroupingMode("machine"); setSelectedCustomer(null); }}
+                        />
+                        <span className="text-xs font-medium">Machine</span>
+                      </label>
+                    </div>
+                  </div>
+                  {groupingMode === "customer" && (
+                    <Button onClick={() => setShowAddCustomerDialog(true)} variant="outline" size="sm" className="gap-1.5">
+                      <Plus className="w-3.5 h-3.5" /> Add Customer
+                    </Button>
+                  )}
                 </div>
                 <div className="relative mb-4 md:mb-5">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     value={customerSearch}
                     onChange={e => setCustomerSearch(e.target.value)}
-                    placeholder="Search customers..."
+                    placeholder={groupingMode === "customer" ? "Search customers..." : "Search machines..."}
                     className="pl-9 h-10 text-sm bg-card border-border"
                   />
                 </div>
-                {loading ? (
-                  <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">Loading…</div>
-                ) : sortedCustomers.filter(c => c.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 ? (
-                  <p className="text-center py-12 text-muted-foreground text-sm">No customers found.</p>
+                {groupingMode === "customer" ? (
+                  loading ? (
+                    <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">Loading…</div>
+                  ) : sortedCustomers.filter(c => c.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 ? (
+                    <p className="text-center py-12 text-muted-foreground text-sm">No customers found.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {sortedCustomers
+                        .filter(c => c.toLowerCase().includes(customerSearch.toLowerCase()))
+                        .map(customer => {
+                          const folderCount = (grouped[customer] || []).length;
+                          return (
+                            <div key={customer} className="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
+                              <button
+                                onClick={() => setSelectedCustomer(customer)}
+                                className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                              >
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                                  <FolderOpen className="w-5 h-5 text-amber-500" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-sm text-foreground">{customer}</p>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <span className="text-sm text-muted-foreground">
+                                    {folderCount} {folderCount === 1 ? "part" : "parts"}
+                                  </span>
+                                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )
                 ) : (
-                  <div className="space-y-3">
-                    {sortedCustomers
-                      .filter(c => c.toLowerCase().includes(customerSearch.toLowerCase()))
-                      .map(customer => {
-                        const folderCount = (grouped[customer] || []).length;
-                        return (
-                          <div key={customer} className="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
-                            <button
-                              onClick={() => setSelectedCustomer(customer)}
-                              className="flex items-center gap-4 flex-1 min-w-0 text-left"
-                            >
-                              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                                <FolderOpen className="w-5 h-5 text-amber-500" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm text-foreground">{customer}</p>
-                              </div>
-                              <div className="flex items-center gap-3 shrink-0">
-                                <span className="text-sm text-muted-foreground">
-                                  {folderCount} {folderCount === 1 ? "part" : "parts"}
-                                </span>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                            </button>
-                          </div>
-                        );
-                      })}
-                  </div>
+                  loading ? (
+                    <div className="flex items-center justify-center py-10 text-muted-foreground text-sm">Loading…</div>
+                  ) : sortedMachines.filter(m => m.toLowerCase().includes(customerSearch.toLowerCase())).length === 0 ? (
+                    <p className="text-center py-12 text-muted-foreground text-sm">No machines found.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {sortedMachines
+                        .filter(m => m.toLowerCase().includes(customerSearch.toLowerCase()))
+                        .map(machine => {
+                          const folderCount = (machineGrouped[machine] || []).length;
+                          return (
+                            <div key={machine} className="flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 hover:shadow-md hover:border-primary/30 transition-all">
+                              <button
+                                onClick={() => setSelectedMachine(machine)}
+                                className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                              >
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                  <Wrench className="w-5 h-5 text-blue-500" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-sm text-foreground">{machine}</p>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <span className="text-sm text-muted-foreground">
+                                    {folderCount} {folderCount === 1 ? "part" : "parts"}
+                                  </span>
+                                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )
                 )}
               </section>
             </div>
