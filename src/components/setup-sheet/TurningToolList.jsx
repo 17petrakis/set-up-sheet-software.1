@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SectionHeader from "./SectionHeader";
-import { Wrench, Plus, ExternalLink } from "lucide-react";
+import { Wrench, Plus, ExternalLink, Upload } from "lucide-react";
 import TurretBlock from "@/components/turning-tools/TurretBlock";
 import { getTurretToolSlots } from "@/lib/machines";
+import { parseTurningToolExcel } from "@/lib/turningToolImport";
+import { useToast } from "@/components/ui/use-toast";
 import {
   getProgramMode, getProgramKeys, getTurretTypeForProgram,
   getPreferredTurretOrder, getTurretOptionsForTurret,
@@ -15,6 +17,46 @@ const MAX_TURRETS = 3;
 
 export default function TurningToolList({ tools, onChange, machine, showSync = true, sheetId, programNumbers, narrowTurretOptions = true }) {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const { toast } = useToast();
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const importedTools = await parseTurningToolExcel(file);
+      if (importedTools.length === 0) {
+        toast({ title: "No tools found", description: "No tools were found in the Excel file.", variant: "destructive" });
+        return;
+      }
+      let updatedTurrets = [...turrets];
+      if (updatedTurrets.length === 0) {
+        updatedTurrets = [{ turret_type: "", turn: "", tools: [] }];
+      }
+      updatedTurrets[0] = {
+        ...updatedTurrets[0],
+        tools: [...(updatedTurrets[0].tools || []), ...importedTools],
+      };
+      onChange({ ...tools, turrets: updatedTurrets });
+      toast({ title: "Import successful", description: `${importedTools.length} tool${importedTools.length !== 1 ? "s" : ""} imported.` });
+    } catch (err) {
+      toast({ title: "Import failed", description: err.message, variant: "destructive" });
+    }
+    e.target.value = "";
+  };
+
+  const handleMoveTool = (toTurretIdx, fromTurretIdx, toolIdx) => {
+    const newTurrets = turrets.map(t => ({ ...t, tools: [...(t.tools || [])] }));
+    const tool = newTurrets[fromTurretIdx].tools[toolIdx];
+    if (!tool) return;
+    newTurrets[fromTurretIdx].tools.splice(toolIdx, 1);
+    newTurrets[toTurretIdx].tools.push(tool);
+    setTurrets(newTurrets);
+  };
 
   const handleViewMachineList = () => {
     if (machine && sheetId) {
@@ -81,6 +123,10 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
       <CardContent className="pt-5 pb-5">
         <SectionHeader icon={Wrench} title="Tool List (Turret)">
           <div className="flex items-center gap-2">
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" />
+            <Button type="button" size="sm" variant="outline" onClick={handleImportClick} className="h-8 text-xs gap-1.5">
+              <Upload className="w-3.5 h-3.5" /> Import
+            </Button>
             {showSync && machine && sheetId && (
               <Button type="button" size="sm" variant="outline" onClick={handleViewMachineList} className="h-8 text-xs gap-1.5">
                 <ExternalLink className="w-3.5 h-3.5" /> Machine Tool List
@@ -107,6 +153,11 @@ export default function TurningToolList({ tools, onChange, machine, showSync = t
             onRemove={() => removeTurret(i)}
             turretOptions={narrowTurretOptions ? getTurretOptionsForTurret(programMode, turret.turret_type) : undefined}
             maxTools={getTurretToolSlots(machine, turret.turret_type)}
+            otherTurrets={turrets.map((t, idx) => ({
+              index: idx,
+              name: t.turret_type || `Turret ${idx + 1}`,
+            })).filter(t => t.index !== i)}
+            onMoveTool={handleMoveTool}
           />
         ))}
       </CardContent>

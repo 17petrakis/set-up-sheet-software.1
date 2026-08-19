@@ -6,12 +6,17 @@ export const TURN_TYPE_OPTIONS = [
   { label: "Taps", value: "Taps" },
   { label: "Thread", value: "Thread" },
   { label: "Profile", value: "Profile" },
+  { label: "Boring", value: "Boring" },
+  { label: "Reaming", value: "Reaming" },
+  { label: "Engraving", value: "Engraving" },
+  { label: "Manual", value: "Manual" },
 ];
 
 export const MILL_TYPE_OPTIONS = [
   { label: "Mill", value: "Mill" },
   { label: "Drill", value: "Drill" },
   { label: "Taps", value: "Taps" },
+  { label: "Engraving", value: "Engraving" },
 ];
 
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
@@ -35,6 +40,10 @@ export function getTypeFields(toolKind, typeValue) {
       case "Taps": return [
         { key: "dia", label: "Dia.", type: "input" },
         { key: "pitch", label: "Thread Lead", type: "input" },
+      ];
+      case "Engraving": return [
+        { key: "dia", label: "Dia.", type: "input" },
+        { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
       ];
       default: return [];
     }
@@ -64,6 +73,19 @@ export function getTypeFields(toolKind, typeValue) {
       { key: "rad", label: "Rad", type: "select", options: RAD_OPTIONS },
       { key: "reach", label: "Reach", type: "input" },
     ];
+    case "Boring": return [
+      { key: "dia", label: "Dia.", type: "input" },
+      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
+    ];
+    case "Reaming": return [
+      { key: "dia", label: "Dia.", type: "input" },
+      { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
+    ];
+    case "Engraving": return [
+      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
+      { key: "deg", label: "Tip Angle", type: "select", options: DEG_TURN_OPTIONS },
+    ];
+    case "Manual": return [];
     default: return [];
   }
 }
@@ -87,7 +109,7 @@ const OLD_TO_NEW = {
   "Mill – Thread Mills": "Mill",
   "Mill – Lollipop": "Mill",
   "Mill – T-Slot": "Mill",
-  "Mill – Engraving": "Mill",
+  "Mill – Engraving": "Engraving",
   "Mill Hole Making – Drill": "Drill",
   "Mill Hole Making – Spot Drill": "Drill",
   "Mill Hole Making – Countersink": "Drill",
@@ -95,7 +117,7 @@ const OLD_TO_NEW = {
   "Mill Hole Making – Bore": "Mill",
 };
 
-const NEW_TYPES = ["Turning", "Groove/Cutoff", "Drill", "Taps", "Thread", "Profile", "Mill"];
+const NEW_TYPES = ["Turning", "Groove/Cutoff", "Drill", "Taps", "Thread", "Profile", "Mill", "Boring", "Reaming", "Engraving", "Manual"];
 
 export function migrateToolType(toolKind, oldType) {
   if (!oldType) return "";

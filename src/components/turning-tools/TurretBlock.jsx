@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem,
+  ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import TurretDropdown from "./TurretDropdown";
 import ToolRow, { AddToolButton } from "./ToolRow";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions, maxTools }) {
+export default function TurretBlock({ turret, onChange, onRemove, index, turretOptions, maxTools, otherTurrets = [], onMoveTool }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const setField = (k, v) => onChange({ ...turret, [k]: v });
@@ -109,6 +110,16 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
                               <ContextMenuItem onClick={() => duplicateTool(i)} className="gap-2">
                                 <Copy className="w-3.5 h-3.5" /> Duplicate Tool
                               </ContextMenuItem>
+                              {otherTurrets.length > 0 && onMoveTool && (
+                                <>
+                                  <ContextMenuSeparator />
+                                  {otherTurrets.map(t => (
+                                    <ContextMenuItem key={t.index} onClick={() => onMoveTool(t.index, index, i)} className="gap-2">
+                                      Move to {t.name}
+                                    </ContextMenuItem>
+                                  ))}
+                                </>
+                              )}
                             </ContextMenuContent>
                           </ContextMenu>
                         </div>
