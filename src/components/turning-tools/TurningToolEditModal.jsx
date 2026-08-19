@@ -30,9 +30,16 @@ export default function TurningToolEditModal({ tool, onUpdate, onClose, typeValu
   const addCustomField = () => onUpdate({ ...tool, custom_fields: [...customFields, { key: "", value: "" }] });
   const removeCustomField = (i) => onUpdate({ ...tool, custom_fields: customFields.filter((_, idx) => idx !== i) });
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle>Edit Tool Fields {tool.tool_number ? `T${tool.tool_number}` : ""}</DialogTitle>
         </DialogHeader>

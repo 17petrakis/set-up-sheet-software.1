@@ -56,9 +56,16 @@ export default function ToolEditModal({ tool, onChange, onClose }) {
 
   const customFields = getCustomFields(tool);
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()} onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle>Edit Tool Fields {tool.tool_number ? `T${tool.tool_number}` : ""}</DialogTitle>
         </DialogHeader>
