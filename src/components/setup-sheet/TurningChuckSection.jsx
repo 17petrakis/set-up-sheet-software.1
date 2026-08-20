@@ -307,7 +307,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           </FieldWrap>
           <FieldWrap label="Spindle Accessories">
             <AccessoriesDropdown
-              value={localAccessories}
+              value={accessories}
               onChange={handleAccessoriesChange}
               spindleKey={spindleKey}
             />
@@ -319,7 +319,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
           <Input
             value={s.accessories_extra || ""}
             onChange={(e) => set("accessories_extra", e.target.value)}
-            placeholder={localAccessories === 'Work Stop' ? 'Work Stop Description' : 'Size'}
+            placeholder={accessories === 'Work Stop' ? 'Work Stop Description' : 'Size'}
             className="h-9 text-sm bg-card border-border font-medium"
           />
         )}
@@ -327,7 +327,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
 
 
         {/* Bar Feeder fields */}
-        {localAccessories === 'Bar Feeder' && (
+        {accessories === 'Bar Feeder' && (
           <BarFeederFields data={s} onChange={(updated) => onChange({ ...data, [spindleKey]: updated })} />
         )}
 
