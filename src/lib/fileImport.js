@@ -537,7 +537,8 @@ export function parseExcel(file) {
   });
 }
 
-// Search a Uint8Array for ALL PNG or JPEG image data by magic bytes.
+// Search a Uint8Array for ALL image data by magic bytes.
+// Detects PNG, JPEG, BMP, GIF, EMF, and WMF.
 // Catches images stored as standalone files AND images embedded inside
 // OLE containers (xl/embeddings/*.bin). Collects ALL matches so the
 // caller can pick the largest (the real image, not a tiny icon).
@@ -590,7 +591,93 @@ function findImagesInBytes(uint8) {
     i++;
   }
 
+  // Find ALL BMPs — "BM" signature, file size at offset +2 (4 bytes LE)
+  i = 0;
+  while (i <= len - 6) {
+    if (uint8[i] === 0x42 && uint8[i + 1] === 0x4D) {
+      const fileSize = uint8[i + 2] | (uint8[i + 3] << 8) | (uint8[i + 4] << 16) | (uint8[i + 5] << 24);
+      const end = fileSize > 0 && i + fileSize <= len ? i + fileSize : len;
+      results.push({ type: 'image/bmp', data: uint8.slice(i, end) });
+      i = end;
+      continue;
+    }
+    i++;
+  }
+
+  // Find ALL GIFs — "GIF87a" or "GIF89a", ends with 0x3B
+  i = 0;
+  while (i <= len - 6) {
+    if (uint8[i] === 0x47 && uint8[i + 1] === 0x49 && uint8[i + 2] === 0x46 &&
+        uint8[i + 3] === 0x38 && (uint8[i + 4] === 0x37 || uint8[i + 4] === 0x39) && uint8[i + 5] === 0x61) {
+      let end = len;
+      for (let j = i + 6; j < len; j++) {
+        if (uint8[j] === 0x3B) { end = j + 1; break; }
+      }
+      results.push({ type: 'image/gif', data: uint8.slice(i, end) });
+      i = end;
+      continue;
+    }
+    i++;
+  }
+
+  // Find ALL EMF — signature " EMF" (0x20 0x45 0x4D 0x46) at offset 40 from header start.
+  // File size (nBytes) is at offset 48 from header start = offset +8 from the signature.
+  i = 0;
+  while (i <= len - 44) {
+    if (uint8[i] === 0x20 && uint8[i + 1] === 0x45 && uint8[i + 2] === 0x4D && uint8[i + 3] === 0x46) {
+      const headerStart = i - 40;
+      if (headerStart >= 0) {
+        const nBytes = uint8[headerStart + 48] | (uint8[headerStart + 49] << 8) |
+                       (uint8[headerStart + 50] << 16) | (uint8[headerStart + 51] << 24);
+        const end = nBytes > 0 && headerStart + nBytes <= len ? headerStart + nBytes : len;
+        results.push({ type: 'image/emf', data: uint8.slice(headerStart, end) });
+        i = end;
+        continue;
+      }
+    }
+    i++;
+  }
+
+  // Find ALL placeable WMFs — key 0xD7CDC69A at offset 0
+  i = 0;
+  while (i <= len - 4) {
+    if (uint8[i] === 0xD7 && uint8[i + 1] === 0xCD && uint8[i + 2] === 0xC6 && uint8[i + 3] === 0x9A) {
+      results.push({ type: 'image/wmf', data: uint8.slice(i) });
+      i = len;
+      continue;
+    }
+    i++;
+  }
+
   return results;
+}
+
+// Try to render an image blob (EMF/WMF) via the browser's native decoder,
+// then rasterize to a PNG data URL via canvas. Falls back to null if the
+// browser can't decode the format (e.g. EMF on most non-Windows browsers).
+function tryConvertToPng(data, mimeType) {
+  return new Promise((resolve) => {
+    const blob = new Blob([data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    let settled = false;
+    const cleanup = () => { URL.revokeObjectURL(url); };
+    img.onload = () => {
+      if (settled) return;
+      settled = true;
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || 800;
+      canvas.height = img.naturalHeight || 600;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      cleanup();
+      try { resolve(canvas.toDataURL('image/png')); }
+      catch (e) { resolve(null); }
+    };
+    img.onerror = () => { if (settled) return; settled = true; cleanup(); resolve(null); };
+    img.src = url;
+    setTimeout(() => { if (settled) return; settled = true; cleanup(); resolve(null); }, 4000);
+  });
 }
 
 function uint8ToBase64(uint8) {
@@ -604,18 +691,11 @@ function uint8ToBase64(uint8) {
 
 export async function extractExcelImage(file) {
   try {
-    const XLSX = window.XLSX;
-    if (!XLSX) return { labelFound: false, dataUrl: null };
-
-    // Clone the buffer — XLSX.read may detach/transfer the original
     const arrayBuffer = await file.arrayBuffer();
-    const xlsxBuffer = arrayBuffer.slice(0);
-
-    // Load zip and search ALL files for embedded image data by magic bytes
-    // This catches standalone PNGs AND PNGs wrapped inside OLE containers (.bin files)
-    // Per user: there should only be 1 image total on the entire file, so just grab it.
     const zip = await JSZip.loadAsync(arrayBuffer);
     const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
+
+    console.log("[extractExcelImage] Files in zip:", allFiles);
 
     let bestImage = null;
     let bestSize = 0;
@@ -624,6 +704,7 @@ export async function extractExcelImage(file) {
       const uint8 = await zip.files[f].async('uint8array');
       const images = findImagesInBytes(uint8);
       for (const img of images) {
+        console.log(`[extractExcelImage] Found ${img.type} in ${f}, size: ${img.data.length}`);
         if (img.data.length > bestSize) {
           bestSize = img.data.length;
           bestImage = img;
@@ -632,12 +713,25 @@ export async function extractExcelImage(file) {
     }
 
     if (!bestImage) {
-      console.log("[extractExcelImage] No extractable image found (may be EMF/unsupported format)");
+      console.log("[extractExcelImage] No image found in any file");
+      return { labelFound: false, dataUrl: null };
+    }
+
+    console.log("[extractExcelImage] Best image, type:", bestImage.type, "size:", bestSize);
+
+    // For EMF/WMF, try to convert to PNG via the browser's native decoder + canvas
+    if (bestImage.type === 'image/emf' || bestImage.type === 'image/wmf') {
+      console.log("[extractExcelImage] Attempting EMF/WMF → PNG conversion");
+      const pngDataUrl = await tryConvertToPng(bestImage.data, bestImage.type);
+      if (pngDataUrl) {
+        console.log("[extractExcelImage] Successfully converted to PNG");
+        return { labelFound: true, dataUrl: pngDataUrl };
+      }
+      console.log("[extractExcelImage] Browser could not render EMF/WMF — skipping");
       return { labelFound: false, dataUrl: null };
     }
 
     const base64 = uint8ToBase64(bestImage.data);
-    console.log("[extractExcelImage] Extracted image, type:", bestImage.type, "size:", bestSize);
     return { labelFound: true, dataUrl: `data:${bestImage.type};base64,${base64}` };
   } catch (e) {
     console.error("[extractExcelImage] Error:", e);
