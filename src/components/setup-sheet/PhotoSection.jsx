@@ -1,12 +1,12 @@
 import React, { useState, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
-import { migratePhotoSlots, DEFAULT_CATEGORIES } from "@/lib/photoSlots";
+import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   const [title, setTitle] = useState("");
@@ -39,7 +39,7 @@ function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   );
 }
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, isIconImage = false, onToggleIcon }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
@@ -91,6 +91,17 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
           </span>
         )}
         <div className="flex items-center gap-2">
+          {url && !readOnly && (
+            <button
+              onClick={onToggleIcon}
+              className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
+                isIconImage ? "text-amber-600 bg-amber-50" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Star className="w-3 h-3" />
+              {isIconImage ? "Remove As Icon Image" : "Make Icon Image"}
+            </button>
+          )}
           {url && !readOnly && (
             <button
               onClick={() => setShowNote((v) => !v)}
@@ -209,7 +220,11 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   const [uploading, setUploading] = useState(false);
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
 
-  const updateSlots = (newSlots) => onChange({ __slots: newSlots });
+  const updateSlots = (newSlots) => onChange({
+    __slots: newSlots,
+    ...(photos.__icon_slot_id ? { __icon_slot_id: photos.__icon_slot_id } : {}),
+    ...(photos.__icon_cleared ? { __icon_cleared: true } : {}),
+  });
 
   const handleFileSelect = (category) => {
     setPendingCategory(category);
@@ -255,7 +270,12 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   };
 
   const handleSlotRemove = (id) => {
-    updateSlots(slots.filter(s => s.id !== id));
+    const newSlots = slots.filter(s => s.id !== id);
+    if (iconSlotId === id) {
+      onChange({ __slots: newSlots, __icon_slot_id: undefined, __icon_cleared: true });
+    } else {
+      updateSlots(newSlots);
+    }
   };
 
   const handleSlotNoteChange = (id, note) => {
@@ -264,6 +284,18 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
 
   const handleSlotLabelChange = (id, newLabel) => {
     updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
+  };
+
+  const iconSlotId = getEffectiveIconSlotId(photos);
+
+  const handleToggleIcon = (id) => {
+    if (iconSlotId === id) {
+      // Removing the current icon — clear it and suppress auto-selection
+      onChange({ ...photos, __icon_slot_id: undefined, __icon_cleared: true });
+    } else {
+      // Setting a new explicit icon
+      onChange({ ...photos, __icon_slot_id: id, __icon_cleared: false });
+    }
   };
 
   return (
@@ -330,6 +362,8 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
             onLabelChange={(newLabel) => handleSlotLabelChange(slot.id, newLabel)}
             large={slot.category === "work_holding"}
             readOnly={readOnly}
+            isIconImage={iconSlotId === slot.id}
+            onToggleIcon={() => handleToggleIcon(slot.id)}
           />
         ))}
       </div>

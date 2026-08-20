@@ -118,6 +118,10 @@
       "type": "string",
       "description": "Cycle time in hours (milling)"
     },
+    "cycle_time_notes": {
+      "type": "string",
+      "description": "Notes related to cycle time (milling)"
+    },
     "handling_time": {
       "type": "string",
       "description": "Handling time including material inspection (turning)"

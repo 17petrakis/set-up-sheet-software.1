@@ -253,6 +253,16 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               placeholder="Auto-calculated"
             />
           </div>
+          <div className="sm:col-span-3">
+            <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
+              Cycle Time Notes
+            </Label>
+            <AutoResizeTextarea
+              value={data.cycle_time_notes || ""}
+              onChange={(e) => update("cycle_time_notes")(e.target.value)}
+              className="min-h-[36px] text-sm bg-card border-border font-medium"
+            />
+          </div>
         </div>
 
         {/* Stops */}
