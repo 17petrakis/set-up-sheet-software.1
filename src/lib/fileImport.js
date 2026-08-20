@@ -752,17 +752,55 @@ const EXT_TO_MIME = {
   emf: 'image/emf', wmf: 'image/wmf',
 };
 
-export async function extractExcelImage(file) {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(arrayBuffer);
-    const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
+// Process a list of image candidates, sorted largest-first.
+// Returns { labelFound, dataUrl } for the first one that renders, or null.
+async function processCandidates(candidates) {
+  if (candidates.length === 0) return null;
 
-    // Collect all candidate images from the zip
+  candidates.sort((a, b) => b.size - a.size);
+
+  for (const candidate of candidates) {
+    // For PNG/JPEG/GIF/BMP/WEBP — return as base64 data URL directly (fast path)
+    if (['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'].includes(candidate.mimeType)) {
+      const base64 = uint8ToBase64(candidate.data);
+      return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
+    }
+
+    // For SVG — return as base64 directly
+    if (candidate.mimeType === 'image/svg+xml') {
+      const base64 = uint8ToBase64(candidate.data);
+      return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
+    }
+
+    // For EMF/WMF — browser can't render these natively.
+    // Try extracting embedded DIB (raw bitmap) data from the EMF and converting to BMP.
+    if (candidate.mimeType === 'image/emf' || candidate.mimeType === 'image/wmf') {
+      const dib = extractBitmapFromEmf(candidate.data);
+      if (dib) {
+        const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
+        if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+      }
+      continue;
+    }
+
+    // For TIFF and other formats — try the browser's native decoder
+    const pngDataUrl = await tryConvertToPng(candidate.data, candidate.mimeType);
+    if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+  }
+
+  return null;
+}
+
+export async function extractExcelImage(file) {
+  const arrayBuffer = await file.arrayBuffer();
+
+  // ── Strategy 1: Parse as .xlsx (zip) and look for image files ──
+  try {
+    const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
+    const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
     const candidates = [];
 
-    // Strategy 1: Look in xl/media/ (and xl/embeddings/) for image files by extension.
-    // This is the standard location for images in .xlsx files and is the most reliable.
+    // 1a: Look in xl/media/ etc. for image files by extension
     const mediaFiles = allFiles.filter(f => IMAGE_EXTENSIONS.test(f));
     for (const f of mediaFiles) {
       const ext = f.toLowerCase().match(/\.([a-z]+)$/)?.[1] || '';
@@ -775,61 +813,45 @@ export async function extractExcelImage(file) {
       });
     }
 
-    // Strategy 2: Scan ALL files for embedded image data by magic bytes.
-    // Catches images embedded inside OLE containers (.bin) or other binary blobs.
+    // 1b: Scan ALL files for embedded image data by magic bytes
     for (const f of allFiles) {
-      if (IMAGE_EXTENSIONS.test(f)) continue; // already processed by extension
+      if (IMAGE_EXTENSIONS.test(f)) continue;
       const uint8 = await zip.files[f].async('uint8array');
       const images = findImagesInBytes(uint8);
       for (const img of images) {
-        candidates.push({
-          file: f,
-          data: img.data,
-          mimeType: img.type,
-          size: img.data.length,
-        });
+        candidates.push({ file: f, data: img.data, mimeType: img.type, size: img.data.length });
       }
     }
 
-    if (candidates.length === 0) return { labelFound: false, dataUrl: null };
-
-    // Sort largest first — the real ISO image is typically the largest
-    candidates.sort((a, b) => b.size - a.size);
-
-    // Try each candidate until one renders successfully
-    for (const candidate of candidates) {
-      // For PNG/JPEG/GIF/BMP/WEBP — return as base64 data URL directly (fast path)
-      if (['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'].includes(candidate.mimeType)) {
-        const base64 = uint8ToBase64(candidate.data);
-        return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
-      }
-
-      // For SVG — return as base64 directly
-      if (candidate.mimeType === 'image/svg+xml') {
-        const base64 = uint8ToBase64(candidate.data);
-        return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
-      }
-
-      // For EMF/WMF — browser can't render these natively.
-      // Try extracting embedded DIB (raw bitmap) data from the EMF and converting to BMP.
-      if (candidate.mimeType === 'image/emf' || candidate.mimeType === 'image/wmf') {
-        const dib = extractBitmapFromEmf(candidate.data);
-        if (dib) {
-          const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
-          if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
-        }
-        // Fall through to try other candidates
-        continue;
-      }
-
-      // For TIFF and other formats — try the browser's native decoder
-      const pngDataUrl = await tryConvertToPng(candidate.data, candidate.mimeType);
-      if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
-    }
-
-    return { labelFound: false, dataUrl: null };
+    const result = await processCandidates(candidates);
+    if (result) return result;
   } catch (e) {
-    console.error("[extractExcelImage] Error:", e);
+    // Not a zip / JSZip failed — fall through to raw scan below
   }
+
+  // ── Strategy 2: Scan the raw file bytes directly ──
+  // Handles .xls (OLE2 binary) files, .xlsx files where the image is in an
+  // unexpected location, or any other format where the zip parse failed.
+  const rawBytes = new Uint8Array(arrayBuffer);
+
+  // 2a: Scan for image magic bytes (PNG, JPEG, BMP, GIF, EMF, WMF)
+  const rawCandidates = findImagesInBytes(rawBytes).map(img => ({
+    file: '<raw>',
+    data: img.data,
+    mimeType: img.type,
+    size: img.data.length,
+  }));
+
+  const rawResult = await processCandidates(rawCandidates);
+  if (rawResult) return rawResult;
+
+  // 2b: Scan for embedded DIB (BITMAPINFOHEADER) structures that the magic
+  // byte scanner doesn't catch (raw bitmap data without a file header)
+  const dib = extractBitmapFromEmf(rawBytes);
+  if (dib) {
+    const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
+    if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+  }
+
   return { labelFound: false, dataUrl: null };
 }
