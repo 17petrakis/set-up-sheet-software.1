@@ -793,18 +793,22 @@ async function processCandidates(candidates) {
 
 export async function extractExcelImage(file) {
   const arrayBuffer = await file.arrayBuffer();
+  console.log("[extractExcelImage] File:", file.name, "size:", file.size, "type:", file.type);
 
   // ── Strategy 1: Parse as .xlsx (zip) and look for image files ──
   try {
     const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
     const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
+    console.log("[extractExcelImage] Zip parsed. Files:", allFiles.length, allFiles.slice(0, 30));
     const candidates = [];
 
     // 1a: Look in xl/media/ etc. for image files by extension
     const mediaFiles = allFiles.filter(f => IMAGE_EXTENSIONS.test(f));
+    console.log("[extractExcelImage] Media files by extension:", mediaFiles);
     for (const f of mediaFiles) {
       const ext = f.toLowerCase().match(/\.([a-z]+)$/)?.[1] || '';
       const uint8 = await zip.files[f].async('uint8array');
+      console.log(`[extractExcelImage]   ${f} (${ext}) → ${uint8.length} bytes`);
       candidates.push({
         file: f,
         data: uint8,
@@ -818,24 +822,31 @@ export async function extractExcelImage(file) {
       if (IMAGE_EXTENSIONS.test(f)) continue;
       const uint8 = await zip.files[f].async('uint8array');
       const images = findImagesInBytes(uint8);
+      if (images.length) console.log(`[extractExcelImage]   Magic bytes in ${f}:`, images.map(i => `${i.type}(${i.data.length})`));
       for (const img of images) {
         candidates.push({ file: f, data: img.data, mimeType: img.type, size: img.data.length });
       }
     }
 
+    console.log("[extractExcelImage] Total candidates from zip:", candidates.length);
     const result = await processCandidates(candidates);
-    if (result) return result;
+    if (result) {
+      console.log("[extractExcelImage] ✓ Extracted from zip, dataUrl length:", result.dataUrl?.length);
+      return result;
+    }
+    console.log("[extractExcelImage] No image rendered from zip candidates");
   } catch (e) {
-    // Not a zip / JSZip failed — fall through to raw scan below
+    console.log("[extractExcelImage] Zip parse failed (probably .xls not .xlsx):", e.message);
   }
 
   // ── Strategy 2: Scan the raw file bytes directly ──
-  // Handles .xls (OLE2 binary) files, .xlsx files where the image is in an
-  // unexpected location, or any other format where the zip parse failed.
   const rawBytes = new Uint8Array(arrayBuffer);
+  console.log("[extractExcelImage] Scanning raw bytes, length:", rawBytes.length);
 
   // 2a: Scan for image magic bytes (PNG, JPEG, BMP, GIF, EMF, WMF)
-  const rawCandidates = findImagesInBytes(rawBytes).map(img => ({
+  const rawImages = findImagesInBytes(rawBytes);
+  console.log("[extractExcelImage] Raw magic-byte matches:", rawImages.map(i => `${i.type}(${i.data.length})`));
+  const rawCandidates = rawImages.map(img => ({
     file: '<raw>',
     data: img.data,
     mimeType: img.type,
@@ -843,15 +854,23 @@ export async function extractExcelImage(file) {
   }));
 
   const rawResult = await processCandidates(rawCandidates);
-  if (rawResult) return rawResult;
-
-  // 2b: Scan for embedded DIB (BITMAPINFOHEADER) structures that the magic
-  // byte scanner doesn't catch (raw bitmap data without a file header)
-  const dib = extractBitmapFromEmf(rawBytes);
-  if (dib) {
-    const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
-    if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+  if (rawResult) {
+    console.log("[extractExcelImage] ✓ Extracted from raw bytes, dataUrl length:", rawResult.dataUrl?.length);
+    return rawResult;
   }
 
+  // 2b: Scan for embedded DIB (BITMAPINFOHEADER) structures
+  const dib = extractBitmapFromEmf(rawBytes);
+  console.log("[extractExcelImage] DIB extracted from raw:", dib ? `${dib.length} bytes` : "none");
+  if (dib) {
+    const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
+    if (pngDataUrl) {
+      console.log("[extractExcelImage] ✓ Extracted from DIB, dataUrl length:", pngDataUrl.length);
+      return { labelFound: true, dataUrl: pngDataUrl };
+    }
+    console.log("[extractExcelImage] DIB found but browser couldn't render it");
+  }
+
+  console.log("[extractExcelImage] ✗ No image could be extracted");
   return { labelFound: false, dataUrl: null };
 }
