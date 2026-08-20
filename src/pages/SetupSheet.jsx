@@ -392,12 +392,18 @@ export default function SetupSheet() {
 
       let isoUrl = null;
       if (isoResult?.dataUrl) {
+        console.log("[import] Image extracted, dataUrl length:", isoResult.dataUrl.length);
         const blob = await (await fetch(isoResult.dataUrl)).blob();
+        console.log("[import] Blob created, size:", blob.size, "type:", blob.type);
         const uploadResult = await base44.integrations.Core.UploadFile({ file: new File([blob], 'iso.png', { type: 'image/png' }) });
         isoUrl = uploadResult.file_url;
+        console.log("[import] Uploaded, isoUrl:", isoUrl);
+      } else {
+        console.log("[import] No image extracted from file");
       }
 
       const newPhotos = isoUrl ? { ...photos, iso: isoUrl } : photos;
+      console.log("[import] newPhotos:", JSON.stringify(newPhotos));
 
       handleGeneralReplace(newGen);
       handleToolsChange(newTools);
