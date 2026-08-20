@@ -51,25 +51,17 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
   };
 
   const handleAddOperation = async (opName) => {
-    const base = folder.sheets[0] || {};
+    const sortedSheets = [...(folder.sheets || [])].sort((a, b) => getSortKey(a) - getSortKey(b));
+    const base = sortedSheets[sortedSheets.length - 1] || {};
     const folderId = base.folder_id || `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const { id, created_date, updated_date, created_by_id, ...rest } = base;
     const sheet = await base44.entities.CMMSheet.create({
+      ...rest,
       part_number: folder.partNumber,
       customer: folder.customer,
       folder_id: folderId,
       description: opName,
       sort_order: Date.now(),
-      machine: base.machine,
-      material: base.material,
-      units: base.units || "in",
-      program_number: base.program_number,
-      program_location: base.program_location,
-      cycle_time: base.cycle_time,
-      fixturing: [],
-      work_placement: [],
-      work_holding: [{ _id: "first", note: "", photo_url: "" }],
-      important_notes: [],
-      program_notes: "",
     });
     navigate(`/cmm-sheet/${sheet.id}`);
   };
@@ -134,9 +126,15 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
                         </>
                       )}
                       <div className="flex items-start gap-3 mb-2">
-                        <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                          <ClipboardList className="w-4 h-4 text-emerald-600" />
-                        </div>
+                        {sheet.work_holding?.[0]?.photo_url ? (
+                          <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-muted">
+                            <img src={sheet.work_holding[0].photo_url} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                            <ClipboardList className="w-4 h-4 text-emerald-600" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm text-foreground">{sheet.part_number}</p>
                           {sheet.description && <p className="text-xs text-muted-foreground mt-0.5 truncate italic">{sheet.description}</p>}

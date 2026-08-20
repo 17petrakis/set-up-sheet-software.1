@@ -266,23 +266,12 @@ export default function CMMSheet() {
           onAdd={async (opName) => {
             const siblings = await base44.entities.CMMSheet.filter({ folder_id: sheet.folder_id });
             const nextOp = siblings.reduce((m, s) => Math.max(m, s.operation_number || 1), 0) + 1;
+            const { id: _id, created_date, updated_date, created_by_id, ...rest } = sheet;
             const newSheet = await base44.entities.CMMSheet.create({
-              part_number: sheet.part_number,
-              customer: sheet.customer,
-              folder_id: sheet.folder_id,
+              ...rest,
               description: opName,
               operation_number: nextOp,
-              machine: sheet.machine,
-              material: sheet.material,
-              units: sheet.units,
-              program_number: sheet.program_number,
-              program_location: sheet.program_location,
-              cycle_time: sheet.cycle_time,
-              fixturing: [],
-              work_placement: [],
-              work_holding: [{ _id: "first", note: "", photo_url: "" }],
-              important_notes: [],
-              program_notes: "",
+              sort_order: Date.now(),
             });
             setShowAddOp(false);
             navigate(`/cmm-sheet/${newSheet.id}`);
