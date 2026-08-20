@@ -371,13 +371,8 @@ export default function SetupSheet() {
     if (!file) return;
     setImporting(true);
     setImportError(null);
-    console.log("[import] === Import started, new code running ===", file.name);
     try {
-      const [result, isoResult] = await Promise.all([
-        parseExcel(file).catch(err => { console.error("[import] parseExcel FAILED:", err); throw err; }),
-        extractExcelImage(file)
-      ]);
-      console.log("[import] Promise.all resolved");
+      const [result, isoResult] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
@@ -397,18 +392,14 @@ export default function SetupSheet() {
 
       let isoUrl = null;
       if (isoResult?.dataUrl) {
-        console.log("[import] Image extracted, dataUrl length:", isoResult.dataUrl.length);
         const blob = await (await fetch(isoResult.dataUrl)).blob();
-        console.log("[import] Blob created, size:", blob.size, "type:", blob.type);
         const uploadResult = await base44.integrations.Core.UploadFile({ file: new File([blob], 'iso.png', { type: 'image/png' }) });
         isoUrl = uploadResult.file_url;
-        console.log("[import] Uploaded, isoUrl:", isoUrl);
-      } else {
-        console.log("[import] No image extracted from file");
       }
 
-      const newPhotos = isoUrl ? { ...photos, iso: isoUrl } : photos;
-      console.log("[import] newPhotos:", JSON.stringify(newPhotos));
+      const newPhotos = isoUrl
+        ? { ...photos, __slots: [...(photos.__slots || []), { id: "iso", category: "iso", label: "ISO View Photo", url: isoUrl, note: "" }] }
+        : photos;
 
       handleGeneralReplace(newGen);
       handleToolsChange(newTools);
