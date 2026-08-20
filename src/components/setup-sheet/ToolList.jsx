@@ -130,7 +130,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                             </div>
 
                             {/* Dynamic fields */}
-                            {getAllFields(tool).filter(f => f.key !== "tool_type" && f.key !== "name" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
+                            {getAllFields(tool).filter(f => f.key !== "tool_type" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
                               const options = getFieldOptions(f.key, tool.tool_type);
                               const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
