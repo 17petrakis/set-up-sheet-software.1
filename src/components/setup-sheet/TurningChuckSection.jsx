@@ -179,8 +179,7 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
 
   const handleAccessoriesChange = (val) => {
     setLocalAccessories(val);
-    set("accessories", val);
-    set("accessories_extra", "");
+    onChange({ ...data, [spindleKey]: { ...s, accessories: val, accessories_extra: "" } });
   };
 
   const needsExtra = localAccessories.startsWith('Liner') || localAccessories === 'Work Stop';
