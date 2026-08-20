@@ -3,9 +3,9 @@ import React from "react";
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="text-xs min-w-0 break-words">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{label}:</span>{" "}
-      <span className="text-gray-900">{value}</span>
+    <div className="min-w-0">
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider leading-tight">{label}</p>
+      <p className="text-sm text-gray-900 break-words mt-0.5">{value}</p>
     </div>
   );
 }
@@ -39,10 +39,10 @@ function SpindleView({ label, spindle }) {
   if (rows.length === 0 && !s.notes && !(s.photos?.length > 0)) return null;
 
   return (
-    <div className="border border-gray-200 rounded p-2 bg-white">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{label}</p>
+    <div className="border border-gray-200 rounded-lg p-3 bg-white">
+      <p className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2.5 pb-2 border-b border-gray-100">{label}</p>
       {rows.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3">
           {rows.map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
         </div>
       )}
