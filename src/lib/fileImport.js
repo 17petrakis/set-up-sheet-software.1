@@ -542,8 +542,9 @@ export function parseExcel(file) {
 // StretchDIBits record containing a BITMAPINFOHEADER + color table + pixel data.
 // Browsers cannot natively render EMF, so we extract the embedded bitmap and
 // reconstruct a proper BMP file that the browser CAN decode.
-function extractBitmapFromEmf(uint8) {
+function findAllDibs(uint8) {
   const len = uint8.length;
+  const dibs = [];
   // Scan for BITMAPINFOHEADER structures. biSize is a 4-byte LE int at the start:
   // 40 = BITMAPINFOHEADER, 108 = BITMAPV4HEADER, 124 = BITMAPV5HEADER
   for (let i = 0; i <= len - 40; i++) {
@@ -586,9 +587,11 @@ function extractBitmapFromEmf(uint8) {
     bmp[12] = (pixelOffset >> 16) & 0xFF;
     bmp[13] = (pixelOffset >> 24) & 0xFF;
     bmp.set(uint8.subarray(i, i + totalDibSize), 14);
-    return bmp;
+    dibs.push(bmp);
+    // Skip past this DIB to avoid overlapping matches
+    i += totalDibSize - 1;
   }
-  return null;
+  return dibs;
 }
 
 // Search a Uint8Array for ALL image data by magic bytes.
@@ -706,34 +709,37 @@ function findImagesInBytes(uint8) {
   return results;
 }
 
-// Check if a canvas image is blank (all-white, all-transparent, or a single
-// uniform color). Samples a grid of pixels for efficiency. Returns true if
-// the image has no meaningful visible content.
+// Check if a canvas image is blank (all-white, all-transparent, or nearly
+// uniform noise). Samples a grid of pixels for efficiency. Returns true if
+// the image has no meaningful visible content — defined as fewer than 3% of
+// sampled pixels differing from the dominant color.
 function isImageBlank(ctx, width, height) {
+  // ctx is already created with willReadFrequently: true
   if (width <= 0 || height <= 0) return true;
-  const stepX = Math.max(1, Math.floor(width / 50));
-  const stepY = Math.max(1, Math.floor(height / 50));
-  let firstR = -1, firstG = -1, firstB = -1, firstA = -1;
-  let hasContent = false;
+  const stepX = Math.max(1, Math.floor(width / 100));
+  const stepY = Math.max(1, Math.floor(height / 100));
+  let firstR = -1, firstG = -1, firstB = -1;
+  let totalSamples = 0;
+  let variedSamples = 0;
   for (let y = 0; y < height; y += stepY) {
     for (let x = 0; x < width; x += stepX) {
       const pixel = ctx.getImageData(x, y, 1, 1).data;
       const r = pixel[0], g = pixel[1], b = pixel[2], a = pixel[3];
       // Skip fully transparent pixels
       if (a < 10) continue;
+      totalSamples++;
       if (firstR === -1) {
-        firstR = r; firstG = g; firstB = b; firstA = a;
-        hasContent = true;
+        firstR = r; firstG = g; firstB = b;
       } else {
-        // If any sampled pixel differs significantly from the first, it's not blank
         if (Math.abs(r - firstR) > 15 || Math.abs(g - firstG) > 15 || Math.abs(b - firstB) > 15) {
-          return false;
+          variedSamples++;
         }
       }
     }
   }
-  // "Blank" if all visible pixels are the same uniform color (e.g. all white)
-  return hasContent;
+  if (totalSamples === 0) return true; // all transparent
+  // Real images have at least 3% of pixels differing from the background
+  return variedSamples / totalSamples < 0.03;
 }
 
 // Try to render an image blob via the browser's native decoder, rasterize to
@@ -752,7 +758,7 @@ function tryConvertToPng(data, mimeType) {
       const canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth || 800;
       canvas.height = img.naturalHeight || 600;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(img, 0, 0);
       cleanup();
       if (isImageBlank(ctx, canvas.width, canvas.height)) {
@@ -797,8 +803,8 @@ async function processCandidates(candidates) {
     // For EMF/WMF — browser can't render these natively.
     // Try extracting embedded DIB (raw bitmap) data from the EMF and converting to BMP.
     if (candidate.mimeType === 'image/emf' || candidate.mimeType === 'image/wmf') {
-      const dib = extractBitmapFromEmf(candidate.data);
-      if (dib) {
+      const dibs = findAllDibs(candidate.data);
+      for (const dib of dibs) {
         const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
         if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
       }
@@ -877,22 +883,18 @@ export async function extractExcelImage(file) {
     size: img.data.length,
   }));
 
+  // 2b: Also scan for embedded DIB (BITMAPINFOHEADER) structures — these are the
+  // actual bitmaps inside EMF records and are more reliable than "BM" magic bytes.
+  const dibs = findAllDibs(rawBytes);
+  console.log("[extractExcelImage] DIB matches:", dibs.length, dibs.map(d => `${d.length}`));
+  for (const dib of dibs) {
+    rawCandidates.push({ file: '<dib>', data: dib, mimeType: 'image/bmp', size: dib.length });
+  }
+
   const rawResult = await processCandidates(rawCandidates);
   if (rawResult) {
     console.log("[extractExcelImage] ✓ Extracted from raw bytes, dataUrl length:", rawResult.dataUrl?.length);
     return rawResult;
-  }
-
-  // 2b: Scan for embedded DIB (BITMAPINFOHEADER) structures
-  const dib = extractBitmapFromEmf(rawBytes);
-  console.log("[extractExcelImage] DIB extracted from raw:", dib ? `${dib.length} bytes` : "none");
-  if (dib) {
-    const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
-    if (pngDataUrl) {
-      console.log("[extractExcelImage] ✓ Extracted from DIB, dataUrl length:", pngDataUrl.length);
-      return { labelFound: true, dataUrl: pngDataUrl };
-    }
-    console.log("[extractExcelImage] DIB found but browser couldn't render it");
   }
 
   console.log("[extractExcelImage] ✗ No image could be extracted");
