@@ -8,16 +8,46 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 import ComboBox from "@/components/ui/ComboBox";
 import DuplicatePartDialog from "./DuplicatePartDialog";
 
-export default function NewSheetDialog({ onClose, onCreate, existingCustomers = [], defaultCustomer = "", existingSheets = [] }) {
+export default function NewSheetDialog({ onClose, onCreate, onCreateCMM, existingCustomers = [], defaultCustomer = "", existingSheets = [], allowCMM = false }) {
   const [partNumber, setPartNumber] = useState("");
   const [machineType, setMachineType] = useState("milling");
   const [customer, setCustomer] = useState(defaultCustomer);
+  const [opName, setOpName] = useState("Op 1");
   const [saving, setSaving] = useState(false);
   const [duplicateMatch, setDuplicateMatch] = useState(null);
+
+  const isCMM = machineType === "cmm";
 
   const handleCreate = async () => {
     if (!partNumber.trim()) return;
     setSaving(true);
+
+    if (isCMM) {
+      if (customer.trim()) {
+        const alreadyExists = existingCustomers.some(
+          c => c.toLowerCase() === customer.trim().toLowerCase()
+        );
+        if (!alreadyExists) {
+          await base44.entities.Customer.create({ name: customer.trim() });
+        }
+      }
+      const folderId = `cmm_folder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const sheet = await base44.entities.CMMSheet.create({
+        part_number: partNumber.trim(),
+        customer: customer.trim(),
+        folder_id: folderId,
+        description: opName.trim() || "",
+        operation_number: 1,
+        units: "in",
+        fixturing: [],
+        work_holding: [{ _id: "first", note: "", photo_url: "" }],
+        important_notes: [],
+        program_notes: "",
+      });
+      setSaving(false);
+      onCreateCMM(sheet);
+      return;
+    }
 
     // Check for existing sheets with the same part number (case-insensitive)
     const matches = existingSheets.filter(
@@ -64,7 +94,7 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="font-semibold text-sm text-foreground">New Setup Sheet</h2>
+          <h2 className="font-semibold text-sm text-foreground">{isCMM ? "New CMM Sheet" : "New Setup Sheet"}</h2>
           <Button size="icon" variant="ghost" onClick={onClose} className="h-7 w-7">
             <X className="w-4 h-4" />
           </Button>
@@ -75,17 +105,17 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
               Machine Type
             </Label>
             <div className="flex gap-2">
-              {["milling", "turning"].map((type) => (
+              {(allowCMM ? ["milling", "turning", "cmm"] : ["milling", "turning"]).map((type) => (
                 <button
                   key={type}
                   onClick={() => setMachineType(type)}
                   className={`flex-1 text-sm py-2 rounded-lg border font-medium transition-colors capitalize ${
                     machineType === type
-                      ? "bg-primary text-primary-foreground border-primary"
+                      ? type === "cmm" ? "bg-emerald-600 text-white border-emerald-600" : "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:text-foreground bg-background"
                   }`}
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {type}
                 </button>
               ))}
             </div>
@@ -118,11 +148,26 @@ export default function NewSheetDialog({ onClose, onCreate, existingCustomers = 
               className="h-9 text-sm px-3 w-full"
             />
           </div>
+
+          {isCMM && (
+            <div>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                Operation Name
+              </Label>
+              <Input
+                value={opName}
+                onChange={e => setOpName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCreate()}
+                placeholder="e.g. Op 1, Inspection…"
+                className="h-9 text-sm"
+              />
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border">
           <Button variant="outline" size="sm" onClick={onClose} className="h-8 text-xs">Cancel</Button>
           <Button size="sm" onClick={handleCreate} disabled={saving || !partNumber.trim()} className="h-8 text-xs">
-            {saving ? "Creating…" : "Create Sheet"}
+            {saving ? "Creating…" : isCMM ? "Create CMM Sheet" : "Create Sheet"}
           </Button>
         </div>
       </div>

@@ -29,6 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [showNewCMMDialog, setShowNewCMMDialog] = useState(false);
+  const [newSheetAllowCMM, setNewSheetAllowCMM] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [newSheetDefaultCustomer, setNewSheetDefaultCustomer] = useState("");
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -189,6 +190,10 @@ export default function Home() {
     navigate(`/sheet/${sheet.id}?mode=edit`);
   };
 
+  const handleCMMCreated = (sheet) => {
+    navigate(`/cmm-sheet/${sheet.id}`);
+  };
+
   const switchNav = (nav) => {
     setActiveNav(nav);
     setSelectedCustomer(null);
@@ -220,7 +225,7 @@ export default function Home() {
         onClose={() => setMobileNavOpen(false)}
         activeNav={activeNav}
         onSwitchNav={switchNav}
-        onNewSheet={() => setShowNewDialog(true)}
+        onNewSheet={() => { setNewSheetAllowCMM(true); setShowNewDialog(true); }}
         isAdmin={isAdmin}
       />
 
@@ -244,7 +249,7 @@ export default function Home() {
             <LayoutDashboard className="w-4 h-4 shrink-0" /> Dashboard
           </button>
           <button
-            onClick={() => setShowNewDialog(true)}
+            onClick={() => { setNewSheetAllowCMM(true); setShowNewDialog(true); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
@@ -315,7 +320,7 @@ export default function Home() {
               className="h-7 w-auto object-contain"
             />
           </button>
-          <button onClick={() => activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true)} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
+          <button onClick={() => { setNewSheetAllowCMM(true); activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true); }} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
             <FilePlus className="w-6 h-6 text-foreground" />
           </button>
         </header>
@@ -351,7 +356,7 @@ export default function Home() {
                   <ArrowLeft className="w-3.5 h-3.5" /> Back
                 </button>
                 <Button
-                  onClick={() => setShowNewDialog(true)}
+                  onClick={() => { setNewSheetAllowCMM(false); setShowNewDialog(true); }}
                   variant="outline"
                   size="sm"
                   className="gap-2"
@@ -400,7 +405,7 @@ export default function Home() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => { setNewSheetDefaultCustomer(selectedCustomer); setShowNewDialog(true); }}
+                  onClick={() => { setNewSheetDefaultCustomer(selectedCustomer); setNewSheetAllowCMM(false); setShowNewDialog(true); }}
                   className="gap-2"
                 >
                   <FilePlus className="w-4 h-4" /> Add Setup Sheet for Customer
@@ -449,7 +454,7 @@ export default function Home() {
                   <h1 className="text-xl lg:text-2xl font-bold text-foreground">Setup Sheets</h1>
                   <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden lg:block">Manage and organize your machine shop setup documentation</p>
                 </div>
-                <Button onClick={() => setShowNewDialog(true)} className="gap-2 hidden lg:flex">
+                <Button onClick={() => { setNewSheetAllowCMM(false); setShowNewDialog(true); }} className="gap-2 hidden lg:flex">
                   <FilePlus className="w-4 h-4" /> New Setup Sheet
                 </Button>
               </div>
@@ -626,11 +631,13 @@ export default function Home() {
 
       {showNewDialog && (
         <NewSheetDialog
-          onClose={() => { setShowNewDialog(false); setNewSheetDefaultCustomer(""); }}
+          onClose={() => { setShowNewDialog(false); setNewSheetDefaultCustomer(""); setNewSheetAllowCMM(false); }}
           onCreate={handleCreated}
+          onCreateCMM={handleCMMCreated}
           existingCustomers={allCustomerNames}
           defaultCustomer={newSheetDefaultCustomer}
           existingSheets={sheets}
+          allowCMM={newSheetAllowCMM}
         />
       )}
 
