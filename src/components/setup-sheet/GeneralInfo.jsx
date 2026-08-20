@@ -12,17 +12,7 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
 import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
-
-const MACHINES = [
-  { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
-  { group: "MORI SIEKI", models: ["NH 4000 DCG"] },
-  { group: "HAAS", models: ["DT1", "VF 4SS", "DM1"] },
-  { group: "OKUMA", models: ["OKUMA"] },
-  { group: "DMG Mori", models: ["NH4000DCG"] },
-  { group: "Manual", models: ["Manual"] },
-];
-
-const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "Finger-Code", "N/A"];
+import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
 const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, hrs, onHrsChange }) => {
   const viewMode = useContext(ViewModeContext);
@@ -51,6 +41,9 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
 export default function GeneralInfo({ data, onChange, onReplace, machineType }) {
   const viewMode = useContext(ViewModeContext);
   const update = (field) => (value) => onChange(field, value);
+  const opts = useDropdownOptions();
+  const machineOptions = opts[SETTING_KEYS.millingMachine] || [];
+  const programOptions = opts[SETTING_KEYS.millingCad] || [];
 
   const [customerNames, setCustomerNames] = useState([]);
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
@@ -119,7 +112,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <CascadingDropdown
               value={data.machine || ""}
               onChange={update("machine")}
-              options={MACHINES}
+              options={machineOptions}
               placeholder="Select…"
               className="w-full"
             />
@@ -145,7 +138,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <CascadingDropdown
               value={data.program_software || ""}
               onChange={update("program_software")}
-              options={PROGRAMS}
+              options={programOptions}
               placeholder="Select…"
               className="w-full"
             />

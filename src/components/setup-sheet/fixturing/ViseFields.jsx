@@ -1,3 +1,4 @@
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -5,8 +6,9 @@ import { X, Plus, Trash2 } from "lucide-react";
 import FixturingField from "./FixturingField";
 import FixturingSelect from "./FixturingSelect";
 import { VISE_MODELS, JAW_TYPES } from "@/lib/fixturingOptions";
+import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
-function ViseModelField({ viseData, onChangeVise }) {
+function ViseModelField({ viseData, onChangeVise, viseModels }) {
   return (
     <FixturingField label="Vise Model">
       {viseData.vise_model === "Other" ? (
@@ -33,7 +35,7 @@ function ViseModelField({ viseData, onChangeVise }) {
         <FixturingSelect
           value={viseData.vise_model || "Kurt Vise"}
           onChange={(v) => onChangeVise({ ...viseData, vise_model: v })}
-          options={VISE_MODELS}
+          options={viseModels}
           allowEmpty={false}
         />
       )}
@@ -41,16 +43,16 @@ function ViseModelField({ viseData, onChangeVise }) {
   );
 }
 
-function SingleViseFields({ viseData, onChangeVise, trailing }) {
+function SingleViseFields({ viseData, onChangeVise, trailing, viseModels, jawTypes }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <ViseModelField viseData={viseData} onChangeVise={onChangeVise} />
+        <ViseModelField viseData={viseData} onChangeVise={onChangeVise} viseModels={viseModels} />
         <FixturingField label="Jaw Type">
           <FixturingSelect
             value={viseData.jaw_type || ""}
             onChange={(v) => onChangeVise({ ...viseData, jaw_type: v })}
-            options={JAW_TYPES}
+            options={jawTypes}
           />
         </FixturingField>
         <FixturingField label="Parallels">
@@ -79,6 +81,9 @@ function SingleViseFields({ viseData, onChangeVise, trailing }) {
 }
 
 export default function ViseFields({ data, onChange }) {
+  const opts = useDropdownOptions();
+  const viseModels = opts[SETTING_KEYS.millingVise] || VISE_MODELS;
+  const jawTypes = opts[SETTING_KEYS.millingJaw] || JAW_TYPES;
   const additionalVises = data.additional_vises || [];
 
   const addVise = () => {
@@ -104,6 +109,8 @@ export default function ViseFields({ data, onChange }) {
       <SingleViseFields
         viseData={data}
         onChangeVise={onChange}
+        viseModels={viseModels}
+        jawTypes={jawTypes}
         trailing={
           additionalVises.length === 0 ? (
             <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">
@@ -132,6 +139,8 @@ export default function ViseFields({ data, onChange }) {
           <SingleViseFields
             viseData={vise}
             onChangeVise={(updated) => updateAdditionalVise(i, updated)}
+            viseModels={viseModels}
+            jawTypes={jawTypes}
             trailing={
               i === additionalVises.length - 1 && additionalVises.length < 2 ? (
                 <Button type="button" size="sm" variant="outline" onClick={addVise} className="h-9 text-xs gap-1.5">

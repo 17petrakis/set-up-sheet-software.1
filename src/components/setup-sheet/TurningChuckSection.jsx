@@ -7,6 +7,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import SectionHeader from "./SectionHeader";
 import { Wrench, X, Plus } from "lucide-react";
 import StationPhotos from "./fixturing/StationPhotos";
+import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
 // ── Chuck Type ComboBox ────────────────────────────────────────────────────────
 const CHUCK_OPTIONS = [
