@@ -66,33 +66,14 @@ export default function ToolListPrint() {
       {/* Print content */}
       <div className="print-container max-w-4xl mx-auto p-8">
         {/* Header */}
-        <div className="mb-8 pb-4 border-b-2 border-border">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Tool List</h1>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Part Number</p>
-              <p className="text-foreground font-semibold">{sheet.part_number || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Machinist</p>
-              <p className="text-foreground font-semibold">{sheet.programmer || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Machine</p>
-              <p className="text-foreground font-semibold">{sheet.machine || "N/A"}</p>
-            </div>
-            {sheet.customer && (
-              <div>
-                <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Customer</p>
-                <p className="text-foreground font-semibold">{sheet.customer}</p>
-              </div>
-            )}
-            {sheet.revision && (
-              <div>
-                <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">Revision</p>
-                <p className="text-foreground font-semibold">{sheet.revision}</p>
-              </div>
-            )}
+        <div className="mb-4 pb-2 border-b-2 border-border">
+          <h1 className="text-lg font-bold text-foreground mb-1">Tool List</h1>
+          <div className="flex flex-wrap gap-x-6 gap-y-0.5 text-xs">
+            <span><span className="text-muted-foreground font-medium uppercase tracking-wider">Part:</span> <span className="text-foreground font-semibold">{sheet.part_number || "N/A"}</span></span>
+            <span><span className="text-muted-foreground font-medium uppercase tracking-wider">Machinist:</span> <span className="text-foreground font-semibold">{sheet.programmer || "N/A"}</span></span>
+            <span><span className="text-muted-foreground font-medium uppercase tracking-wider">Machine:</span> <span className="text-foreground font-semibold">{sheet.machine || "N/A"}</span></span>
+            {sheet.customer && <span><span className="text-muted-foreground font-medium uppercase tracking-wider">Customer:</span> <span className="text-foreground font-semibold">{sheet.customer}</span></span>}
+            {sheet.revision && <span><span className="text-muted-foreground font-medium uppercase tracking-wider">Rev:</span> <span className="text-foreground font-semibold">{sheet.revision}</span></span>}
           </div>
         </div>
 
@@ -136,7 +117,7 @@ export default function ToolListPrint() {
         )}
 
         {/* Footer info */}
-        <div className="mt-12 pt-4 border-t border-border text-xs text-muted-foreground">
+        <div className="mt-6 pt-2 border-t border-border text-xs text-muted-foreground flex gap-x-6">
           <p>Generated: {new Date().toLocaleDateString()}</p>
           {sheet.programmer && (
             <p>Programmer: {sheet.programmer}</p>
