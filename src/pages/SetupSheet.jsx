@@ -231,6 +231,7 @@ export default function SetupSheet() {
     // Auto-populate work holding when machine is selected
     if (field === "machine") {
       const machine = value || "";
+      const prevMachine = generalRef.current.machine || "";
       let chuckUpdate = null;
 
       if (machine === "Doosan Puma 2100Y II") {
@@ -263,6 +264,18 @@ export default function SetupSheet() {
       }
 
       if (chuckUpdate) {
+        // Preserve S1 work holding data when switching within the same machine family
+        const getFamily = (m) => {
+          if (m.startsWith("Doosan")) return "Doosan";
+          if (m.startsWith("Nakamura")) return "Nakamura";
+          return null;
+        };
+        const sameFamily = getFamily(machine) && getFamily(machine) === getFamily(prevMachine);
+        if (sameFamily) {
+          const existingS1 = turningChuckRef.current.wh_s1 || {};
+          chuckUpdate.wh_s1 = { ...existingS1, ...chuckUpdate.wh_s1 };
+        }
+
         const newChuck = { ...turningChuckRef.current, ...chuckUpdate };
         setTurningChuck(newChuck);
         turningChuckRef.current = newChuck;
