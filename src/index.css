@@ -208,4 +208,42 @@
     padding: 0 !important;
     max-width: 100% !important;
   }
+
+  /* Section headers never get orphaned at the bottom of a page */
+  .print-section-title,
+  h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Try to keep each section on a single page. If a section is taller
+     than a full page the browser will still break it — and the rules
+     below make that break clean. */
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Large tables may span pages — let them, but break between rows */
+  table {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  /* Repeat column headers on every printed page */
+  thead {
+    display: table-header-group;
+  }
+
+  /* Never split a single row across a page boundary */
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep the first body row with its header */
+  tbody tr:first-child {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
 }

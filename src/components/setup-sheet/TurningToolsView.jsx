@@ -28,7 +28,7 @@ export default function TurningToolsView({ turningTools }) {
         const header = `Turret ${ti + 1}${turret.turret_type ? ` — ${turret.turret_type}` : ""}`;
 
         return (
-          <div key={ti}>
+          <div key={ti} className="break-inside-avoid">
             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{header}</p>
             <div className="border border-gray-200 rounded bg-white overflow-x-auto">
               <table className="w-full min-w-[400px] border-collapse">

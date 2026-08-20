@@ -521,7 +521,7 @@ export default function PrintView() {
               <h2 className="print-section-title">Photos</h2>
               <div className="grid grid-cols-1 gap-8">
                 {allPhotoSlots.map((slot) => (
-                  <div key={slot.id} className="space-y-2">
+                  <div key={slot.id} className="photo-slot space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
                     <img
                       src={slot.url}
@@ -546,6 +546,16 @@ export default function PrintView() {
           .no-print { display: none !important; }
           .print-view { padding-top: 0 !important; }
           body { background: white !important; }
+          /* Keep titled sub-blocks (info boxes, station cards, turret tables) intact */
+          .print-view .border.border-gray-200.rounded {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          /* Keep each photo + its label together */
+          .print-view .photo-slot {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
         }
         .print-section-title {
           font-size: 10px;
