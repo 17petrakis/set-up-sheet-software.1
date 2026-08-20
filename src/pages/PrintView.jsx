@@ -143,14 +143,14 @@ export default function PrintView() {
               }
               return (
               <div className="border border-gray-200 rounded p-3 bg-gray-50">
-                <table className="w-full border-collapse text-xs">
+                <table className="gi-table w-full border-collapse text-xs">
                   <tbody>
                     {rows.map(([left, right], i) => (
                       <tr key={i} className="border-b border-gray-200 last:border-b-0">
                         <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{left[0]}</td>
-                        <td className="py-1.5 pr-6 text-gray-900 break-words align-top">{left[1]}</td>
+                        <td className="gi-value py-1.5 pr-6 text-gray-900 align-top">{left[1]}</td>
                         <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{right[0]}</td>
-                        <td className="py-1.5 text-gray-900 break-words align-top">{right[1]}</td>
+                        <td className="gi-value py-1.5 pr-3 text-gray-900 align-top">{right[1]}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -589,6 +589,12 @@ export default function PrintView() {
         }
         .print-table tr:nth-child(even) td {
           background: #f9fafb;
+        }
+        /* General-info value cells: wrap long content (paths, descriptions)
+           inside the cell instead of expanding the column off the table edge */
+        .gi-value {
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
       `}</style>
     </>
