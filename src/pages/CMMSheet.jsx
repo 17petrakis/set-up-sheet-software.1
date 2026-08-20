@@ -101,9 +101,15 @@ export default function CMMSheet() {
           }}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
-            <FileSpreadsheet className="w-5 h-5 text-white" />
-          </div>
+          {sheet.work_holding?.[0]?.photo_url ? (
+            <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 bg-muted">
+              <img src={sheet.work_holding[0].photo_url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="w-5 h-5 text-white" />
+            </div>
+          )}
           <div>
             <div className="flex items-center gap-2 leading-none">
               <span className="text-sm md:text-lg font-bold tracking-tight text-foreground">
