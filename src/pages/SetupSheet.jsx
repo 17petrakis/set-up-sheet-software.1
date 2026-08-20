@@ -371,8 +371,13 @@ export default function SetupSheet() {
     if (!file) return;
     setImporting(true);
     setImportError(null);
+    console.log("[import] === Import started, new code running ===", file.name);
     try {
-      const [result, isoResult] = await Promise.all([parseExcel(file), extractExcelImage(file)]);
+      const [result, isoResult] = await Promise.all([
+        parseExcel(file).catch(err => { console.error("[import] parseExcel FAILED:", err); throw err; }),
+        extractExcelImage(file)
+      ]);
+      console.log("[import] Promise.all resolved");
 
       const newGen = result.general && Object.keys(result.general).length
         ? { ...general, ...result.general } : general;
