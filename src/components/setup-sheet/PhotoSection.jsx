@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +39,7 @@ function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   );
 }
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, isIconImage = false, onToggleIcon }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
@@ -91,6 +91,17 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
           </span>
         )}
         <div className="flex items-center gap-2">
+          {url && !readOnly && (
+            <button
+              onClick={onToggleIcon}
+              className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
+                isIconImage ? "text-amber-600 bg-amber-50" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Star className="w-3 h-3" />
+              {isIconImage ? "Remove As Icon Image" : "Make Icon Image"}
+            </button>
+          )}
           {url && !readOnly && (
             <button
               onClick={() => setShowNote((v) => !v)}
@@ -209,7 +220,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   const [uploading, setUploading] = useState(false);
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
 
-  const updateSlots = (newSlots) => onChange({ __slots: newSlots });
+  const updateSlots = (newSlots) => onChange({ __slots: newSlots, ...(photos.__icon_slot_id ? { __icon_slot_id: photos.__icon_slot_id } : {}) });
 
   const handleFileSelect = (category) => {
     setPendingCategory(category);
@@ -255,7 +266,12 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   };
 
   const handleSlotRemove = (id) => {
-    updateSlots(slots.filter(s => s.id !== id));
+    const newSlots = slots.filter(s => s.id !== id);
+    if (iconSlotId === id) {
+      onChange({ __slots: newSlots, __icon_slot_id: undefined });
+    } else {
+      updateSlots(newSlots);
+    }
   };
 
   const handleSlotNoteChange = (id, note) => {
@@ -264,6 +280,17 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
 
   const handleSlotLabelChange = (id, newLabel) => {
     updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
+  };
+
+  const iconSlotId = photos.__icon_slot_id || null;
+
+  const handleToggleIcon = (id) => {
+    // If this slot is already the icon, remove the override (revert to default logic)
+    if (iconSlotId === id) {
+      onChange({ ...photos, __icon_slot_id: undefined });
+    } else {
+      onChange({ ...photos, __icon_slot_id: id });
+    }
   };
 
   return (
@@ -330,6 +357,8 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
             onLabelChange={(newLabel) => handleSlotLabelChange(slot.id, newLabel)}
             large={slot.category === "work_holding"}
             readOnly={readOnly}
+            isIconImage={iconSlotId === slot.id}
+            onToggleIcon={() => handleToggleIcon(slot.id)}
           />
         ))}
       </div>

@@ -10,11 +10,16 @@ export const DEFAULT_CATEGORIES = [
 const MIGRATION_SLOTS = [...DEFAULT_CATEGORIES, { key: "final_part_2", label: "Final Part 2" }];
 
 // Pick the best photo to use as a part icon.
-// Priority: final_part → iso → drawing → first custom (in order of appearance)
+// Priority: explicit icon override → final_part → iso → drawing → first custom (in order of appearance)
 export function getPartIconPhoto(photos) {
   if (!photos) return null;
   if (photos.__slots) {
     const slots = photos.__slots;
+    // Explicit icon override
+    if (photos.__icon_slot_id) {
+      const iconSlot = slots.find(s => s.id === photos.__icon_slot_id && s.url);
+      if (iconSlot) return iconSlot.url;
+    }
     const find = (cat) => slots.find(s => s.category === cat && s.url);
     const finalPart = slots.find(s => (s.category === "final_part" || s.category === "final_part_2") && s.url);
     return finalPart?.url || find("iso")?.url || find("drawing")?.url || slots.find(s => s.category === "custom" && s.url)?.url || null;
