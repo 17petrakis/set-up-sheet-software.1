@@ -706,9 +706,39 @@ function findImagesInBytes(uint8) {
   return results;
 }
 
-// Try to render an image blob (EMF/WMF) via the browser's native decoder,
-// then rasterize to a PNG data URL via canvas. Falls back to null if the
-// browser can't decode the format (e.g. EMF on most non-Windows browsers).
+// Check if a canvas image is blank (all-white, all-transparent, or a single
+// uniform color). Samples a grid of pixels for efficiency. Returns true if
+// the image has no meaningful visible content.
+function isImageBlank(ctx, width, height) {
+  if (width <= 0 || height <= 0) return true;
+  const stepX = Math.max(1, Math.floor(width / 50));
+  const stepY = Math.max(1, Math.floor(height / 50));
+  let firstR = -1, firstG = -1, firstB = -1, firstA = -1;
+  let hasContent = false;
+  for (let y = 0; y < height; y += stepY) {
+    for (let x = 0; x < width; x += stepX) {
+      const pixel = ctx.getImageData(x, y, 1, 1).data;
+      const r = pixel[0], g = pixel[1], b = pixel[2], a = pixel[3];
+      // Skip fully transparent pixels
+      if (a < 10) continue;
+      if (firstR === -1) {
+        firstR = r; firstG = g; firstB = b; firstA = a;
+        hasContent = true;
+      } else {
+        // If any sampled pixel differs significantly from the first, it's not blank
+        if (Math.abs(r - firstR) > 15 || Math.abs(g - firstG) > 15 || Math.abs(b - firstB) > 15) {
+          return false;
+        }
+      }
+    }
+  }
+  // "Blank" if all visible pixels are the same uniform color (e.g. all white)
+  return hasContent;
+}
+
+// Try to render an image blob via the browser's native decoder, rasterize to
+// a PNG data URL via canvas, and reject blank/all-white images. Falls back to
+// null if the browser can't decode the format or the image is blank.
 function tryConvertToPng(data, mimeType) {
   return new Promise((resolve) => {
     const blob = new Blob([data], { type: mimeType });
@@ -725,6 +755,10 @@ function tryConvertToPng(data, mimeType) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
       cleanup();
+      if (isImageBlank(ctx, canvas.width, canvas.height)) {
+        resolve(null);
+        return;
+      }
       try { resolve(canvas.toDataURL('image/png')); }
       catch (e) { resolve(null); }
     };
@@ -760,18 +794,6 @@ async function processCandidates(candidates) {
   candidates.sort((a, b) => b.size - a.size);
 
   for (const candidate of candidates) {
-    // For PNG/JPEG/GIF/BMP/WEBP — return as base64 data URL directly (fast path)
-    if (['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'].includes(candidate.mimeType)) {
-      const base64 = uint8ToBase64(candidate.data);
-      return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
-    }
-
-    // For SVG — return as base64 directly
-    if (candidate.mimeType === 'image/svg+xml') {
-      const base64 = uint8ToBase64(candidate.data);
-      return { labelFound: true, dataUrl: `data:${candidate.mimeType};base64,${base64}` };
-    }
-
     // For EMF/WMF — browser can't render these natively.
     // Try extracting embedded DIB (raw bitmap) data from the EMF and converting to BMP.
     if (candidate.mimeType === 'image/emf' || candidate.mimeType === 'image/wmf') {
@@ -783,7 +805,9 @@ async function processCandidates(candidates) {
       continue;
     }
 
-    // For TIFF and other formats — try the browser's native decoder
+    // For all other formats (PNG, JPEG, BMP, GIF, WEBP, SVG, TIFF) — render
+    // via canvas and reject blank/all-white images so we fall through to the
+    // next candidate (the real image) instead of stopping at a blank placeholder.
     const pngDataUrl = await tryConvertToPng(candidate.data, candidate.mimeType);
     if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
   }
