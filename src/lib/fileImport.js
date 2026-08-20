@@ -1,6 +1,7 @@
 import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { TOOL_FIELDS, getDefaultVisibleFields } from "@/lib/toolTypeOptions";
 import JSZip from 'jszip';
+import { isCFB, parseCFB, extractMsodrawingData, stripAllBiffHeaders } from '@/lib/cfbParser';
 
 function normalizeText(text) {
   return String(text || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -826,6 +827,7 @@ async function processCandidates(candidates) {
 
 export async function extractExcelImage(file) {
   const arrayBuffer = await file.arrayBuffer();
+  const rawBytes = new Uint8Array(arrayBuffer);
   console.log("[extractExcelImage] File:", file.name, "size:", file.size, "type:", file.type);
 
   // ── Strategy 1: Parse as .xlsx (zip) and look for image files ──
@@ -872,8 +874,62 @@ export async function extractExcelImage(file) {
     console.log("[extractExcelImage] Zip parse failed (probably .xls not .xlsx):", e.message);
   }
 
-  // ── Strategy 2: Scan the raw file bytes directly ──
-  const rawBytes = new Uint8Array(arrayBuffer);
+  // ── Strategy 2: Parse as .xls (CFB/OLE2 compound document, Excel 97-2003) ──
+  // .xls files are not zip-based; they use the OLE2 compound document format.
+  // Images are stored in streams that may be fragmented across non-contiguous
+  // sectors, and embedded inside MSODrawing BIFF records that are split across
+  // CONTINUE records with 4-byte headers interspersed in the image data.
+  if (isCFB(rawBytes)) {
+    try {
+      const streams = parseCFB(rawBytes);
+      if (streams && streams.length > 0) {
+        console.log("[extractExcelImage] CFB streams:", streams.map(s => `${s.name}(${s.data.length})`));
+        const cfbCandidates = [];
+        for (const { name, data } of streams) {
+          // 2a: Scan raw stream data for image magic bytes (OLE objects, etc.)
+          const imgs = findImagesInBytes(data);
+          for (const img of imgs) {
+            cfbCandidates.push({ file: name, data: img.data, mimeType: img.type, size: img.data.length });
+          }
+          // 2b: Strip BIFF record headers from MSODrawing records, then scan
+          // the reconstructed contiguous OfficeArt data for images and DIBs.
+          const msodGroups = extractMsodrawingData(data);
+          for (const group of msodGroups) {
+            const groupImgs = findImagesInBytes(group);
+            for (const img of groupImgs) {
+              cfbCandidates.push({ file: `${name}#msod`, data: img.data, mimeType: img.type, size: img.data.length });
+            }
+            const dibs = findAllDibs(group);
+            for (const dib of dibs) {
+              cfbCandidates.push({ file: `${name}#dib`, data: dib, mimeType: 'image/bmp', size: dib.length });
+            }
+          }
+          // 2c: Strip ALL BIFF record headers and scan — aggressive fallback
+          // that reassembles image data split across any record type's CONTINUEs.
+          const stripped = stripAllBiffHeaders(data);
+          const strippedImgs = findImagesInBytes(stripped);
+          for (const img of strippedImgs) {
+            cfbCandidates.push({ file: `${name}#stripped`, data: img.data, mimeType: img.type, size: img.data.length });
+          }
+          const strippedDibs = findAllDibs(stripped);
+          for (const dib of strippedDibs) {
+            cfbCandidates.push({ file: `${name}#stripped-dib`, data: dib, mimeType: 'image/bmp', size: dib.length });
+          }
+        }
+        console.log("[extractExcelImage] CFB candidates:", cfbCandidates.length);
+        const cfbResult = await processCandidates(cfbCandidates);
+        if (cfbResult) {
+          console.log("[extractExcelImage] ✓ Extracted from CFB, dataUrl length:", cfbResult.dataUrl?.length);
+          return cfbResult;
+        }
+        console.log("[extractExcelImage] No image rendered from CFB candidates");
+      }
+    } catch (e) {
+      console.log("[extractExcelImage] CFB parse failed:", e.message);
+    }
+  }
+
+  // ── Strategy 3: Scan the raw file bytes directly ──
   console.log("[extractExcelImage] Scanning raw bytes, length:", rawBytes.length);
 
   // 2a: Scan for image magic bytes (PNG, JPEG, BMP, GIF, EMF, WMF)
