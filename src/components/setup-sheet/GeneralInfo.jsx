@@ -167,7 +167,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             onHrsChange={update("cycle_time_hrs")}
           />
           {(!viewMode || data.cycle_time_notes) && (
-            <div className="sm:col-span-2">
+            <div>
               <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
                 Cycle Time Notes
               </Label>

@@ -253,7 +253,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
               placeholder="Auto-calculated"
             />
           </div>
-          <div className="sm:col-span-12">
+          <div className="sm:col-span-3">
             <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
               Cycle Time Notes
             </Label>
