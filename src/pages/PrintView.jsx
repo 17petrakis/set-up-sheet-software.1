@@ -23,9 +23,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="text-xs min-w-0 break-words">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{label}:</span>{" "}
-      <span className="text-gray-900">{value}</span>
+    <div className="text-xs min-w-0" style={{ overflowWrap: "anywhere" }}>
+      <span className="font-semibold text-gray-500 uppercase tracking-wide">{label}:</span>{" "}
+      <span className="text-gray-900 break-words">{value}</span>
     </div>
   );
 }
@@ -130,7 +130,6 @@ export default function PrintView() {
                 ["Qty", general.quantity],
                 ["File Name", general.program],
                 ["Program Desc", general.program_description],
-                ...(general.program_location ? [["Program Location", general.program_location]] : []),
                 ...(general.cycle_time ? [["Cycle Time", general.cycle_time]] : []),
                 ...(general.handling_time ? [["Handling Time", general.handling_time]] : []),
                 ...(general.total_cycle_time ? [["Total Cycle", general.total_cycle_time]] : []),
