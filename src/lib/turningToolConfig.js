@@ -22,7 +22,7 @@ export const MILL_TYPE_OPTIONS = [
 const RAD_OPTIONS = [".031", ".016", ".008", ".006", "0"];
 const DEG_TURN_OPTIONS = ["100", "80", "55", "35"];
 const WIDTH_OPTIONS = [".158 (4mm)", ".156 (5/32)", ".125 (1/8)", ".088", ".094 (3/32)", ".118 (3mm)", ".079 (2mm)", ".0625 (1/16)", ".059 (1.5mm)", ".047 (3/64)", ".031 (1/32)"];
-const ANGLE_DRILL_OPTIONS = ["118", "135", "180"];
+const ANGLE_DRILL_OPTIONS = ["118", "135", "180", "100", "82", "90"];
 
 // Field definitions per type
 export function getTypeFields(toolKind, typeValue) {

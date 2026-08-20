@@ -166,6 +166,18 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             hrs={data.cycle_time_hrs}
             onHrsChange={update("cycle_time_hrs")}
           />
+          {(!viewMode || data.cycle_time_notes) && (
+            <div>
+              <Label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1.5 block">
+                Cycle Time Notes
+              </Label>
+              <AutoResizeTextarea
+                value={data.cycle_time_notes || ""}
+                onChange={(e) => update("cycle_time_notes")(e.target.value)}
+                className="min-h-[36px] text-sm bg-card border-border font-medium"
+              />
+            </div>
+          )}
         </div>
 
         {/* Stops */}
