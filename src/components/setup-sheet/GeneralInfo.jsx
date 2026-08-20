@@ -174,8 +174,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
               <AutoResizeTextarea
                 value={data.cycle_time_notes || ""}
                 onChange={(e) => update("cycle_time_notes")(e.target.value)}
-                placeholder="Cycle time notes…"
-                className="min-h-[38px] text-sm bg-card border-border font-medium"
+                className="min-h-[36px] text-sm bg-card border-border font-medium"
               />
             </div>
           )}
