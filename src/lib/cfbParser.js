@@ -186,12 +186,13 @@ export function extractMsodrawingData(stream) {
     const type = stream[off] | (stream[off + 1] << 8);
     const recLen = stream[off + 2] | (stream[off + 3] << 8);
     off += 4;
-    if (recLen <= 0 || off + recLen > len) break;
+    // Don't break on zero-length records (EOF, BLANK, etc.) — skip them
+    if (off + recLen > len) break;
 
     if (type === MSODRAWING || type === MSODRAWINGGROUP) {
       if (current) groups.push(current);
-      current = stream.subarray(off, off + recLen);
-    } else if (type === CONTINUE && current) {
+      current = recLen > 0 ? stream.subarray(off, off + recLen) : null;
+    } else if (type === CONTINUE && current && recLen > 0) {
       const combined = new Uint8Array(current.length + recLen);
       combined.set(current, 0);
       combined.set(stream.subarray(off, off + recLen), current.length);
@@ -205,4 +206,32 @@ export function extractMsodrawingData(stream) {
 
   if (current) groups.push(current);
   return groups;
+}
+
+// Strip ALL BIFF record headers (4 bytes each: 2 type + 2 length) from a
+// stream and concatenate just the record data. This is a more aggressive
+// fallback that reconstructs contiguous data from every record type (not
+// just MSODrawing), ensuring image bytes split across CONTINUE records of
+// any record type are reassembled for magic-byte scanning.
+export function stripAllBiffHeaders(stream) {
+  const chunks = [];
+  let off = 0;
+  const len = stream.length;
+  while (off + 4 <= len) {
+    const recLen = stream[off + 2] | (stream[off + 3] << 8);
+    off += 4;
+    if (recLen === 0) continue;
+    if (off + recLen > len) {
+      chunks.push(stream.subarray(off));
+      break;
+    }
+    chunks.push(stream.subarray(off, off + recLen));
+    off += recLen;
+  }
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  const result = new Uint8Array(total);
+  let pos = 0;
+  for (const c of chunks) { result.set(c, pos); pos += c.length; }
+  return result;
 }

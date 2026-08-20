@@ -1,7 +1,7 @@
 import { emptyTool, emptyOperation } from "@/lib/setupSheetDefaults";
 import { TOOL_FIELDS, getDefaultVisibleFields } from "@/lib/toolTypeOptions";
 import JSZip from 'jszip';
-import { isCFB, parseCFB, extractMsodrawingData } from '@/lib/cfbParser';
+import { isCFB, parseCFB, extractMsodrawingData, stripAllBiffHeaders } from '@/lib/cfbParser';
 
 function normalizeText(text) {
   return String(text || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -903,6 +903,17 @@ export async function extractExcelImage(file) {
             for (const dib of dibs) {
               cfbCandidates.push({ file: `${name}#dib`, data: dib, mimeType: 'image/bmp', size: dib.length });
             }
+          }
+          // 2c: Strip ALL BIFF record headers and scan — aggressive fallback
+          // that reassembles image data split across any record type's CONTINUEs.
+          const stripped = stripAllBiffHeaders(data);
+          const strippedImgs = findImagesInBytes(stripped);
+          for (const img of strippedImgs) {
+            cfbCandidates.push({ file: `${name}#stripped`, data: img.data, mimeType: img.type, size: img.data.length });
+          }
+          const strippedDibs = findAllDibs(stripped);
+          for (const dib of strippedDibs) {
+            cfbCandidates.push({ file: `${name}#stripped-dib`, data: dib, mimeType: 'image/bmp', size: dib.length });
           }
         }
         console.log("[extractExcelImage] CFB candidates:", cfbCandidates.length);
