@@ -6,6 +6,7 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Corner Radius", value: "Corner Radius" },
       { label: "Ball", value: "Ball" },
       { label: "BEM", value: "BEM" },
+      { label: "Tapered Endmill", value: "Tapered Endmill" },
       { label: "Lollipop", value: "Lollipop" },
       { label: "T-Slot", value: "T-Slot" },
       { label: "Chamfer Mill", value: "Chamfer Mill" },
@@ -27,9 +28,14 @@ export const TOOL_TYPE_OPTIONS = [
   },
   {
     label: "Hole Making", children: [
-      { label: "Center Drill", value: "Center Drill" },
-      { label: "Spot Drill", value: "Spot Drill" },
-      { label: "Drill", value: "Drill" },
+      { label: "Drill", children: [
+        { label: "Center Drill", value: "Center Drill" },
+        { label: "Spot Drill", value: "Spot Drill" },
+        { label: "HSS", value: "HSS" },
+        { label: "Solid Carbide", value: "Solid Carbide" },
+        { label: "Indexable", value: "Indexable" },
+        { label: "Spade", value: "Spade" },
+      ]},
       { label: "Countersink", value: "Countersink" },
       { label: "Counterbore", value: "Counterbore" },
       { label: "Reamer", value: "Reamer" },
@@ -44,6 +50,7 @@ export const TOOL_TYPE_OPTIONS = [
       { label: "Slitting Saw", value: "Slitting Saw" },
       { label: "Form Tool", value: "Form Tool" },
       { label: "Key Cutter", value: "Key Cutter" },
+      { label: "Corner Rounding", value: "Corner Rounding" },
     ]
   },
 ];
@@ -97,17 +104,21 @@ export const TOOL_FIELD_SHORT = {
 
 // ── Type groupings for visibility logic ────────────────────────────────────────
 const ENDMILL_TYPES = [
-  "Square", "Corner Radius", "Ball", "BEM", "Lollipop", "T-Slot",
+  "Square", "Corner Radius", "Ball", "BEM", "Tapered Endmill", "Lollipop", "T-Slot",
   "Chamfer Mill", "Thread Mill", "Engraving", "Woodruff/Keyseat", "Roughing/Corncob",
   "FEM", "REM",
 ];
+const DRILL_TYPES = [
+  "Center Drill", "Spot Drill", "HSS", "Solid Carbide", "Indexable", "Spade",
+];
 const HOLE_MAKING_TYPES = [
-  "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore",
+  ...DRILL_TYPES, "Countersink", "Counterbore",
   "Reamer", "Boring Bar", "Back Boring Bar", "Rigid Tap",
 ];
 const DRILL_REAMER_TYPES = [
-  "Center Drill", "Spot Drill", "Drill", "Countersink", "Counterbore", "Reamer",
+  ...DRILL_TYPES, "Countersink", "Counterbore", "Reamer",
 ];
+const DRILL_INDEXABLE_TYPES = ["Indexable", "Spade"];
 const FACE_MILL_TYPES = ["Face Mill", "Shell Mill"];
 
 // ── Default visible fields based on tool_type ─────────────────────────────────
@@ -141,6 +152,9 @@ export function getDefaultVisibleFields(toolType) {
     v.max_bore_diameter = true;
   }
   if (FACE_MILL_TYPES.includes(toolType)) {
+    v.insert_type = true;
+  }
+  if (DRILL_INDEXABLE_TYPES.includes(toolType)) {
     v.insert_type = true;
   }
   if (toolType === "Slitting Saw") {
