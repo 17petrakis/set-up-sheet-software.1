@@ -397,7 +397,9 @@ export default function SetupSheet() {
         isoUrl = uploadResult.file_url;
       }
 
-      const newPhotos = isoUrl ? { ...photos, iso: isoUrl } : photos;
+      const newPhotos = isoUrl
+        ? { ...photos, __slots: [...(photos.__slots || []), { id: "iso", category: "iso", label: "ISO View Photo", url: isoUrl, note: "" }] }
+        : photos;
 
       handleGeneralReplace(newGen);
       handleToolsChange(newTools);

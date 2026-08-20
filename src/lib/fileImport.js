@@ -537,6 +537,63 @@ export function parseExcel(file) {
   });
 }
 
+// Extract a Device Independent Bitmap (DIB) from EMF/WMF binary data.
+// EMF files from Excel/Mastercam typically store the actual image as a
+// StretchDIBits record containing a BITMAPINFOHEADER + color table + pixel data.
+// Browsers cannot natively render EMF, so we extract the embedded bitmap and
+// reconstruct a proper BMP file that the browser CAN decode.
+function findAllDibs(uint8) {
+  const len = uint8.length;
+  const dibs = [];
+  // Scan for BITMAPINFOHEADER structures. biSize is a 4-byte LE int at the start:
+  // 40 = BITMAPINFOHEADER, 108 = BITMAPV4HEADER, 124 = BITMAPV5HEADER
+  for (let i = 0; i <= len - 40; i++) {
+    const biSize = uint8[i] | (uint8[i + 1] << 8) | (uint8[i + 2] << 16) | (uint8[i + 3] << 24);
+    if (biSize !== 40 && biSize !== 108 && biSize !== 124) continue;
+
+    const biWidth = uint8[i + 4] | (uint8[i + 5] << 8) | (uint8[i + 6] << 16) | (uint8[i + 7] << 24);
+    const biHeight = uint8[i + 8] | (uint8[i + 9] << 8) | (uint8[i + 10] << 16) | (uint8[i + 11] << 24);
+    const biBitCount = uint8[i + 14] | (uint8[i + 15] << 8);
+    const biCompression = uint8[i + 16] | (uint8[i + 17] << 8) | (uint8[i + 18] << 16) | (uint8[i + 19] << 24);
+
+    // Validate: reasonable dimensions, valid bit depth
+    if (biWidth <= 0 || biWidth > 20000 || biHeight === 0 || Math.abs(biHeight) > 20000) continue;
+    if (![1, 4, 8, 16, 24, 32].includes(biBitCount)) continue;
+
+    // For PNG/JPEG-compressed bitmaps (biCompression 3/4), the pixel data IS a PNG/JPEG
+    // — the magic byte scanner already handles those. Here we handle raw DIB data (compression 0).
+    if (biCompression !== 0 && biCompression !== 3) continue;
+
+    const absHeight = Math.abs(biHeight);
+    const rowSize = Math.floor((biWidth * biBitCount + 31) / 32) * 4;
+    const colorTableSize = biBitCount <= 8 ? 4 * (1 << biBitCount) : 0;
+    const dataSize = rowSize * absHeight;
+    const totalDibSize = biSize + colorTableSize + dataSize;
+
+    if (i + totalDibSize > len || totalDibSize < 10) continue;
+
+    // Reconstruct a BMP file: 14-byte file header + DIB data
+    const bmp = new Uint8Array(14 + totalDibSize);
+    bmp[0] = 0x42; bmp[1] = 0x4D; // "BM"
+    const fileSize = 14 + totalDibSize;
+    bmp[2] = fileSize & 0xFF;
+    bmp[3] = (fileSize >> 8) & 0xFF;
+    bmp[4] = (fileSize >> 16) & 0xFF;
+    bmp[5] = (fileSize >> 24) & 0xFF;
+    // Reserved bytes 6-9 = 0
+    const pixelOffset = 14 + biSize + colorTableSize;
+    bmp[10] = pixelOffset & 0xFF;
+    bmp[11] = (pixelOffset >> 8) & 0xFF;
+    bmp[12] = (pixelOffset >> 16) & 0xFF;
+    bmp[13] = (pixelOffset >> 24) & 0xFF;
+    bmp.set(uint8.subarray(i, i + totalDibSize), 14);
+    dibs.push(bmp);
+    // Skip past this DIB to avoid overlapping matches
+    i += totalDibSize - 1;
+  }
+  return dibs;
+}
+
 // Search a Uint8Array for ALL image data by magic bytes.
 // Detects PNG, JPEG, BMP, GIF, EMF, and WMF.
 // Catches images stored as standalone files AND images embedded inside
@@ -652,9 +709,45 @@ function findImagesInBytes(uint8) {
   return results;
 }
 
-// Try to render an image blob (EMF/WMF) via the browser's native decoder,
-// then rasterize to a PNG data URL via canvas. Falls back to null if the
-// browser can't decode the format (e.g. EMF on most non-Windows browsers).
+// Check if a canvas image is blank (all-white, all-transparent, or nearly
+// uniform noise). Samples a grid of pixels for efficiency. Returns true if
+// the image has no meaningful visible content — defined as fewer than 12% of
+// sampled pixels differing significantly (delta > 30 per channel) from the
+// dominant color. The high threshold filters out garbage/noise candidates
+// (OLE2 data misread as pixels) that have only a few stray colored pixels,
+// while real line drawings and photos easily exceed 12% coverage.
+function isImageBlank(ctx, width, height) {
+  // ctx is already created with willReadFrequently: true
+  if (width <= 0 || height <= 0) return true;
+  const stepX = Math.max(1, Math.floor(width / 100));
+  const stepY = Math.max(1, Math.floor(height / 100));
+  let firstR = -1, firstG = -1, firstB = -1;
+  let totalSamples = 0;
+  let variedSamples = 0;
+  for (let y = 0; y < height; y += stepY) {
+    for (let x = 0; x < width; x += stepX) {
+      const pixel = ctx.getImageData(x, y, 1, 1).data;
+      const r = pixel[0], g = pixel[1], b = pixel[2], a = pixel[3];
+      // Skip fully transparent pixels
+      if (a < 10) continue;
+      totalSamples++;
+      if (firstR === -1) {
+        firstR = r; firstG = g; firstB = b;
+      } else {
+        if (Math.abs(r - firstR) > 30 || Math.abs(g - firstG) > 30 || Math.abs(b - firstB) > 30) {
+          variedSamples++;
+        }
+      }
+    }
+  }
+  if (totalSamples === 0) return true; // all transparent
+  // Real images have at least 12% of pixels differing significantly from the background
+  return variedSamples / totalSamples < 0.12;
+}
+
+// Try to render an image blob via the browser's native decoder, rasterize to
+// a PNG data URL via canvas, and reject blank/all-white images. Falls back to
+// null if the browser can't decode the format or the image is blank.
 function tryConvertToPng(data, mimeType) {
   return new Promise((resolve) => {
     const blob = new Blob([data], { type: mimeType });
@@ -668,9 +761,13 @@ function tryConvertToPng(data, mimeType) {
       const canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth || 800;
       canvas.height = img.naturalHeight || 600;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       ctx.drawImage(img, 0, 0);
       cleanup();
+      if (isImageBlank(ctx, canvas.width, canvas.height)) {
+        resolve(null);
+        return;
+      }
       try { resolve(canvas.toDataURL('image/png')); }
       catch (e) { resolve(null); }
     };
@@ -689,52 +786,120 @@ function uint8ToBase64(uint8) {
   return btoa(binary);
 }
 
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|bmp|webp|tiff?|emf|wmf|svg)$/i;
+
+const EXT_TO_MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+  gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp',
+  tif: 'image/tiff', tiff: 'image/tiff', svg: 'image/svg+xml',
+  emf: 'image/emf', wmf: 'image/wmf',
+};
+
+// Process a list of image candidates, sorted largest-first.
+// Returns { labelFound, dataUrl } for the first one that renders, or null.
+async function processCandidates(candidates) {
+  if (candidates.length === 0) return null;
+
+  candidates.sort((a, b) => b.size - a.size);
+
+  for (const candidate of candidates) {
+    // For EMF/WMF — browser can't render these natively.
+    // Try extracting embedded DIB (raw bitmap) data from the EMF and converting to BMP.
+    if (candidate.mimeType === 'image/emf' || candidate.mimeType === 'image/wmf') {
+      const dibs = findAllDibs(candidate.data);
+      for (const dib of dibs) {
+        const pngDataUrl = await tryConvertToPng(dib, 'image/bmp');
+        if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+      }
+      continue;
+    }
+
+    // For all other formats (PNG, JPEG, BMP, GIF, WEBP, SVG, TIFF) — render
+    // via canvas and reject blank/all-white images so we fall through to the
+    // next candidate (the real image) instead of stopping at a blank placeholder.
+    const pngDataUrl = await tryConvertToPng(candidate.data, candidate.mimeType);
+    if (pngDataUrl) return { labelFound: true, dataUrl: pngDataUrl };
+  }
+
+  return null;
+}
+
 export async function extractExcelImage(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  console.log("[extractExcelImage] File:", file.name, "size:", file.size, "type:", file.type);
+
+  // ── Strategy 1: Parse as .xlsx (zip) and look for image files ──
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(arrayBuffer);
+    const zip = await JSZip.loadAsync(arrayBuffer.slice(0));
     const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
+    console.log("[extractExcelImage] Zip parsed. Files:", allFiles.length, allFiles.slice(0, 30));
+    const candidates = [];
 
-    console.log("[extractExcelImage] Files in zip:", allFiles);
+    // 1a: Look in xl/media/ etc. for image files by extension
+    const mediaFiles = allFiles.filter(f => IMAGE_EXTENSIONS.test(f));
+    console.log("[extractExcelImage] Media files by extension:", mediaFiles);
+    for (const f of mediaFiles) {
+      const ext = f.toLowerCase().match(/\.([a-z]+)$/)?.[1] || '';
+      const uint8 = await zip.files[f].async('uint8array');
+      console.log(`[extractExcelImage]   ${f} (${ext}) → ${uint8.length} bytes`);
+      candidates.push({
+        file: f,
+        data: uint8,
+        mimeType: EXT_TO_MIME[ext] || 'application/octet-stream',
+        size: uint8.length,
+      });
+    }
 
-    let bestImage = null;
-    let bestSize = 0;
-
+    // 1b: Scan ALL files for embedded image data by magic bytes
     for (const f of allFiles) {
+      if (IMAGE_EXTENSIONS.test(f)) continue;
       const uint8 = await zip.files[f].async('uint8array');
       const images = findImagesInBytes(uint8);
+      if (images.length) console.log(`[extractExcelImage]   Magic bytes in ${f}:`, images.map(i => `${i.type}(${i.data.length})`));
       for (const img of images) {
-        console.log(`[extractExcelImage] Found ${img.type} in ${f}, size: ${img.data.length}`);
-        if (img.data.length > bestSize) {
-          bestSize = img.data.length;
-          bestImage = img;
-        }
+        candidates.push({ file: f, data: img.data, mimeType: img.type, size: img.data.length });
       }
     }
 
-    if (!bestImage) {
-      console.log("[extractExcelImage] No image found in any file");
-      return { labelFound: false, dataUrl: null };
+    console.log("[extractExcelImage] Total candidates from zip:", candidates.length);
+    const result = await processCandidates(candidates);
+    if (result) {
+      console.log("[extractExcelImage] ✓ Extracted from zip, dataUrl length:", result.dataUrl?.length);
+      return result;
     }
-
-    console.log("[extractExcelImage] Best image, type:", bestImage.type, "size:", bestSize);
-
-    // For EMF/WMF, try to convert to PNG via the browser's native decoder + canvas
-    if (bestImage.type === 'image/emf' || bestImage.type === 'image/wmf') {
-      console.log("[extractExcelImage] Attempting EMF/WMF → PNG conversion");
-      const pngDataUrl = await tryConvertToPng(bestImage.data, bestImage.type);
-      if (pngDataUrl) {
-        console.log("[extractExcelImage] Successfully converted to PNG");
-        return { labelFound: true, dataUrl: pngDataUrl };
-      }
-      console.log("[extractExcelImage] Browser could not render EMF/WMF — skipping");
-      return { labelFound: false, dataUrl: null };
-    }
-
-    const base64 = uint8ToBase64(bestImage.data);
-    return { labelFound: true, dataUrl: `data:${bestImage.type};base64,${base64}` };
+    console.log("[extractExcelImage] No image rendered from zip candidates");
   } catch (e) {
-    console.error("[extractExcelImage] Error:", e);
+    console.log("[extractExcelImage] Zip parse failed (probably .xls not .xlsx):", e.message);
   }
+
+  // ── Strategy 2: Scan the raw file bytes directly ──
+  const rawBytes = new Uint8Array(arrayBuffer);
+  console.log("[extractExcelImage] Scanning raw bytes, length:", rawBytes.length);
+
+  // 2a: Scan for image magic bytes (PNG, JPEG, BMP, GIF, EMF, WMF)
+  const rawImages = findImagesInBytes(rawBytes);
+  console.log("[extractExcelImage] Raw magic-byte matches:", rawImages.map(i => `${i.type}(${i.data.length})`));
+  const rawCandidates = rawImages.map(img => ({
+    file: '<raw>',
+    data: img.data,
+    mimeType: img.type,
+    size: img.data.length,
+  }));
+
+  // 2b: Also scan for embedded DIB (BITMAPINFOHEADER) structures — these are the
+  // actual bitmaps inside EMF records and are more reliable than "BM" magic bytes.
+  const dibs = findAllDibs(rawBytes);
+  console.log("[extractExcelImage] DIB matches:", dibs.length, dibs.map(d => `${d.length}`));
+  for (const dib of dibs) {
+    rawCandidates.push({ file: '<dib>', data: dib, mimeType: 'image/bmp', size: dib.length });
+  }
+
+  const rawResult = await processCandidates(rawCandidates);
+  if (rawResult) {
+    console.log("[extractExcelImage] ✓ Extracted from raw bytes, dataUrl length:", rawResult.dataUrl?.length);
+    return rawResult;
+  }
+
+  console.log("[extractExcelImage] ✗ No image could be extracted");
   return { labelFound: false, dataUrl: null };
 }
