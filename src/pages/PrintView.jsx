@@ -23,9 +23,9 @@ const TURNING_OP_KEYS = ["n_block", "op_number", "operation_name", "comment", "t
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div className="text-xs min-w-0 break-words">
-      <span className="font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{label}:</span>{" "}
-      <span className="text-gray-900">{value}</span>
+    <div className="text-xs min-w-0" style={{ overflowWrap: "anywhere" }}>
+      <span className="font-semibold text-gray-500 uppercase tracking-wide">{label}:</span>{" "}
+      <span className="text-gray-900 break-words">{value}</span>
     </div>
   );
 }
@@ -130,7 +130,6 @@ export default function PrintView() {
                 ["Qty", general.quantity],
                 ["File Name", general.program],
                 ["Program Desc", general.program_description],
-                ...(general.program_location ? [["Program Location", general.program_location]] : []),
                 ...(general.cycle_time ? [["Cycle Time", general.cycle_time]] : []),
                 ...(general.handling_time ? [["Handling Time", general.handling_time]] : []),
                 ...(general.total_cycle_time ? [["Total Cycle", general.total_cycle_time]] : []),
@@ -143,14 +142,14 @@ export default function PrintView() {
               }
               return (
               <div className="border border-gray-200 rounded p-3 bg-gray-50">
-                <table className="w-full border-collapse text-xs">
+                <table className="gi-table w-full border-collapse text-xs">
                   <tbody>
                     {rows.map(([left, right], i) => (
                       <tr key={i} className="border-b border-gray-200 last:border-b-0">
                         <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{left[0]}</td>
-                        <td className="py-1.5 pr-6 text-gray-900 break-words align-top">{left[1]}</td>
+                        <td className="gi-value py-1.5 pr-6 text-gray-900 align-top">{left[1]}</td>
                         <td className="py-1.5 pr-2 font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap align-top w-[1%]">{right[0]}</td>
-                        <td className="py-1.5 text-gray-900 break-words align-top">{right[1]}</td>
+                        <td className="gi-value py-1.5 pr-3 text-gray-900 align-top">{right[1]}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -521,7 +520,7 @@ export default function PrintView() {
               <h2 className="print-section-title">Photos</h2>
               <div className="grid grid-cols-1 gap-8">
                 {allPhotoSlots.map((slot) => (
-                  <div key={slot.id} className="space-y-2">
+                  <div key={slot.id} className="photo-slot space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
                     <img
                       src={slot.url}
@@ -546,6 +545,16 @@ export default function PrintView() {
           .no-print { display: none !important; }
           .print-view { padding-top: 0 !important; }
           body { background: white !important; }
+          /* Keep titled sub-blocks (info boxes, station cards, turret tables) intact */
+          .print-view .border.border-gray-200.rounded {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          /* Keep each photo + its label together */
+          .print-view .photo-slot {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
         }
         .print-section-title {
           font-size: 10px;
@@ -579,6 +588,12 @@ export default function PrintView() {
         }
         .print-table tr:nth-child(even) td {
           background: #f9fafb;
+        }
+        /* General-info value cells: wrap long content (paths, descriptions)
+           inside the cell instead of expanding the column off the table edge */
+        .gi-value {
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
       `}</style>
     </>
