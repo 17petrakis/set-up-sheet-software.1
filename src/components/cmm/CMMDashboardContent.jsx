@@ -113,7 +113,11 @@ export default function CMMDashboardContent({ customers = [], onCustomersChange 
   };
 
   const handleOpenFolder = (folder) => {
-    setOpenFolder(folder);
+    if (folder.sheets.length === 1) {
+      navigate(`/cmm-sheet/${folder.sheets[0].id}`);
+    } else {
+      setOpenFolder(folder);
+    }
   };
 
   if (openFolder) {

@@ -76,6 +76,19 @@ export default function CMMSheet() {
     return () => clearTimeout(saveTimer.current);
   }, [sheet]);
 
+  const handleBack = async () => {
+    if (sheet.folder_id) {
+      try {
+        const siblings = await base44.entities.CMMSheet.filter({ folder_id: sheet.folder_id });
+        if (siblings.length > 1) {
+          navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
+          return;
+        }
+      } catch {}
+    }
+    navigate(`/?tab=quality_control`);
+  };
+
   const handleDeleteOperation = async () => {
     await base44.entities.CMMSheet.delete(id);
     navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
@@ -91,14 +104,10 @@ export default function CMMSheet() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 sm:hidden" onClick={() => {
-            navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
-          }}>
+          <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 sm:hidden" onClick={handleBack}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1 hidden sm:inline-flex" onClick={() => {
-            navigate(`/?tab=quality_control&cmm_folder=${sheet.folder_id || ""}&pn=${encodeURIComponent(sheet.part_number || "")}&cu=${encodeURIComponent(sheet.customer || "")}`);
-          }}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 mr-1 hidden sm:inline-flex" onClick={handleBack}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           {sheet.work_holding?.[0]?.photo_url ? (
