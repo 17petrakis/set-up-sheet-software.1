@@ -611,31 +611,9 @@ export async function extractExcelImage(file) {
     const arrayBuffer = await file.arrayBuffer();
     const xlsxBuffer = arrayBuffer.slice(0);
 
-    // Step 1: Check ALL sheets for IMG or PICTURE label
-    const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
-    let hasImageLabel = false;
-    for (const sheetName of workbook.SheetNames) {
-      const ws = workbook.Sheets[sheetName];
-      if (!ws) continue;
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-      for (const row of rows) {
-        if (!row) continue;
-        for (const cell of row) {
-          if (cell == null) continue;
-          const lower = String(cell).trim().toLowerCase();
-          if (lower.includes("img") || lower.includes("picture")) {
-            hasImageLabel = true;
-            break;
-          }
-        }
-        if (hasImageLabel) break;
-      }
-      if (hasImageLabel) break;
-    }
-    if (!hasImageLabel) return { labelFound: false, dataUrl: null };
-
-    // Step 2: Load zip and search ALL files for embedded image data by magic bytes
+    // Load zip and search ALL files for embedded image data by magic bytes
     // This catches standalone PNGs AND PNGs wrapped inside OLE containers (.bin files)
+    // Per user: there should only be 1 image total on the entire file, so just grab it.
     const zip = await JSZip.loadAsync(arrayBuffer);
     const allFiles = Object.keys(zip.files).filter(f => !zip.files[f].dir);
 
@@ -654,8 +632,8 @@ export async function extractExcelImage(file) {
     }
 
     if (!bestImage) {
-      console.log("[extractExcelImage] IMG label found but no extractable image (may be EMF/unsupported format)");
-      return { labelFound: true, dataUrl: null };
+      console.log("[extractExcelImage] No extractable image found (may be EMF/unsupported format)");
+      return { labelFound: false, dataUrl: null };
     }
 
     const base64 = uint8ToBase64(bestImage.data);
