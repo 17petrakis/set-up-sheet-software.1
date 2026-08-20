@@ -711,8 +711,11 @@ function findImagesInBytes(uint8) {
 
 // Check if a canvas image is blank (all-white, all-transparent, or nearly
 // uniform noise). Samples a grid of pixels for efficiency. Returns true if
-// the image has no meaningful visible content — defined as fewer than 3% of
-// sampled pixels differing from the dominant color.
+// the image has no meaningful visible content — defined as fewer than 12% of
+// sampled pixels differing significantly (delta > 30 per channel) from the
+// dominant color. The high threshold filters out garbage/noise candidates
+// (OLE2 data misread as pixels) that have only a few stray colored pixels,
+// while real line drawings and photos easily exceed 12% coverage.
 function isImageBlank(ctx, width, height) {
   // ctx is already created with willReadFrequently: true
   if (width <= 0 || height <= 0) return true;
@@ -731,15 +734,15 @@ function isImageBlank(ctx, width, height) {
       if (firstR === -1) {
         firstR = r; firstG = g; firstB = b;
       } else {
-        if (Math.abs(r - firstR) > 15 || Math.abs(g - firstG) > 15 || Math.abs(b - firstB) > 15) {
+        if (Math.abs(r - firstR) > 30 || Math.abs(g - firstG) > 30 || Math.abs(b - firstB) > 30) {
           variedSamples++;
         }
       }
     }
   }
   if (totalSamples === 0) return true; // all transparent
-  // Real images have at least 3% of pixels differing from the background
-  return variedSamples / totalSamples < 0.03;
+  // Real images have at least 12% of pixels differing significantly from the background
+  return variedSamples / totalSamples < 0.12;
 }
 
 // Try to render an image blob via the browser's native decoder, rasterize to
