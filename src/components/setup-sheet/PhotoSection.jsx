@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
-import { migratePhotoSlots, DEFAULT_CATEGORIES } from "@/lib/photoSlots";
+import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   const [title, setTitle] = useState("");
@@ -220,7 +220,11 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   const [uploading, setUploading] = useState(false);
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
 
-  const updateSlots = (newSlots) => onChange({ __slots: newSlots, ...(photos.__icon_slot_id ? { __icon_slot_id: photos.__icon_slot_id } : {}) });
+  const updateSlots = (newSlots) => onChange({
+    __slots: newSlots,
+    ...(photos.__icon_slot_id ? { __icon_slot_id: photos.__icon_slot_id } : {}),
+    ...(photos.__icon_cleared ? { __icon_cleared: true } : {}),
+  });
 
   const handleFileSelect = (category) => {
     setPendingCategory(category);
@@ -268,7 +272,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
   const handleSlotRemove = (id) => {
     const newSlots = slots.filter(s => s.id !== id);
     if (iconSlotId === id) {
-      onChange({ __slots: newSlots, __icon_slot_id: undefined });
+      onChange({ __slots: newSlots, __icon_slot_id: undefined, __icon_cleared: true });
     } else {
       updateSlots(newSlots);
     }
@@ -282,14 +286,15 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
     updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
   };
 
-  const iconSlotId = photos.__icon_slot_id || null;
+  const iconSlotId = getEffectiveIconSlotId(photos);
 
   const handleToggleIcon = (id) => {
-    // If this slot is already the icon, remove the override (revert to default logic)
     if (iconSlotId === id) {
-      onChange({ ...photos, __icon_slot_id: undefined });
+      // Removing the current icon — clear it and suppress auto-selection
+      onChange({ ...photos, __icon_slot_id: undefined, __icon_cleared: true });
     } else {
-      onChange({ ...photos, __icon_slot_id: id });
+      // Setting a new explicit icon
+      onChange({ ...photos, __icon_slot_id: id, __icon_cleared: false });
     }
   };
 

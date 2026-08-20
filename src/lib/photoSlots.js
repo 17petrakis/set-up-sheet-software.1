@@ -9,8 +9,25 @@ export const DEFAULT_CATEGORIES = [
 // Includes final_part_2 for migration from old data
 const MIGRATION_SLOTS = [...DEFAULT_CATEGORIES, { key: "final_part_2", label: "Final Part 2" }];
 
+// Returns the slot ID of the photo that is effectively the icon (explicit override,
+// or auto-selected via priority, or null if cleared / no photos).
+export function getEffectiveIconSlotId(photos) {
+  if (!photos || !photos.__slots) return null;
+  const slots = photos.__slots;
+  if (photos.__icon_slot_id) {
+    const slot = slots.find(s => s.id === photos.__icon_slot_id && s.url);
+    if (slot) return slot.id;
+  }
+  if (photos.__icon_cleared) return null;
+  const finalPart = slots.find(s => (s.category === "final_part" || s.category === "final_part_2") && s.url);
+  if (finalPart) return finalPart.id;
+  const findSlot = (cat) => slots.find(s => s.category === cat && s.url);
+  return findSlot("iso")?.id || findSlot("drawing")?.id || slots.find(s => s.category === "custom" && s.url)?.id || null;
+}
+
 // Pick the best photo to use as a part icon.
 // Priority: explicit icon override → final_part → iso → drawing → first custom (in order of appearance)
+// If __icon_cleared is set, auto-selection is suppressed until a new icon is explicitly chosen.
 export function getPartIconPhoto(photos) {
   if (!photos) return null;
   if (photos.__slots) {
@@ -20,6 +37,8 @@ export function getPartIconPhoto(photos) {
       const iconSlot = slots.find(s => s.id === photos.__icon_slot_id && s.url);
       if (iconSlot) return iconSlot.url;
     }
+    // Icon was explicitly cleared — don't auto-select
+    if (photos.__icon_cleared) return null;
     const find = (cat) => slots.find(s => s.category === cat && s.url);
     const finalPart = slots.find(s => (s.category === "final_part" || s.category === "final_part_2") && s.url);
     return finalPart?.url || find("iso")?.url || find("drawing")?.url || slots.find(s => s.category === "custom" && s.url)?.url || null;
