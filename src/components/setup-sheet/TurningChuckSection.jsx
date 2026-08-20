@@ -173,16 +173,13 @@ function SpindleForm({ spindleKey, label, data, onChange }) {
   const set = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
   const setAndClear = (field, val) => onChange({ ...data, [spindleKey]: { ...s, [field]: val } });
 
-  const [localAccessories, setLocalAccessories] = useState(s.accessories || "");
-
-  useEffect(() => { setLocalAccessories(s.accessories || ""); }, [s.accessories]);
+  const accessories = s.accessories || "";
 
   const handleAccessoriesChange = (val) => {
-    setLocalAccessories(val);
     onChange({ ...data, [spindleKey]: { ...s, accessories: val, accessories_extra: "" } });
   };
 
-  const needsExtra = localAccessories.startsWith('Liner') || localAccessories === 'Work Stop';
+  const needsExtra = accessories.startsWith('Liner') || accessories === 'Work Stop';
 
   const chuckType = s.chuck_type || "";
   const jawType = s.jaw_type || "";

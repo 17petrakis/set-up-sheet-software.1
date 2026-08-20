@@ -158,6 +158,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
               ...(gen.has_program_edited ? [["Edited at Machine", "Yes"]] : []),
               ...(gen.edit_note ? [["Edit Note", gen.edit_note]] : []),
               ...(gen.cycle_time ? [["Cycle Time", gen.cycle_time]] : []),
+              ...(gen.cycle_time_notes ? [["Cycle Time Notes", gen.cycle_time_notes]] : []),
               ...(gen.handling_time ? [["Handling Time", gen.handling_time]] : []),
               ...(gen.total_cycle_time ? [["Total Cycle", gen.total_cycle_time]] : []),
               ...(gen.automation ? [["Automated", gen.automation]] : []),
