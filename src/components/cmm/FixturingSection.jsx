@@ -3,23 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Wrench, Plus, X, ExternalLink } from "lucide-react";
-
-const FIXTURING_OPTIONS = [
-  { group: "Fixturing" },
-  { label: "Black Tower", variants: [] },
-  { label: "Base Block", variants: ["Large", "Small"] },
-  { label: "V-Block", variants: ["X-Large", "Large", "Small"] },
-  { label: "Angle Block", variants: ["Regular", "V-Angle"] },
-  { label: "Vice", variants: ["Regular", "Finger", "Mini", "Max's"] },
-  { group: "Gauges" },
-  { label: "Parallel Bars", sizes: ["⅞"], sizeField: true },
-  { label: "Gauge Block", sizes: ["0.900", "0.700", "0.950"], sizeField: true },
-  { label: "Gauge Pin", sizes: [".1"], sizeField: true },
-  { group: "Other" },
-  { label: "Weight", variants: ["Round Bar"] },
-  { label: "Flat Piece", variants: [] },
-  { label: "Double Sided Tape", variants: [] },
-];
+import { useDropdownOptions, SETTING_KEYS, buildEquipmentOptions } from "@/lib/dropdownOptions";
 
 function getItemLabel(item) {
   if (item.custom_name) return item.note ? `${item.custom_name} – ${item.note}` : item.custom_name;
@@ -40,7 +24,14 @@ export default function FixturingSection({ items = [], onChange }) {
     base44.entities.FixturingSize.list().then(setSavedSizeRecords).catch(() => {});
   }, []);
 
-  const selectedOption = FIXTURING_OPTIONS.find(o => o.label && o.label === selectedType);
+  const opts = useDropdownOptions();
+  const equipmentOptions = buildEquipmentOptions(opts[SETTING_KEYS.cmmEquipment] || []);
+  const groupedEquipment = equipmentOptions.reduce((acc, o) => {
+    const g = o.group || "Other";
+    (acc[g] = acc[g] || []).push(o);
+    return acc;
+  }, {});
+  const selectedOption = equipmentOptions.find(o => o.label === selectedType);
 
   const isSizeField = selectedOption?.sizeField;
   const fieldOptions = isSizeField ? selectedOption?.sizes : selectedOption?.variants;
@@ -152,11 +143,11 @@ export default function FixturingSection({ items = [], onChange }) {
               className="w-full h-9 px-3 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="">— Select —</option>
-              {FIXTURING_OPTIONS.map((o, i) =>
-                o.group
-                  ? <optgroup key={`group-${i}`} label={o.group} />
-                  : <option key={o.label} value={o.label}>{o.label}</option>
-              )}
+              {Object.entries(groupedEquipment).map(([group, optsList]) => (
+                <optgroup key={group} label={group}>
+                  {optsList.map(o => <option key={o.label} value={o.label}>{o.label}</option>)}
+                </optgroup>
+              ))}
               <option value="__other__">Other (enter name)</option>
             </select>
           </div>

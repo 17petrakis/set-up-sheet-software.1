@@ -1,58 +1,28 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import {
+  INVENTORY_SECTIONS,
+  loadInventory,
+  resolveSectionOptions,
+  defaultOptionsForSection,
+} from "@/lib/inventory";
 
-// Setting keys (stored as JSON in the Setting entity)
+// Dropdown keys. Values are inventory section ids (see src/lib/inventory.js).
+// Consumers use these as keys into the options map returned by useDropdownOptions.
 export const SETTING_KEYS = {
-  millingMachine: "dropdown_milling_machine",
-  millingCad: "dropdown_milling_cad",
-  millingVise: "dropdown_milling_vise",
-  millingJaw: "dropdown_milling_jaw",
-  latheMachine: "dropdown_lathe_machine",
-  latheCad: "dropdown_lathe_cad",
-  latheVise: "dropdown_lathe_vise",
-  latheJaw: "dropdown_lathe_jaw",
-  cmmPostSize: "dropdown_cmm_post_size",
-  cmmEquipment: "dropdown_cmm_equipment",
-  cmmMachine: "dropdown_cmm_machine",
+  millingMachine: "machine_mill",
+  latheMachine: "machine_lathe",
+  cmmMachine: "machine_cmm",
+  millingCad: "cad",
+  latheCad: "cad",
+  millingVise: "vise",
+  latheVise: "vise",
+  millingJaw: "jaw_mill",
+  latheJaw: "jaw_lathe",
+  cmmPostSize: "cmm_post_size",
+  cmmEquipment: "cmm_equipment",
 };
 
-// ── Defaults (extracted from the previously hardcoded option lists) ──
-const DEFAULT_MILLING_MACHINES = [
-  "Matsuura MX-520", "Matsuura MX-330", "Matsuura MAM72-35 V", "Matsuura H.Plus-405",
-  "MORI SIEKI NH 4000 DCG", "HAAS DT1", "HAAS VF 4SS", "HAAS DM1", "OKUMA",
-  "DMG Mori NH4000DCG", "DMG Mori RPS-NHX-4000", "Manual",
-];
-
-const DEFAULT_LATHE_MACHINES = [
-  "MORI SIEKI NL 2000", "HAAS SL-10",
-  "Doosan Puma 2100Y II", "Doosan Puma MX2100ST", "Doosan SMX2100",
-  "DMG Mori RPS-NHX-4000", "Citizen L20",
-  "Nakamura NTY3-150", "Nakamura WY-150", "Manual",
-];
-
-const DEFAULT_CAD = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "Finger-Code", "N/A"];
-const DEFAULT_VISE = ["Kurt Vise", "5th Axis Vise", "Lang Vise", "Other"];
-const DEFAULT_MILLING_JAW = ["Hard Jaws", "Soft Jaws", "Step Jaws", "Tallon Grip", "Versa-Grip"];
-const DEFAULT_LATHE_JAW = ["Hard Jaw", "Soft Jaw", "Mounted Fixture"];
-const DEFAULT_CMM_POST_SIZE = ["1.5 in.", "1.75 in.", "2.75 in.", "3.5 in."];
-const DEFAULT_CMM_MACHINE = ["Zeiss", "Hexagon"];
-
-// CMM equipment: ordered list of { label, group }. Variant/size details are
-// looked up from DEFAULT_EQUIPMENT_DETAILS so existing rich behavior is preserved.
-const DEFAULT_CMM_EQUIPMENT = [
-  { label: "Black Tower", group: "Fixturing" },
-  { label: "Base Block", group: "Fixturing" },
-  { label: "V-Block", group: "Fixturing" },
-  { label: "Angle Block", group: "Fixturing" },
-  { label: "Vice", group: "Fixturing" },
-  { label: "Parallel Bars", group: "Gauges" },
-  { label: "Gauge Block", group: "Gauges" },
-  { label: "Gauge Pin", group: "Gauges" },
-  { label: "Weight", group: "Other" },
-  { label: "Flat Piece", group: "Other" },
-  { label: "Double Sided Tape", group: "Other" },
-];
-
+// Legacy detail map kept for backward compatibility with buildEquipmentOptions.
 export const DEFAULT_EQUIPMENT_DETAILS = {
   "Black Tower": { variants: [] },
   "Base Block": { variants: ["Large", "Small"] },
@@ -67,81 +37,58 @@ export const DEFAULT_EQUIPMENT_DETAILS = {
   "Double Sided Tape": { variants: [] },
 };
 
-const DEFAULTS = {
-  [SETTING_KEYS.millingMachine]: DEFAULT_MILLING_MACHINES,
-  [SETTING_KEYS.millingCad]: DEFAULT_CAD,
-  [SETTING_KEYS.millingVise]: DEFAULT_VISE,
-  [SETTING_KEYS.millingJaw]: DEFAULT_MILLING_JAW,
-  [SETTING_KEYS.latheMachine]: DEFAULT_LATHE_MACHINES,
-  [SETTING_KEYS.latheCad]: DEFAULT_CAD,
-  [SETTING_KEYS.latheVise]: DEFAULT_VISE,
-  [SETTING_KEYS.latheJaw]: DEFAULT_LATHE_JAW,
-  [SETTING_KEYS.cmmPostSize]: DEFAULT_CMM_POST_SIZE,
-  [SETTING_KEYS.cmmEquipment]: DEFAULT_CMM_EQUIPMENT,
-  [SETTING_KEYS.cmmMachine]: DEFAULT_CMM_MACHINE,
-};
-
-// Module-level cache + in-flight promise
-let cache = null;
-let loadPromise = null;
-
-export async function loadDropdownOptions(force = false) {
-  if (cache && !force) return cache;
-  if (loadPromise && !force) return loadPromise;
-  loadPromise = (async () => {
-    try {
-      const rows = await base44.entities.Setting.list();
-      const map = {};
-      for (const row of rows || []) {
-        if (row.key && row.key.startsWith("dropdown_")) {
-          try { map[row.key] = JSON.parse(row.value); } catch { /* ignore */ }
-        }
-      }
-      cache = { ...DEFAULTS, ...map };
-      return cache;
-    } catch (e) {
-      cache = { ...DEFAULTS };
-      return cache;
-    } finally {
-      loadPromise = null;
-    }
-  })();
-  return loadPromise;
+// Build the full options map (keyed by section id) from inventory records,
+// falling back to defaults for any section with no active records.
+function buildOptions(records) {
+  const opts = {};
+  for (const section of INVENTORY_SECTIONS) {
+    const resolved = resolveSectionOptions(section, records);
+    opts[section.id] = resolved !== null ? resolved : defaultOptionsForSection(section);
+  }
+  return opts;
 }
 
-export async function saveDropdownOption(key, value) {
-  const json = JSON.stringify(value);
-  const existing = await base44.entities.Setting.filter({ key });
-  if (existing && existing.length > 0) {
-    await base44.entities.Setting.update(existing[0].id, { value: json });
-  } else {
-    await base44.entities.Setting.create({ key, value: json });
-  }
-  if (cache) cache = { ...cache, [key]: value };
-  window.dispatchEvent(new CustomEvent("dropdown-options-changed", { detail: { key } }));
+// Backward-compatible loader (returns the options map).
+export async function loadDropdownOptions(force = false) {
+  const records = await loadInventory(force);
+  return buildOptions(records);
 }
 
 export function useDropdownOptions() {
-  const [opts, setOpts] = useState(cache || DEFAULTS);
+  const [opts, setOpts] = useState(() => {
+    const o = {};
+    for (const section of INVENTORY_SECTIONS) o[section.id] = defaultOptionsForSection(section);
+    return o;
+  });
   useEffect(() => {
     let mounted = true;
-    loadDropdownOptions().then(o => { if (mounted) setOpts(o); });
-    const handler = () => loadDropdownOptions(true).then(o => { if (mounted) setOpts(o); });
+    const apply = (records) => { if (mounted) setOpts(buildOptions(records)); };
+    loadInventory().then(apply);
+    const handler = () => loadInventory(true).then(apply);
+    window.addEventListener("inventory-changed", handler);
     window.addEventListener("dropdown-options-changed", handler);
     return () => {
       mounted = false;
+      window.removeEventListener("inventory-changed", handler);
       window.removeEventListener("dropdown-options-changed", handler);
     };
   }, []);
   return opts;
 }
 
-// Build the full FIXTURING_OPTIONS-style structure from stored labels + default details.
-export function buildEquipmentOptions(labels) {
-  return (labels || []).map(item => {
-    const label = typeof item === "string" ? item : item.label;
-    const group = typeof item === "string" ? "Other" : (item.group || "Other");
+// Enrich a list of CMM equipment items with variants/sizes, falling back to the
+// legacy detail map for any field not carried on the record.
+export function buildEquipmentOptions(items) {
+  return (items || []).map(item => {
+    const label = item.label;
+    const group = item.group || "Other";
     const details = DEFAULT_EQUIPMENT_DETAILS[label] || {};
-    return { label, group, variants: details.variants || [], sizes: details.sizes || [], sizeField: !!details.sizeField };
+    return {
+      label,
+      group,
+      variants: item.variants && item.variants.length ? item.variants : (details.variants || []),
+      sizes: item.sizes && item.sizes.length ? item.sizes : (details.sizes || []),
+      sizeField: item.sizeField !== undefined ? item.sizeField : !!details.sizeField,
+    };
   });
 }

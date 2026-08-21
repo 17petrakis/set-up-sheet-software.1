@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell, Settings2 } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell, Boxes } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import NewCMMSheetDialog from "@/components/cmm/NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
@@ -13,8 +13,6 @@ import PartFolderView from "@/components/home/PartFolderView";
 import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
 import MachineToolListsContent from "@/components/machine-tools/MachineToolListsContent";
 import { cn } from "@/lib/utils";
-import EditModeDialog from "@/components/admin/EditModeDialog";
-import DropdownOptionsEditor from "@/components/admin/DropdownOptionsEditor";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -47,9 +45,6 @@ export default function Home() {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [approvedRequests, setApprovedRequests] = useState([]);
   const [showApprovedModal, setShowApprovedModal] = useState(false);
-  const [showEditMode, setShowEditMode] = useState(false);
-  const [editModeType, setEditModeType] = useState(null);
-
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
 
@@ -277,10 +272,10 @@ export default function Home() {
           )}
           {isAdmin && (
             <button
-              onClick={() => setShowEditMode(true)}
+              onClick={() => navigate("/inventory")}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             >
-              <Settings2 className="w-4 h-4 shrink-0" /> Edit Dropdown Options
+              <Boxes className="w-4 h-4 shrink-0" /> Inventory
             </button>
           )}
           <button
@@ -747,17 +742,6 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <EditModeDialog
-        open={showEditMode}
-        onClose={() => setShowEditMode(false)}
-        onSelect={(type) => { setEditModeType(type); setShowEditMode(false); }}
-      />
-      <DropdownOptionsEditor
-        open={!!editModeType}
-        sheetType={editModeType}
-        onClose={() => setEditModeType(null)}
-      />
 
       <AlertDialog open={!!deleteCustomerTarget} onOpenChange={(open) => !open && setDeleteCustomerTarget(null)}>
         <AlertDialogContent>
