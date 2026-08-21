@@ -31,6 +31,101 @@ function normalizeHeader(text) {
   return String(text || "").trim().toLowerCase();
 }
 
+// ── Mill-turn format ─────────────────────────────────────────────────────────
+// A mill-turn setup sheet has a "#" column (tool numbers as T#), a tool type /
+// description column to the right of it, then a Dia. column and a Rad. column.
+// All imported tools are added as Mill tools. The tool_type is derived by
+// scanning the descriptive name for words matching the mill tool type dropdown
+// choices (Mill, Drill, Taps, Engraving).
+
+const MILL_TYPE_KEYWORDS = [
+  { type: "Drill", match: ["drill", "spot", "center drill", "spade"] },
+  { type: "Taps", match: ["tap"] },
+  { type: "Engraving", match: ["engrav"] },
+  { type: "Mill", match: ["mill", "endmill", "face", "chamfer", "ball", "square", "radius", "roughing", "corncob", "lollipop", "t-slot", "tslot", "slitting", "form"] },
+];
+
+function matchMillType(nameText) {
+  const lower = (nameText || "").toLowerCase();
+  for (const { type, match } of MILL_TYPE_KEYWORDS) {
+    if (match.some((w) => lower.includes(w))) return type;
+  }
+  return "Mill";
+}
+
+function isNumHeader(h) {
+  return h === "#" || h === "t#" || h === "tool#" || h === "tool #" || h === "tool no" || h === "tool no." || h === "tool number";
+}
+function isDiaHeader(h) {
+  return h === "dia" || h === "dia." || h === "diameter" || h === "d" || h.includes("diameter") || (h.includes("dia") && !h.includes("rad"));
+}
+function isRadHeader(h) {
+  return h === "rad" || h === "rad." || h === "radius" || h.includes("corner rad") || h.includes("radius") || h.includes(" rad");
+}
+function isTypeNameHeader(h) {
+  return h.includes("tool type") || h === "type" || h.includes("description") || h === "name" || h.includes("tool name") || h.includes("tool desc");
+}
+
+// Detect the mill-turn header: a "#" column together with a Dia. column.
+function detectMillTurnHeader(rows) {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row) continue;
+    let foundNum = -1;
+    let foundDia = -1;
+    let foundRad = -1;
+    let foundType = -1;
+    for (let c = 0; c < row.length; c++) {
+      const h = normalizeHeader(row[c]);
+      if (!h) continue;
+      if (isNumHeader(h)) foundNum = c;
+      else if (isRadHeader(h)) foundRad = c;
+      else if (isDiaHeader(h)) foundDia = c;
+      else if (isTypeNameHeader(h)) foundType = c;
+    }
+    if (foundNum >= 0 && foundDia >= 0) {
+      // If no explicit type/description header, the column right after # is the tool type/name
+      if (foundType < 0) foundType = foundNum + 1;
+      return { headerIdx: i, numCol: foundNum, typeCol: foundType, diaCol: foundDia, radCol: foundRad };
+    }
+  }
+  return null;
+}
+
+function parseMillTurnRows(rows, cols) {
+  const { headerIdx, numCol, typeCol, diaCol, radCol } = cols;
+  const tools = [];
+  for (let j = headerIdx + 1; j < rows.length; j++) {
+    const dataRow = rows[j];
+    if (!dataRow) break;
+
+    const numStr = dataRow[numCol] != null ? String(dataRow[numCol]).trim() : "";
+    const nameText = typeCol >= 0 && dataRow[typeCol] != null ? String(dataRow[typeCol]).trim() : "";
+    const diaText = diaCol >= 0 && dataRow[diaCol] != null ? String(dataRow[diaCol]).trim() : "";
+    const radText = radCol >= 0 && dataRow[radCol] != null ? String(dataRow[radCol]).trim() : "";
+
+    // Empty row — end of section
+    if (!numStr && !nameText && !diaText && !radText) break;
+
+    // Extract number from T# format (e.g., "T1212" → "1212")
+    let toolNumber = numStr;
+    if (toolNumber.toUpperCase().startsWith("T")) {
+      toolNumber = toolNumber.substring(1);
+    }
+
+    tools.push({
+      _id: Date.now() + Math.random() + j,
+      tool_kind: "Mill",
+      tool_type: matchMillType(nameText),
+      tool_number: toolNumber,
+      name: nameText,
+      dia: diaText,
+      rad: radText || "",
+    });
+  }
+  return tools;
+}
+
 export function parseTurningToolExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,6 +152,15 @@ export function parseTurningToolExcel(file) {
 
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
+        // ── Mill-turn format: "#" + Dia. columns present ──
+        const millTurnCols = detectMillTurnHeader(rows);
+        if (millTurnCols) {
+          const tools = parseMillTurnRows(rows, millTurnCols);
+          resolve(tools);
+          return;
+        }
+
+        // ── Standard turning format ──
         // Find header row with "#" and "Tool Type" (or "Type")
         let headerIdx = -1;
         let numCol = -1;
