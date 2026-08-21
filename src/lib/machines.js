@@ -33,13 +33,32 @@ export const getToolSlots = (machine) =>
 
 // Returns max tools per turret for a lathe machine + turret type, or null = unlimited
 // Merge admin-added custom machines into a CascadingDropdown options array
-// (built-in machines use { group, models } grouping). Custom machines are
-// added as single-item groups where group === model, so the stored value is
-// just the machine name.
+// (built-in machines use { group: brand, models: [...] } grouping). When a
+// custom machine's name contains an existing brand (case-insensitive word
+// match, e.g. "Doosan Puma 2600" → "Doosan"), it is added under that brand's
+// sub-dropdown. Machines with no recognized brand become their own group.
 export function buildCascadingMachineOptions(builtInOptions, customMachines, type) {
   const customs = (customMachines || []).filter((m) => m.type === type);
   if (!customs.length) return builtInOptions;
-  return [...builtInOptions, ...customs.map((m) => ({ group: m.name, models: [m.name] }))];
+
+  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Clone so the static MACHINES array is never mutated
+  const merged = builtInOptions.map((g) => ({ group: g.group, models: [...g.models] }));
+
+  for (const m of customs) {
+    const name = m.name.trim();
+    const idx = merged.findIndex((g) =>
+      new RegExp(`\\b${escapeRegExp(g.group)}\\b`, "i").test(name)
+    );
+    if (idx >= 0) {
+      if (!merged[idx].models.some((x) => x.toLowerCase() === name.toLowerCase())) {
+        merged[idx].models.push(name);
+      }
+    } else {
+      merged.push({ group: name, models: [name] });
+    }
+  }
+  return merged;
 }
 
 export const getTurretToolSlots = (machineName, turretType) => {
