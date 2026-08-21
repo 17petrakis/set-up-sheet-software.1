@@ -8,13 +8,15 @@ import MachineToolListView from "@/components/machine-tools/MachineToolListView"
 import TurningToolList from "@/components/setup-sheet/TurningToolList";
 import TurningToolsView from "@/components/setup-sheet/TurningToolsView";
 import { emptyTool } from "@/lib/setupSheetDefaults";
-import { MACHINES, getToolSlots } from "@/lib/machines";
+import { getToolSlots } from "@/lib/machines";
+import { useMachines } from "@/hooks/useMachines";
 
 export default function MachineToolList() {
   const { machineName } = useParams();
   const navigate = useNavigate();
   const decodedName = decodeURIComponent(machineName);
-  const machine = MACHINES.find((m) => m.name === decodedName);
+  const { machines, loading: machinesLoading } = useMachines();
+  const machine = machines.find((m) => m.name === decodedName);
 
   const [record, setRecord] = useState(null);
   const [tools, setTools] = useState([{ ...emptyTool }]);
@@ -60,6 +62,7 @@ export default function MachineToolList() {
   };
 
   useEffect(() => {
+    if (machinesLoading) return;
     if (!machine) { setLoading(false); return; }
     base44.entities.MachineTool.filter({ machine_name: decodedName }).then((results) => {
       if (results && results.length > 0) {
@@ -76,7 +79,7 @@ export default function MachineToolList() {
       }
       setLoading(false);
     });
-  }, [decodedName]); // eslint-disable-line
+  }, [decodedName, machinesLoading]); // eslint-disable-line
 
   const saveRecord = useCallback(async (toolsArg, turningArg, machineArg) => {
     setSaving(true);
