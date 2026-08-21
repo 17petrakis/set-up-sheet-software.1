@@ -10,7 +10,8 @@ export default function InventoryItemForm({ section, onAdd }) {
   const isCmm = section.id === "cmm_equipment";
   const [name, setName] = useState("");
   const [toolCapacity, setToolCapacity] = useState("");
-  const [subgroup, setSubgroup] = useState(isCmm ? "Other" : "");
+  const [subgroup, setSubgroup] = useState(isCmm ? "Other" : section.id === "cutting_tool_lathe" ? "Turn" : section.id === "cutting_tool_mill" ? "Endmill" : "");
+  const [subgroup2, setSubgroup2] = useState("");
   const [variants, setVariants] = useState("");
   const [defaultSizes, setDefaultSizes] = useState("");
   const [hasSize, setHasSize] = useState(false);
@@ -21,7 +22,8 @@ export default function InventoryItemForm({ section, onAdd }) {
     setVariants("");
     setDefaultSizes("");
     setHasSize(false);
-    setSubgroup(isCmm ? "Other" : "");
+    setSubgroup(isCmm ? "Other" : section.id === "cutting_tool_lathe" ? "Turn" : section.id === "cutting_tool_mill" ? "Endmill" : "");
+    setSubgroup2("");
   };
 
   const submit = () => {
@@ -30,7 +32,8 @@ export default function InventoryItemForm({ section, onAdd }) {
     const item = { name: trimmed, category: section.category, status: "active" };
     if (section.machine_type) item.machine_type = section.machine_type;
     if (fields.includes("tool_capacity") && toolCapacity.trim()) item.tool_capacity = Number(toolCapacity);
-    if (fields.includes("subgroup")) item.subgroup = subgroup.trim() || "Other";
+    if (fields.includes("subgroup")) item.subgroup = subgroup.trim() || (section.id === "cutting_tool_lathe" ? "Turn" : "Other");
+    if (fields.includes("subgroup2")) item.subgroup2 = subgroup2.trim();
     if (fields.includes("variants")) item.variants = variants.split(",").map(s => s.trim()).filter(Boolean);
     if (fields.includes("has_size")) item.has_size = hasSize;
     if (fields.includes("default_sizes")) item.default_sizes = defaultSizes.split(",").map(s => s.trim()).filter(Boolean);
@@ -88,6 +91,39 @@ export default function InventoryItemForm({ section, onAdd }) {
               <Input value={defaultSizes} onChange={e => setDefaultSizes(e.target.value)} placeholder="Default sizes (comma-sep)" className="h-8 text-sm flex-1" />
             )}
           </div>
+        </div>
+      )}
+
+      {section.id === "cutting_tool_mill" && (
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Group</Label>
+            <select
+              value={subgroup}
+              onChange={e => setSubgroup(e.target.value)}
+              className="h-8 w-full px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              {["Endmill", "Face Mill", "Hole Making", "Specialty", "Other"].map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Sub-group (optional)</Label>
+            <Input value={subgroup2} onChange={e => setSubgroup2(e.target.value)} placeholder="e.g. Drill" className="h-8 text-sm" />
+          </div>
+        </div>
+      )}
+
+      {section.id === "cutting_tool_lathe" && (
+        <div>
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block">Kind</Label>
+          <select
+            value={subgroup}
+            onChange={e => setSubgroup(e.target.value)}
+            className="h-8 w-full px-2 text-sm bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="Turn">Turn</option>
+            <option value="Mill">Mill</option>
+          </select>
         </div>
       )}
     </div>

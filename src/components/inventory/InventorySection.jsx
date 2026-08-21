@@ -109,6 +109,12 @@ function ItemRow({ item, section, onRemove }) {
       {section.id === "cmm_equipment" && item.subgroup && (
         <span className="text-xs text-muted-foreground">{item.subgroup}</span>
       )}
+      {section.id === "cutting_tool_mill" && item.subgroup && (
+        <span className="text-xs text-muted-foreground">{item.subgroup}{item.subgroup2 ? ` › ${item.subgroup2}` : ""}</span>
+      )}
+      {section.id === "cutting_tool_lathe" && item.subgroup && (
+        <span className="text-xs text-muted-foreground">{item.subgroup}</span>
+      )}
       <button onClick={onRemove} className="text-muted-foreground hover:text-destructive transition-colors p-1" title="Dispose">
         <Trash2 className="w-3.5 h-3.5" />
       </button>

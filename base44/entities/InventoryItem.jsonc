@@ -14,7 +14,9 @@
         "vise",
         "jaw",
         "cmm_equipment",
-        "cmm_post_size"
+        "cmm_post_size",
+        "cutting_tool",
+        "holder"
       ],
       "description": "Inventory section this item belongs to"
     },
@@ -25,11 +27,15 @@
         "lathe",
         "cmm"
       ],
-      "description": "For machines/jaws: which machine context this item applies to"
+      "description": "For machines/jaws/tools/holders: which machine context this item applies to"
     },
     "subgroup": {
       "type": "string",
-      "description": "Sub-group within a category (e.g. CMM equipment: Fixturing/Gauges/Other)"
+      "description": "Sub-group within a category (e.g. CMM equipment: Fixturing/Gauges/Other; cutting tools: Endmill/Face Mill/Hole Making/Specialty; lathe tools: Turn/Mill)"
+    },
+    "subgroup2": {
+      "type": "string",
+      "description": "Second-level group for nested cutting-tool groups (e.g. Hole Making > Drill)"
     },
     "status": {
       "type": "string",

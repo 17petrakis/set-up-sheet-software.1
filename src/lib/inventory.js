@@ -13,6 +13,10 @@ export const INVENTORY_SECTIONS = [
   { id: "jaw_lathe", label: "Lathe Jaws", category: "jaw", machine_type: "lathe", fields: [] },
   { id: "cmm_equipment", label: "CMM Fixturing & Gauges", category: "cmm_equipment", fields: ["subgroup", "variants", "has_size", "default_sizes"] },
   { id: "cmm_post_size", label: "CMM Post Sizes", category: "cmm_post_size", fields: [] },
+  { id: "cutting_tool_mill", label: "Milling Cutting Tools", category: "cutting_tool", machine_type: "mill", fields: ["subgroup", "subgroup2"] },
+  { id: "cutting_tool_lathe", label: "Lathe Cutting Tools", category: "cutting_tool", machine_type: "lathe", fields: ["subgroup"] },
+  { id: "holder_mill", label: "Milling Holders", category: "holder", machine_type: "mill", fields: [] },
+  { id: "holder_lathe", label: "Lathe Holders", category: "holder", machine_type: "lathe", fields: [] },
 ];
 
 export function getSectionById(id) {
@@ -51,6 +55,61 @@ export const DEFAULT_INVENTORY = {
     { label: "Flat Piece", group: "Other", variants: [] },
     { label: "Double Sided Tape", group: "Other", variants: [] },
   ],
+  cutting_tool_mill: [
+    { label: "Square", group: "Endmill" },
+    { label: "Corner Radius", group: "Endmill" },
+    { label: "Ball", group: "Endmill" },
+    { label: "BEM", group: "Endmill" },
+    { label: "Tapered Endmill", group: "Endmill" },
+    { label: "Lollipop", group: "Endmill" },
+    { label: "T-Slot", group: "Endmill" },
+    { label: "Chamfer Mill", group: "Endmill" },
+    { label: "Thread Mill", group: "Endmill" },
+    { label: "Engraving", group: "Endmill" },
+    { label: "Woodruff/Keyseat", group: "Endmill" },
+    { label: "Roughing/Corncob", group: "Endmill" },
+    { label: "FEM", group: "Endmill" },
+    { label: "REM", group: "Endmill" },
+    { label: "Face Mill", group: "Face Mill" },
+    { label: "Shell Mill", group: "Face Mill" },
+    { label: "High-Feed Mill", group: "Face Mill" },
+    { label: "Shoulder Mill", group: "Face Mill" },
+    { label: "Center Drill", group: "Hole Making", group2: "Drill" },
+    { label: "Spot Drill", group: "Hole Making", group2: "Drill" },
+    { label: "HSS", group: "Hole Making", group2: "Drill" },
+    { label: "Solid Carbide", group: "Hole Making", group2: "Drill" },
+    { label: "Indexable", group: "Hole Making", group2: "Drill" },
+    { label: "Spade", group: "Hole Making", group2: "Drill" },
+    { label: "Countersink", group: "Hole Making" },
+    { label: "Counterbore", group: "Hole Making" },
+    { label: "Reamer", group: "Hole Making" },
+    { label: "Boring Bar", group: "Hole Making" },
+    { label: "Back Boring Bar", group: "Hole Making" },
+    { label: "Rigid Tap", group: "Hole Making" },
+    { label: "Dovetail Cutter", group: "Specialty" },
+    { label: "Slitting Saw", group: "Specialty" },
+    { label: "Form Tool", group: "Specialty" },
+    { label: "Key Cutter", group: "Specialty" },
+    { label: "Corner Rounding", group: "Specialty" },
+  ],
+  cutting_tool_lathe: [
+    { label: "Turning", kind: "Turn" },
+    { label: "Groove/Cutoff", kind: "Turn" },
+    { label: "Drill", kind: "Turn" },
+    { label: "Taps", kind: "Turn" },
+    { label: "Thread", kind: "Turn" },
+    { label: "Profile", kind: "Turn" },
+    { label: "Boring", kind: "Turn" },
+    { label: "Reaming", kind: "Turn" },
+    { label: "Engraving", kind: "Turn" },
+    { label: "Manual", kind: "Turn" },
+    { label: "Mill", kind: "Mill" },
+    { label: "Drill", kind: "Mill" },
+    { label: "Taps", kind: "Mill" },
+    { label: "Engraving", kind: "Mill" },
+  ],
+  holder_mill: ["ER11", "ER16", "ER20", "ER25", "ER32", "ER40", "Shrink Fit", "Hydraulic", "Weldon", "Milling Chuck", "Face Mill Arbour", "Slitting Saw Arbour", "Integral"],
+  holder_lathe: ['ER25X1"', 'ER32X1"', 'ER16X3/4"', 'ER11X5/8"', "DA"],
 };
 
 // Build default records for a section (used by the "Seed from defaults" action).
@@ -69,6 +128,13 @@ export function defaultRecordsForSection(section) {
       rec.variants = (isObj && item.variants) || [];
       rec.has_size = !!(isObj && item.has_size);
       rec.default_sizes = (isObj && item.default_sizes) || [];
+    }
+    if (section.id === "cutting_tool_mill") {
+      rec.subgroup = (isObj && item.group) || "Other";
+      rec.subgroup2 = (isObj && item.group2) || "";
+    }
+    if (section.id === "cutting_tool_lathe") {
+      rec.subgroup = (isObj && item.kind) || "Turn";
     }
     return rec;
   });
@@ -135,6 +201,12 @@ export function resolveSectionOptions(section, records) {
       sizes: r.default_sizes || [],
       sizeField: !!r.has_size,
     }));
+  }
+  if (section.id === "cutting_tool_mill") {
+    return active.map(r => ({ label: r.name, group: r.subgroup || "Other", group2: r.subgroup2 || "" }));
+  }
+  if (section.id === "cutting_tool_lathe") {
+    return active.map(r => ({ label: r.name, subgroup: r.subgroup || "Turn" }));
   }
   return active.map(r => r.name);
 }

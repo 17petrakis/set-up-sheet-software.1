@@ -5,6 +5,8 @@ import {
   resolveSectionOptions,
   defaultOptionsForSection,
 } from "@/lib/inventory";
+import { TOOL_TYPE_OPTIONS } from "@/lib/toolTypeOptions";
+import { TURN_TYPE_OPTIONS, MILL_TYPE_OPTIONS } from "@/lib/turningToolConfig";
 
 // Dropdown keys. Values are inventory section ids (see src/lib/inventory.js).
 // Consumers use these as keys into the options map returned by useDropdownOptions.
@@ -20,6 +22,10 @@ export const SETTING_KEYS = {
   latheJaw: "jaw_lathe",
   cmmPostSize: "cmm_post_size",
   cmmEquipment: "cmm_equipment",
+  cuttingToolMill: "cutting_tool_mill",
+  cuttingToolLathe: "cutting_tool_lathe",
+  holderMill: "holder_mill",
+  holderLathe: "holder_lathe",
 };
 
 // Legacy detail map kept for backward compatibility with buildEquipmentOptions.
@@ -37,13 +43,68 @@ export const DEFAULT_EQUIPMENT_DETAILS = {
   "Double Sided Tape": { variants: [] },
 };
 
-// Build the full options map (keyed by section id) from inventory records,
-// falling back to defaults for any section with no active records.
+// Reconstruct the nested cascading tree (TOOL_TYPE_OPTIONS shape) from flat
+// inventory records: [{label, group, group2}].
+function buildMillToolTypeOptions(items) {
+  const groups = [];
+  const groupMap = {};
+  for (const it of items) {
+    const g = it.group || "Other";
+    if (!groupMap[g]) {
+      groupMap[g] = { label: g, children: [] };
+      groups.push(groupMap[g]);
+    }
+    if (it.group2) {
+      let sub = groupMap[g].children.find(c => c.children && c.label === it.group2);
+      if (!sub) {
+        sub = { label: it.group2, children: [] };
+        groupMap[g].children.push(sub);
+      }
+      sub.children.push({ label: it.label, value: it.label });
+    } else {
+      groupMap[g].children.push({ label: it.label, value: it.label });
+    }
+  }
+  return groups;
+}
+
+// Lathe cutting tools split into Turn / Mill kinds.
+function buildLatheToolTypeOptions(items) {
+  return {
+    turn: items.filter(i => i.subgroup !== "Mill").map(i => ({ label: i.label, value: i.label })),
+    mill: items.filter(i => i.subgroup === "Mill").map(i => ({ label: i.label, value: i.label })),
+  };
+}
+
+// Default option shape for a section (used before inventory loads / when empty).
+function sectionDefault(section) {
+  switch (section.id) {
+    case "cutting_tool_mill":
+      return TOOL_TYPE_OPTIONS;
+    case "cutting_tool_lathe":
+      return { turn: TURN_TYPE_OPTIONS, mill: MILL_TYPE_OPTIONS };
+    default:
+      return defaultOptionsForSection(section);
+  }
+}
+
+function buildSectionOptions(section, records) {
+  const resolved = resolveSectionOptions(section, records);
+  if (resolved === null) return sectionDefault(section);
+  switch (section.id) {
+    case "cutting_tool_mill":
+      return buildMillToolTypeOptions(resolved);
+    case "cutting_tool_lathe":
+      return buildLatheToolTypeOptions(resolved);
+    default:
+      return resolved;
+  }
+}
+
 function buildOptions(records) {
   const opts = {};
   for (const section of INVENTORY_SECTIONS) {
-    const resolved = resolveSectionOptions(section, records);
-    opts[section.id] = resolved !== null ? resolved : defaultOptionsForSection(section);
+    opts[section.id] = buildSectionOptions(section, records);
   }
   return opts;
 }
@@ -55,11 +116,7 @@ export async function loadDropdownOptions(force = false) {
 }
 
 export function useDropdownOptions() {
-  const [opts, setOpts] = useState(() => {
-    const o = {};
-    for (const section of INVENTORY_SECTIONS) o[section.id] = defaultOptionsForSection(section);
-    return o;
-  });
+  const [opts, setOpts] = useState(() => buildOptions(null));
   useEffect(() => {
     let mounted = true;
     const apply = (records) => { if (mounted) setOpts(buildOptions(records)); };
