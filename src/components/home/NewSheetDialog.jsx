@@ -18,6 +18,8 @@ export default function NewSheetDialog({ onClose, onCreate, onCreateCMM, existin
 
   const isCMM = machineType === "cmm";
 
+const TYPE_LABELS = { milling: "Milling", turning: "Turning", cmm: "CMM" };
+
   const handleCreate = async () => {
     if (!partNumber.trim()) return;
     setSaving(true);
@@ -109,13 +111,13 @@ export default function NewSheetDialog({ onClose, onCreate, onCreateCMM, existin
                 <button
                   key={type}
                   onClick={() => setMachineType(type)}
-                  className={`flex-1 text-sm py-2 rounded-lg border font-medium transition-colors capitalize ${
+                  className={`flex-1 text-sm py-2 rounded-lg border font-medium transition-colors ${
                     machineType === type
                       ? type === "cmm" ? "bg-emerald-600 text-white border-emerald-600" : "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:text-foreground bg-background"
                   }`}
                 >
-                  {type}
+                  {TYPE_LABELS[type] || type}
                 </button>
               ))}
             </div>
