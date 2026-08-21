@@ -11,7 +11,7 @@ const TYPE_COLOR = { mill: "bg-blue-100 text-blue-600", lathe: "bg-orange-100 te
 
 export default function MachineToolListsContent() {
   const navigate = useNavigate();
-  const { machines, loading, addMachine, removeMachine, restoreMachine, isCustom, isHidden, hiddenMachines } = useMachines();
+  const { machines, addMachine, removeMachine, restoreMachine, isCustom, hiddenMachines } = useMachines();
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -55,12 +55,7 @@ export default function MachineToolListsContent() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="space-y-2.5">
+      <div className="space-y-2.5">
           <AnimatePresence>
             {machines.map((machine, i) => (
               <motion.div
@@ -122,7 +117,6 @@ export default function MachineToolListsContent() {
             </div>
           )}
         </div>
-      )}
 
       {showAdd && (
         <AddMachineDialog

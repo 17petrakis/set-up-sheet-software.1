@@ -27,9 +27,10 @@ async function saveSetting(key, value) {
 export function useMachines() {
   const [customMachines, setCustomMachines] = useState([]);
   const [hiddenMachines, setHiddenMachines] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       const [custom, hidden] = await Promise.all([
         getSetting(CUSTOM_KEY),
