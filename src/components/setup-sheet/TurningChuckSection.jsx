@@ -7,7 +7,6 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import SectionHeader from "./SectionHeader";
 import { Wrench, X, Plus } from "lucide-react";
 import StationPhotos from "./fixturing/StationPhotos";
-import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
 // ── Chuck Type ComboBox ────────────────────────────────────────────────────────
 const CHUCK_OPTIONS = [
@@ -71,15 +70,13 @@ function AccessoriesDropdown({ value, onChange, spindleKey }) {
 const JAW_TYPES = ['Hard Jaw', 'Soft Jaw', 'Mounted Fixture'];
 
 function JawTypeDropdown({ value, onChange }) {
-  const opts = useDropdownOptions();
-  const jawTypes = opts[SETTING_KEYS.latheJaw] || JAW_TYPES;
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       <SelectTrigger className="h-9 text-sm bg-card border-border font-medium px-3 w-full">
         <SelectValue placeholder="Select…" />
       </SelectTrigger>
       <SelectContent>
-        {jawTypes.map(j => <SelectItem key={j} value={j}>{j}</SelectItem>)}
+        {JAW_TYPES.map(j => <SelectItem key={j} value={j}>{j}</SelectItem>)}
       </SelectContent>
     </Select>
   );

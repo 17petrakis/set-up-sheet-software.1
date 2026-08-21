@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft, Wrench, Boxes } from "lucide-react";
+import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNewSheet, isAdmin }) {
@@ -50,14 +50,6 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
             >
               <Users className="w-4 h-4 shrink-0" /> Employees
-            </button>
-          )}
-          {isAdmin && (
-            <button
-              onClick={() => { navigate("/inventory"); onClose(); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
-            >
-              <Boxes className="w-4 h-4 shrink-0" /> Inventory
             </button>
           )}
           <button

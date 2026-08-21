@@ -18,7 +18,6 @@ import MachineToolListsHome from '@/pages/MachineToolListsHome';
 import MachineToolList from '@/pages/MachineToolList';
 import MachineToolSync from '@/pages/MachineToolSync';
 import TurningToolSync from '@/pages/TurningToolSync';
-import Inventory from '@/pages/Inventory';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -55,7 +54,6 @@ const AuthenticatedApp = () => {
       <Route path="/machine-tool-lists/:machineName" element={<MachineToolList />} />
       <Route path="/machine-tool-sync/:sheetId" element={<MachineToolSync />} />
       <Route path="/turning-tool-sync/:sheetId" element={<TurningToolSync />} />
-      <Route path="/inventory" element={<Inventory />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

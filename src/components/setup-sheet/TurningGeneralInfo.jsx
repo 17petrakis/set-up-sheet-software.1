@@ -15,7 +15,25 @@ import TimeInput from "@/components/ui/TimeInput";
 import TurningProgramField from "./TurningProgramField";
 import { getProgramMode, getDefaultProgramNumbers } from "@/lib/turningMachineConfig";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
-import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
+
+const MACHINES = [
+  { group: "MORI SIEKI", models: ["NL 2000"] },
+  { group: "HAAS", models: ["SL-10"] },
+  { group: "Doosan", models: ["Puma 2100Y II", "Puma MX2100ST", "SMX2100"] },
+  { group: "DMG Mori", models: ["RPS-NHX-4000"] },
+  { group: "Citizen", models: ["L20"] },
+  { group: "Nakamura", models: ["NTY3-150", "WY-150"] },
+  { group: "Manual", models: ["Manual"] },
+];
+
+const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "Finger-Code", "N/A"];
+
+const FLAT_MACHINES = MACHINES.flatMap(({ group, models }) =>
+  models.map(m => {
+    const label = group === m ? group : `${group} ${m}`;
+    return { label, value: label };
+  })
+);
 
 const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false }) => (
   <div className={className}>
@@ -41,9 +59,6 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
 
 export default function TurningGeneralInfo({ data, onChange, onReplace }) {
   const update = (field) => (value) => onChange(field, value);
-  const opts = useDropdownOptions();
-  const machineOptions = opts[SETTING_KEYS.latheMachine] || [];
-  const programOptions = opts[SETTING_KEYS.latheCad] || [];
 
   const [customerNames, setCustomerNames] = useState([]);
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
@@ -126,7 +141,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <CascadingDropdown
               value={data.machine || ""}
               onChange={handleMachineChange}
-              options={machineOptions}
+              options={MACHINES}
               placeholder="Select…"
               className="w-full"
             />
@@ -142,7 +157,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <CascadingDropdown
               value={data.program_software || ""}
               onChange={update("program_software")}
-              options={programOptions}
+              options={PROGRAMS}
               placeholder="Select…"
               className="w-full"
             />

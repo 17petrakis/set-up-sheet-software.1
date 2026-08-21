@@ -1,7 +1,6 @@
 import React from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { TURN_TYPE_OPTIONS, MILL_TYPE_OPTIONS } from "@/lib/turningToolConfig";
-import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
 export function isHoleMaking() { return false; }
 
@@ -19,10 +18,7 @@ export function ToolBlockSelect({ value, onChange }) {
 }
 
 export default function ToolTypeDropdown({ toolKind, value, onChange }) {
-  const opts = useDropdownOptions();
-  const inv = opts[SETTING_KEYS.cuttingToolLathe] || {};
-  const invOpts = toolKind === "Mill" ? inv.mill : inv.turn;
-  const options = (invOpts && invOpts.length) ? invOpts : (toolKind === "Mill" ? MILL_TYPE_OPTIONS : TURN_TYPE_OPTIONS);
+  const options = toolKind === "Mill" ? MILL_TYPE_OPTIONS : TURN_TYPE_OPTIONS;
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       <SelectTrigger className="h-8 text-xs px-2 w-full min-w-[120px] bg-background border-border/60">

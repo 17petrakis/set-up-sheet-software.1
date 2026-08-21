@@ -9,7 +9,6 @@ import { Wrench, Plus, Trash2, Pencil, GripVertical, Copy, ExternalLink } from "
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { emptyTool } from "@/lib/setupSheetDefaults";
 import { TOOL_TYPE_OPTIONS, TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields, getFieldOptions, getAllFields } from "@/lib/toolTypeOptions";
-import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 import TreeCascadingDropdown from "@/components/ui/TreeCascadingDropdown";
 import ComboBox from "@/components/ui/ComboBox";
 import ToolEditModal from "./ToolEditModal";
@@ -22,9 +21,6 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
   const navigate = useNavigate();
   const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
-  const opts = useDropdownOptions();
-  const toolTypeOptions = opts[SETTING_KEYS.cuttingToolMill] || TOOL_TYPE_OPTIONS;
-  const holderOptions = opts[SETTING_KEYS.holderMill] || [];
 
   const addRow = () => onChange([...tools, { ...emptyTool }]);
   const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
@@ -126,7 +122,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
                               <TreeCascadingDropdown
                                 value={tool.tool_type || ""}
                                 onChange={(v) => handleTypeChange(i, v)}
-                                options={toolTypeOptions}
+                                options={TOOL_TYPE_OPTIONS}
                                 placeholder="Select…"
                                 className="w-full"
                                 allowCustom
@@ -135,9 +131,7 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
 
                             {/* Dynamic fields */}
                             {getAllFields(tool).filter(f => f.key !== "tool_type" && visible[f.key] && (!viewMode || (tool[f.key] && String(tool[f.key]).trim()))).map(f => {
-                              const options = f.key === "holder" && holderOptions.length
-                                ? holderOptions
-                                : getFieldOptions(f.key, tool.tool_type);
+                              const options = getFieldOptions(f.key, tool.tool_type);
                               const fieldW = Math.max(8, (tool[f.key] || '').length + 2);
                               return (
                                 <div key={f.key} className="shrink-0" style={{ width: `${fieldW}ch`, minWidth: '80px', maxWidth: '200px' }}>

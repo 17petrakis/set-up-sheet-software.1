@@ -14,7 +14,6 @@ import AutoSizeInput from "./AutoSizeInput";
 import TurningToolEditModal from "./TurningToolEditModal";
 import { Settings2 } from "lucide-react";
 import { getTypeFields, migrateToolType, EXTRA_FIELD_DEFS, DEFAULT_VISIBLE_EXTRA } from "@/lib/turningToolConfig";
-import { useDropdownOptions, SETTING_KEYS } from "@/lib/dropdownOptions";
 
 // ── Small field helpers ────────────────────────────────────────────────────────
 function Label({ children }) {
@@ -99,8 +98,6 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const set = (k) => (v) => onUpdate({ ...tool, [k]: v });
-  const opts = useDropdownOptions();
-  const holderOptions = opts[SETTING_KEYS.holderLathe] || [];
 
   const typeValue = migrateToolType(tool.tool_kind, tool.tool_type);
   const isMill = tool.tool_kind === "Mill";
@@ -194,7 +191,7 @@ export default function ToolRow({ tool, onUpdate, onRemove }) {
               <div key={f.key} className="flex flex-col">
                 <Label>{f.label}</Label>
                 {f.type === "select" ? (
-                  <SmallSelect value={tool[f.key]} onChange={set(f.key)} options={f.key === "holder" && holderOptions.length ? holderOptions : f.options} />
+                  <SmallSelect value={tool[f.key]} onChange={set(f.key)} options={f.options} />
                 ) : (
                   <SmallInput value={tool[f.key]} onChange={set(f.key)} className={f.key === "stickout" ? "flex-1 min-w-[160px]" : "w-28"} />
                 )}
