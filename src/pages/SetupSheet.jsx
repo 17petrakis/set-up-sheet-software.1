@@ -231,17 +231,27 @@ export default function SetupSheet() {
     // Auto-populate work holding when machine is selected
     if (field === "machine") {
       const machine = value || "";
+      const prevMachine = generalRef.current.machine || "";
+      // Determine machine families for S1 carry-over
+      const machineFamily = (m) => {
+        if (!m) return null;
+        if (m.startsWith("Doosan")) return "Doosan";
+        if (m.startsWith("Nakamura")) return "Nakamura";
+        return null;
+      };
+      const sameFamily = machineFamily(machine) && machineFamily(machine) === machineFamily(prevMachine);
+      const existingS1 = turningChuckRef.current.wh_s1 || {};
       let chuckUpdate = null;
 
       if (machine === "Doosan Puma 2100Y II") {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: false,
-          wh_s1: { chuck_type: '8" 3-Jaw' },
+          wh_s1: sameFamily ? { ...existingS1, chuck_type: '8" 3-Jaw' } : { chuck_type: '8" 3-Jaw' },
         };
       } else if (machine === "Doosan Puma MX2100ST") {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: true,
-          wh_s1: { chuck_type: '8" 3-Jaw' },
+          wh_s1: sameFamily ? { ...existingS1, chuck_type: '8" 3-Jaw' } : { chuck_type: '8" 3-Jaw' },
           wh_s2: { chuck_type: '8" 3-Jaw' },
         };
       } else if (machine === "HAAS SL-10") {
@@ -252,7 +262,7 @@ export default function SetupSheet() {
       } else if (machine.startsWith("Nakamura")) {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: false,
-          wh_s1: { chuck_type: 'Collet – Flex-C65' },
+          wh_s1: sameFamily ? { ...existingS1, chuck_type: 'Collet – Flex-C65' } : { chuck_type: 'Collet – Flex-C65' },
         };
       } else if (machine.startsWith("Mori")) {
         chuckUpdate = {
