@@ -76,20 +76,23 @@ export default function MachineToolListsContent() {
                   <span className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors flex-1 truncate">
                     {machine.name}
                   </span>
+                  {isAdmin && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(machine.name); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setDeleteTarget(machine.name); } }}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      title={isCustom(machine.name) ? "Remove machine" : "Hide machine"}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </span>
+                  )}
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${TYPE_COLOR[machine.type] || "bg-muted text-muted-foreground"}`}>
                     {TYPE_LABEL[machine.type]}
                   </span>
                   <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
                 </button>
-                {isAdmin && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(machine.name); }}
-                    className="absolute right-10 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title={isCustom(machine.name) ? "Remove machine" : "Hide machine"}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
               </motion.div>
             ))}
           </AnimatePresence>
