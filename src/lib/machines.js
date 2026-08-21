@@ -32,6 +32,16 @@ export const getToolSlots = (machine) =>
   machine && Number.isFinite(machine.toolSlots) ? machine.toolSlots : DEFAULT_TOOL_SLOTS;
 
 // Returns max tools per turret for a lathe machine + turret type, or null = unlimited
+// Merge admin-added custom machines into a CascadingDropdown options array
+// (built-in machines use { group, models } grouping). Custom machines are
+// added as single-item groups where group === model, so the stored value is
+// just the machine name.
+export function buildCascadingMachineOptions(builtInOptions, customMachines, type) {
+  const customs = (customMachines || []).filter((m) => m.type === type);
+  if (!customs.length) return builtInOptions;
+  return [...builtInOptions, ...customs.map((m) => ({ group: m.name, models: [m.name] }))];
+}
+
 export const getTurretToolSlots = (machineName, turretType) => {
   const machine = MACHINES.find(
     (m) => m.name.toLowerCase() === (machineName || "").toLowerCase().trim()

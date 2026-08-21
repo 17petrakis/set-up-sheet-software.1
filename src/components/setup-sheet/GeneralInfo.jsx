@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
 import TimeInput from "@/components/ui/TimeInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
+import { useMachines } from "@/hooks/useMachines";
+import { buildCascadingMachineOptions } from "@/lib/machines";
 
 const MACHINES = [
   { group: "Matsuura", models: ["MX-520", "MX-330", "MAM72-35 V", "H.Plus-405"] },
@@ -51,6 +53,11 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
 export default function GeneralInfo({ data, onChange, onReplace, machineType }) {
   const viewMode = useContext(ViewModeContext);
   const update = (field) => (value) => onChange(field, value);
+  const { customMachines } = useMachines();
+  const machineOptions = useMemo(
+    () => buildCascadingMachineOptions(MACHINES, customMachines, "mill"),
+    [customMachines]
+  );
 
   const [customerNames, setCustomerNames] = useState([]);
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
@@ -119,7 +126,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
             <CascadingDropdown
               value={data.machine || ""}
               onChange={update("machine")}
-              options={MACHINES}
+              options={machineOptions}
               placeholder="Select…"
               className="w-full"
             />

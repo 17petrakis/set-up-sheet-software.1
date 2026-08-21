@@ -78,5 +78,5 @@ export function useMachines() {
     await saveSetting(HIDDEN_KEY, JSON.stringify(updated));
   }, [hiddenMachines]);
 
-  return { machines, loading, addMachine, removeMachine, restoreMachine, isCustom, isHidden, hiddenMachines };
+  return { machines, loading, addMachine, removeMachine, restoreMachine, isCustom, isHidden, hiddenMachines, customMachines };
 }

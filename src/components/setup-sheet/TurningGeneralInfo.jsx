@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ import TimeInput from "@/components/ui/TimeInput";
 import TurningProgramField from "./TurningProgramField";
 import { getProgramMode, getDefaultProgramNumbers } from "@/lib/turningMachineConfig";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
+import { useMachines } from "@/hooks/useMachines";
+import { buildCascadingMachineOptions } from "@/lib/machines";
 
 const MACHINES = [
   { group: "MORI SIEKI", models: ["NL 2000"] },
@@ -59,6 +61,11 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
 
 export default function TurningGeneralInfo({ data, onChange, onReplace }) {
   const update = (field) => (value) => onChange(field, value);
+  const { customMachines } = useMachines();
+  const machineOptions = useMemo(
+    () => buildCascadingMachineOptions(MACHINES, customMachines, "lathe"),
+    [customMachines]
+  );
 
   const [customerNames, setCustomerNames] = useState([]);
   const [showDeburring, setShowDeburring] = useState(!!data.has_deburring);
@@ -141,7 +148,7 @@ export default function TurningGeneralInfo({ data, onChange, onReplace }) {
             <CascadingDropdown
               value={data.machine || ""}
               onChange={handleMachineChange}
-              options={MACHINES}
+              options={machineOptions}
               placeholder="Select…"
               className="w-full"
             />
