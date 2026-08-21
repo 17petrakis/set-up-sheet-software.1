@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 const TOAST_LIMIT = 20;
 const TOAST_REMOVE_DELAY = 300;
+const TOAST_AUTO_DISMISS_MS = 5000;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -133,6 +134,12 @@ function toast({ ...props }) {
       },
     },
   });
+
+  // Auto-dismiss after a delay so success/info notifications disappear on their own.
+  const duration = props.duration ?? TOAST_AUTO_DISMISS_MS;
+  if (duration !== 0) {
+    setTimeout(() => dismiss(), duration);
+  }
 
   return {
     id,
