@@ -12,6 +12,7 @@ import PartFolderCard from "@/components/home/PartFolderCard";
 import PartFolderView from "@/components/home/PartFolderView";
 import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
 import MachineToolListsContent from "@/components/machine-tools/MachineToolListsContent";
+import DuplicatePartDialog from "@/components/home/DuplicatePartDialog";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -45,6 +46,8 @@ export default function Home() {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [approvedRequests, setApprovedRequests] = useState([]);
   const [showApprovedModal, setShowApprovedModal] = useState(false);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState(null);
+  const [duplicateFolderTarget, setDuplicateFolderTarget] = useState(null);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
@@ -192,6 +195,37 @@ export default function Home() {
 
   const handleCMMCreated = (sheet) => {
     navigate(`/cmm-sheet/${sheet.id}`);
+  };
+
+  const handleDeleteFolderFromCard = async () => {
+    if (!deleteFolderTarget) return;
+    await Promise.all(deleteFolderTarget.sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+    setSheets(prev => prev.filter(s => !deleteFolderTarget.sheets.some(fs => fs.id === s.id)));
+    setDeleteFolderTarget(null);
+  };
+
+  const handleDuplicateFolder = async ({ partNumber, revision, customer }) => {
+    const folder = duplicateFolderTarget;
+    if (!folder) return;
+    const newFolderId = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+    const sortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
+    const sourceSheets = [...folder.sheets].sort((a, b) => sortKey(a) - sortKey(b));
+    const now = Date.now();
+    const newSheets = await Promise.all(sourceSheets.map((s, i) => {
+      const { id, created_date, updated_date, created_by_id, ...rest } = s;
+      return base44.entities.SetupSheet.create({
+        ...rest,
+        part_number: partNumber,
+        revision: revision || s.revision,
+        customer: customer,
+        folder_id: newFolderId,
+        sort_order: now + i,
+        published: false,
+      });
+    }));
+    setSheets(prev => [...prev, ...newSheets]);
+    setDuplicateFolderTarget(null);
+    setOpenFolder({ partNumber, customer, folderId: newFolderId });
   };
 
   const switchNav = (nav) => {
@@ -376,6 +410,8 @@ export default function Home() {
                       customer={folder.customer}
                       sheets={folder.sheets}
                       onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                      onDelete={(f) => setDeleteFolderTarget(f)}
+                      onDuplicate={(f) => setDuplicateFolderTarget(f)}
                     />
                   ))}
                 </div>
@@ -422,6 +458,8 @@ export default function Home() {
                       customer={folder.customer}
                       sheets={folder.sheets}
                       onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                      onDelete={(f) => setDeleteFolderTarget(f)}
+                      onDuplicate={(f) => setDuplicateFolderTarget(f)}
                     />
                   ))}
                 </div>
@@ -491,6 +529,8 @@ export default function Home() {
                             customer={folder.customer}
                             sheets={folder.sheets}
                             onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                            onDelete={(f) => setDeleteFolderTarget(f)}
+                            onDuplicate={(f) => setDuplicateFolderTarget(f)}
                           />
                         ))}
                       </div>
@@ -507,6 +547,8 @@ export default function Home() {
                         customer={folder.customer}
                         sheets={folder.sheets}
                         onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                        onDelete={(f) => setDeleteFolderTarget(f)}
+                        onDuplicate={(f) => setDuplicateFolderTarget(f)}
                       />
                     ))}
                   </div>
@@ -752,6 +794,33 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!deleteFolderTarget} onOpenChange={(open) => !open && setDeleteFolderTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Part?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteFolderTarget?.partNumber}</strong> and all its operations ({deleteFolderTarget?.sheets?.length})? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFolderFromCard} className="bg-destructive hover:bg-destructive/90 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {duplicateFolderTarget && (
+        <DuplicatePartDialog
+          sourcePartNumber={duplicateFolderTarget.partNumber}
+          sourceCustomer={duplicateFolderTarget.customer}
+          customers={allCustomerNames}
+          onClose={() => setDuplicateFolderTarget(null)}
+          onDuplicate={handleDuplicateFolder}
+        />
+      )}
 
     </div>
   );

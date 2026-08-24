@@ -1,22 +1,27 @@
 import React from "react";
-import { FileText, ChevronRight } from "lucide-react";
+import { FileText, Pencil, Trash2, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getPartIconPhoto } from "@/lib/photoSlots";
+import {
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator
+} from "@/components/ui/context-menu";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
 
-export default function PartFolderCard({ partNumber, customer, sheets, onOpen }) {
+export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete, onDuplicate }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
   const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
   const iconImage = getPartIconPhoto(firstSheet?.photos) || getPartIconPhoto(primarySheet?.photos);
 
   return (
-    <div
-      className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
-      onClick={() => onOpen(partNumber, customer)}
-    >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          className="relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
+          onClick={() => onOpen(partNumber, customer)}
+        >
       <div className="flex items-start gap-3 mb-3">
         {iconImage ? (
           <img src={iconImage} alt="ISO" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
@@ -70,5 +75,19 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen })
         )}
       </div>
     </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-44">
+        <ContextMenuItem onSelect={() => onOpen(partNumber, customer)} className="gap-2">
+          <Pencil className="w-4 h-4" /> Edit
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onDuplicate({ partNumber, customer, sheets })} className="gap-2">
+          <Copy className="w-4 h-4" /> Duplicate
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onSelect={() => onDelete({ partNumber, customer, sheets })} className="gap-2 text-destructive focus:text-destructive">
+          <Trash2 className="w-4 h-4" /> Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
