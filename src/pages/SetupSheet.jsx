@@ -22,7 +22,6 @@ import TurningOperationsList from "@/components/setup-sheet/TurningOperationsLis
 import RevisionHistory from "@/components/setup-sheet/RevisionHistory";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 import FixturingNotes from "@/components/setup-sheet/FixturingNotes";
-import InlineEditTitle from "@/components/setup-sheet/InlineEditTitle";
 import SetupSheetViewMode from "@/components/setup-sheet/SetupSheetViewMode";
 import CitizenWorkholdingSection from "@/components/setup-sheet/CitizenWorkholdingSection";
 import MediaNoteSection from "@/components/setup-sheet/MediaNoteSection";
@@ -681,12 +680,7 @@ export default function SetupSheet() {
               <div className="hidden lg:flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
                 <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                <div className="hidden md:block">
-                  <InlineEditTitle
-                    value={general.operation_name || "Operation"}
-                    onChange={(val) => handleGeneralChange("operation_name", val)}
-                  />
-                </div>
+                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.operation_name || "Operation"}</span>
                 {general.part_name && general.part_name.trim() && (
                   <>
                     <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
