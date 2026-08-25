@@ -49,18 +49,29 @@ export default function CitizenToolList({ tools, onChange }) {
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
-    // Only allow reordering within the same section; cross-section moves use the location dropdown
-    if (result.source.droppableId !== result.destination.droppableId) return;
-    const section = result.source.droppableId;
-    const rawIndices = rawList.map((t, i) => (normalizeLocation(t.location) === section ? i : -1)).filter((i) => i >= 0);
-    const fromRaw = rawIndices[result.source.index];
-    const toRaw = rawIndices[result.destination.index];
-    if (fromRaw == null || toRaw == null) return;
-    const reordered = [...rawList];
-    const [moved] = reordered.splice(fromRaw, 1);
-    const insertAt = fromRaw < toRaw ? toRaw - 1 : toRaw;
-    reordered.splice(insertAt, 0, moved);
-    onChange(reordered);
+    const fromSection = result.source.droppableId;
+    const toSection = result.destination.droppableId;
+
+    // Build per-section arrays preserving current within-section order
+    const sectionArrays = {};
+    TOOL_LOCATIONS.forEach((s) => { sectionArrays[s.key] = []; });
+    rawList.forEach((t) => {
+      sectionArrays[normalizeLocation(t.location)].push(t);
+    });
+
+    // Remove the dragged tool from its source section
+    const [moved] = sectionArrays[fromSection].splice(result.source.index, 1);
+    if (!moved) return;
+
+    // Update its location and insert into the destination section at the drop position
+    sectionArrays[toSection].splice(result.destination.index, 0, { ...moved, location: toSection });
+
+    // Reconstruct rawList grouped by section in canonical order
+    onChange([
+      ...sectionArrays["Main Slide"],
+      ...sectionArrays["Main Spindle End Working"],
+      ...sectionArrays["Sub-Spindle End Working"],
+    ]);
   };
 
   const hasAnyData = list.some((t) =>
@@ -211,27 +222,33 @@ export default function CitizenToolList({ tools, onChange }) {
                   )}
                 </div>
 
-                {sectionTools.length === 0 ? (
-                  !viewMode ? (
-                    <button
-                      onClick={() => addTool(section.key)}
-                      className="w-full flex items-center justify-center py-6 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-lg border-2 border-dashed border-border/50 transition-colors text-xs font-medium"
+                <Droppable droppableId={section.key}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`overflow-x-auto space-y-1 pb-2 rounded-lg transition-colors ${
+                        snapshot.isDraggingOver ? "bg-primary/5 border border-primary/20" : ""
+                      }`}
                     >
-                      <Plus className="w-4 h-4 mr-1.5" /> Add a tool to {section.label}
-                    </button>
-                  ) : (
-                    <p className="text-xs text-muted-foreground py-3">—</p>
-                  )
-                ) : (
-                  <Droppable droppableId={section.key}>
-                    {(provided) => (
-                      <div ref={provided.innerRef} {...provided.droppableProps} className="overflow-x-auto space-y-1 pb-2">
-                        {sectionTools.map(({ tool, idx }, filteredIdx) => renderToolRow(tool, filteredIdx, idx))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                )}
+                      {sectionTools.length === 0 ? (
+                        !viewMode ? (
+                          <button
+                            onClick={() => addTool(section.key)}
+                            className="w-full flex items-center justify-center py-6 text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-lg border-2 border-dashed border-border/50 transition-colors text-xs font-medium"
+                          >
+                            <Plus className="w-4 h-4 mr-1.5" /> Add a tool to {section.label}
+                          </button>
+                        ) : (
+                          <p className="text-xs text-muted-foreground py-3">—</p>
+                        )
+                      ) : (
+                        sectionTools.map(({ tool, idx }, filteredIdx) => renderToolRow(tool, filteredIdx, idx))
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
               </div>
             );
           })}
