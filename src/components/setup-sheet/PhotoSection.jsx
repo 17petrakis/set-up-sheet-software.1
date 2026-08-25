@@ -1,11 +1,12 @@
 import React, { useState, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2, Star } from "lucide-react";
+import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
+import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
@@ -39,7 +40,7 @@ function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   );
 }
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, isIconImage = false, onToggleIcon }) {
+function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, thumbnailImage = "", onThumbnailChange }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
@@ -92,15 +93,10 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
         )}
         <div className="flex items-center gap-2">
           {url && !readOnly && (
-            <button
-              onClick={onToggleIcon}
-              className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${
-                isIconImage ? "text-amber-600 bg-amber-50" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Star className="w-3 h-3" />
-              {isIconImage ? "Remove As Icon Image" : "Make Icon Image"}
-            </button>
+            <ThumbnailToggle
+              isThumbnail={!!thumbnailImage && thumbnailImage === url}
+              onToggle={() => onThumbnailChange(thumbnailImage === url ? "" : url)}
+            />
           )}
           {url && !readOnly && (
             <button
@@ -134,6 +130,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
         >
           {url ? (
             <>
+              {thumbnailImage === url && <ThumbnailBadge />}
               {isPdf ? (
                 <iframe
                   src={url}
@@ -212,7 +209,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
   );
 }
 
-export default function PhotoSection({ photos = {}, onChange, readOnly = false }) {
+export default function PhotoSection({ photos = {}, onChange, readOnly = false, thumbnailImage = "", onThumbnailChange }) {
   const slots = useMemo(() => migratePhotoSlots(photos), [photos]);
   const fileInputRef = useRef(null);
   const [pendingCategory, setPendingCategory] = useState(null);
@@ -362,8 +359,8 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false }
             onLabelChange={(newLabel) => handleSlotLabelChange(slot.id, newLabel)}
             large={slot.category === "work_holding"}
             readOnly={readOnly}
-            isIconImage={iconSlotId === slot.id}
-            onToggleIcon={() => handleToggleIcon(slot.id)}
+            thumbnailImage={thumbnailImage}
+            onThumbnailChange={onThumbnailChange || (() => {})}
           />
         ))}
       </div>

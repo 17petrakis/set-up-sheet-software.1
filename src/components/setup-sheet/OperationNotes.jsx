@@ -5,7 +5,7 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import OperationMedia from "./OperationMedia";
 import { ClipboardList, Plus, X } from "lucide-react";
 
-export default function OperationNotes({ value, onChange, media, onMediaChange, machineType }) {
+export default function OperationNotes({ value, onChange, media, onMediaChange, machineType, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
   const [showNotes, setShowNotes] = useState(false);
 
@@ -51,6 +51,8 @@ export default function OperationNotes({ value, onChange, media, onMediaChange, 
             items={media || []}
             onChange={onMediaChange}
             onAddNote={!notesVisible && !viewMode ? () => setShowNotes(true) : undefined}
+            thumbnailImage={thumbnailImage}
+            onThumbnailChange={onThumbnailChange}
           />
         </div>
       </CardContent>

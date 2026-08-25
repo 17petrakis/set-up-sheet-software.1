@@ -8,11 +8,12 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
 import { Plus, X, Loader2, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 
 /**
  * Media items: [{ url, type: "image"|"video", title, note }]
  */
-export default function OperationMedia({ items, onChange, onAddNote }) {
+export default function OperationMedia({ items, onChange, onAddNote, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -118,8 +119,10 @@ export default function OperationMedia({ items, onChange, onAddNote }) {
           {/* Title */}
           <div className="p-3 pb-2 flex items-center gap-2">
             {viewMode ? (
-              m.title && (
+              m.title ? (
                 <p className="text-sm font-bold text-foreground flex-1">{m.title}</p>
+              ) : (
+                <span className="flex-1" />
               )
             ) : (
               <Input
@@ -127,6 +130,12 @@ export default function OperationMedia({ items, onChange, onAddNote }) {
                 onChange={(e) => updateItem(i, { title: e.target.value })}
                 placeholder="Add a title…"
                 className="h-9 text-sm font-bold flex-1 bg-background border-border/60"
+              />
+            )}
+            {m.type === "image" && !viewMode && (
+              <ThumbnailToggle
+                isThumbnail={!!thumbnailImage && thumbnailImage === m.url}
+                onToggle={() => onThumbnailChange(thumbnailImage === m.url ? "" : m.url)}
               />
             )}
             {!viewMode && (
@@ -141,6 +150,7 @@ export default function OperationMedia({ items, onChange, onAddNote }) {
 
           {/* Media preview */}
           <div className="relative bg-muted/10">
+            {m.type === "image" && thumbnailImage === m.url && <ThumbnailBadge />}
             {m.type === "video" ? (
               <video
                 src={m.url}

@@ -6,8 +6,9 @@ import SectionHeader from "./SectionHeader";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Loader2, X, Upload } from "lucide-react";
+import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 
-export default function MediaNoteSection({ data, onChange, title, icon, permanentNote }) {
+export default function MediaNoteSection({ data, onChange, title, icon, permanentNote, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -41,7 +42,8 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Photo</p>
             {viewMode ? (
               d.photo ? (
-                <div className="flex justify-center">
+                <div className="relative flex justify-center">
+                  {thumbnailImage === d.photo && <ThumbnailBadge />}
                   <img src={d.photo} alt={title} className="max-w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
                 </div>
               ) : (
@@ -51,16 +53,25 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
               <div className="space-y-2">
                 {d.photo && (
                   <div className="relative">
+                    {thumbnailImage === d.photo && <ThumbnailBadge />}
                     <img src={d.photo} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
                     <button type="button" onClick={() => set("photo", "")} className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors" title="Remove photo">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
-                <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-8 px-3 text-xs gap-1.5">
-                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                  {d.photo ? "Replace Photo" : "Add Photo"}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-8 px-3 text-xs gap-1.5">
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    {d.photo ? "Replace Photo" : "Add Photo"}
+                  </Button>
+                  {d.photo && (
+                    <ThumbnailToggle
+                      isThumbnail={!!thumbnailImage && thumbnailImage === d.photo}
+                      onToggle={() => onThumbnailChange(thumbnailImage === d.photo ? "" : d.photo)}
+                    />
+                  )}
+                </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
               </div>
             )}
