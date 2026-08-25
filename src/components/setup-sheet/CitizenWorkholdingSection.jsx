@@ -8,6 +8,7 @@ import SectionHeader from "./SectionHeader";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Wrench, Loader2, X, Upload } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 function FieldWrap({ label, children }) {
   return (
@@ -136,6 +137,61 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
               <Input value={d.ss_collet_special || ""} onChange={(e) => set("ss_collet_special", e.target.value)} placeholder="Describe if special…" className="h-9 text-sm bg-card border-border font-medium" />
             )}
           </FieldWrap>
+
+          {/* Clamp Force — located under SS Collet Extension */}
+          <FieldWrap label="Main Chuck — Clamp Force">
+            {viewMode ? (
+              <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ms_clamp_force || "—"}</p>
+            ) : (
+              <Select value={d.ms_clamp_force || ""} onValueChange={(v) => set("ms_clamp_force", v)}>
+                <SelectTrigger className="h-9 text-sm bg-card border-border font-medium">
+                  <SelectValue placeholder="Select 1–10" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </FieldWrap>
+          <FieldWrap label="Sub-Spindle — Clamp Force">
+            {viewMode ? (
+              <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.ss_clamp_force || "—"}</p>
+            ) : (
+              <Select value={d.ss_clamp_force || ""} onValueChange={(v) => set("ss_clamp_force", v)}>
+                <SelectTrigger className="h-9 text-sm bg-card border-border font-medium">
+                  <SelectValue placeholder="Select 1–10" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                    <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </FieldWrap>
+        </div>
+
+        {/* BL Settings */}
+        <div className="mt-4 border-t border-border/40 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">BL Settings</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+            <FieldWrap label="Feed Torque">
+              {viewMode ? (
+                <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.bl_feed_torque || "—"}</p>
+              ) : (
+                <Input value={d.bl_feed_torque || ""} onChange={(e) => set("bl_feed_torque", e.target.value)} placeholder="e.g. 30%" className="h-9 text-sm bg-card border-border font-medium" />
+              )}
+            </FieldWrap>
+            <FieldWrap label="Bar Shortage Position">
+              {viewMode ? (
+                <p className="text-sm font-semibold text-foreground min-h-[2.25rem] flex items-center">{d.bl_bar_shortage_position || "—"}</p>
+              ) : (
+                <Input value={d.bl_bar_shortage_position || ""} onChange={(e) => set("bl_bar_shortage_position", e.target.value)} placeholder="e.g. 120mm" className="h-9 text-sm bg-card border-border font-medium" />
+              )}
+            </FieldWrap>
+          </div>
         </div>
 
         {/* Part Ejection */}

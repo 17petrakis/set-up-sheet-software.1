@@ -87,6 +87,10 @@ export const emptyCitizenWorkholding = {
   ss_collet_shape: "",
   ss_collet_stickout: "",
   ss_collet_special: "",
+  ms_clamp_force: "",
+  ss_clamp_force: "",
+  bl_feed_torque: "",
+  bl_bar_shortage_position: "",
   part_ejection_description: "",
   part_ejection_photo: "",
 };

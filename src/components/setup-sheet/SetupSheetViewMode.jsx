@@ -21,14 +21,25 @@ function CitizenWorkholdingView({ data }) {
     ["SS Collet — Shape", d.ss_collet_shape],
     ["SS Collet — Extension", d.ss_collet_stickout],
     ["SS Collet — Special", d.ss_collet_special],
+    ...(d.ms_clamp_force ? [["Main Chuck — Clamp Force", d.ms_clamp_force]] : []),
+    ...(d.ss_clamp_force ? [["Sub-Spindle — Clamp Force", d.ss_clamp_force]] : []),
   ].filter(([, v]) => v);
-  const hasData = fields.length > 0 || d.part_ejection_description || d.part_ejection_photo;
+  const hasData = fields.length > 0 || d.part_ejection_description || d.part_ejection_photo || d.bl_feed_torque || d.bl_bar_shortage_position;
   if (!hasData) return null;
   return (
     <div className="border border-gray-200 rounded p-3 bg-gray-50 space-y-2">
       {fields.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-x-4 gap-y-1">
           {fields.map(([l, v]) => <InfoRow key={l} label={l} value={v} />)}
+        </div>
+      )}
+      {(d.bl_feed_torque || d.bl_bar_shortage_position) && (
+        <div className="border-t border-gray-200 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">BL Settings</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+            {d.bl_feed_torque && <InfoRow label="Feed Torque" value={d.bl_feed_torque} />}
+            {d.bl_bar_shortage_position && <InfoRow label="Bar Shortage Position" value={d.bl_bar_shortage_position} />}
+          </div>
         </div>
       )}
       {(d.part_ejection_description || d.part_ejection_photo) && (
@@ -382,30 +393,49 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                 {millTools.length > 0 && millTools.some(t => t.tool_number || t.description || t.insert) && (
                   <section>
                     <SectionTitle>Tools</SectionTitle>
-                    <div className="overflow-x-auto">
-                      <table className="view-table w-full">
-                        <thead>
-                          <tr>
-                            <th>T#</th>
-                            <th>Description</th>
-                            <th>Insert / Part Number</th>
-                            <th>Holder</th>
-                            {millTools.some(t => t.stickout) && <th>Stickout</th>}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {millTools.filter(t => t.tool_number || t.description || t.insert).map((t, i) => (
-                            <tr key={i}>
-                              <td className="font-mono font-bold">{t.tool_number}</td>
-                              <td>{t.description}</td>
-                              <td>{t.insert}</td>
-                              <td>{t.holder}</td>
-                              {millTools.some(t2 => t2.stickout) && <td>{t.stickout}</td>}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    {(() => {
+                      const SECTIONS = [
+                        { key: "Main Slide", label: "Main Slide" },
+                        { key: "Main Spindle End Working", label: "Main Spindle End Working" },
+                        { key: "Sub-Spindle End Working", label: "Sub-Spindle End Working" },
+                      ];
+                      return SECTIONS.map((sec) => {
+                        const secTools = millTools.filter(
+                          (t) => (t.location || "Main Slide") === sec.key && (t.tool_number || t.description || t.insert)
+                        );
+                        if (secTools.length === 0) return null;
+                        const hasStickout = secTools.some((t) => t.stickout);
+                        return (
+                          <div key={sec.key} className="mb-3 last:mb-0">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">{sec.label}</p>
+                            <div className="overflow-x-auto">
+                              <table className="view-table w-full">
+                                <thead>
+                                  <tr>
+                                    <th>T#</th>
+                                    <th>Description</th>
+                                    <th>Insert / Part Number</th>
+                                    <th>Holder</th>
+                                    {hasStickout && <th>Stickout</th>}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {secTools.map((t, i) => (
+                                    <tr key={i}>
+                                      <td className="font-mono font-bold">{t.tool_number}</td>
+                                      <td>{t.description}</td>
+                                      <td>{t.insert}</td>
+                                      <td>{t.holder}</td>
+                                      {hasStickout && <td>{t.stickout}</td>}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </section>
                 )}
 
