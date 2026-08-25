@@ -7,6 +7,7 @@ import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Loader2, X, Upload } from "lucide-react";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
+import ThumbnailContextMenu from "./ThumbnailContextMenu";
 
 export default function MediaNoteSection({ data, onChange, title, icon, permanentNote, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
@@ -52,6 +53,11 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
             ) : (
               <div className="space-y-2">
                 {d.photo && (
+                  <ThumbnailContextMenu
+                    isThumbnail={!!thumbnailImage && thumbnailImage === d.photo}
+                    onToggle={() => onThumbnailChange(thumbnailImage === d.photo ? "" : d.photo)}
+                    disabled={false}
+                  >
                   <div className="relative">
                     {thumbnailImage === d.photo && <ThumbnailBadge />}
                     <img src={d.photo} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
@@ -59,6 +65,7 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                  </ThumbnailContextMenu>
                 )}
                 <div className="flex flex-wrap items-center gap-2">
                   <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-8 px-3 text-xs gap-1.5">

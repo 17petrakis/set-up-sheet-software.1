@@ -12,8 +12,9 @@ const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 
 export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete, onDuplicate }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
+  const thumbnailSheet = sheets.find(s => s.is_folder_thumbnail) || null;
   const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
-  const thumbnail = getSheetThumbnail(firstSheet) || getSheetThumbnail(primarySheet);
+  const thumbnail = (thumbnailSheet && getSheetThumbnail(thumbnailSheet)) || getSheetThumbnail(firstSheet) || getSheetThumbnail(primarySheet);
 
   return (
     <ContextMenu>

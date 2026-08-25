@@ -9,6 +9,7 @@ import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
 import { Plus, X, Loader2, GripVertical } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
+import ThumbnailContextMenu from "./ThumbnailContextMenu";
 
 /**
  * Media items: [{ url, type: "image"|"video", title, note }]
@@ -149,33 +150,39 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
           </div>
 
           {/* Media preview */}
-          <div className="relative bg-muted/10">
-            {m.type === "image" && thumbnailImage === m.url && <ThumbnailBadge />}
-            {m.type === "video" ? (
-              <video
-                src={m.url}
-                controls
-                className="w-full max-h-[420px] object-contain bg-black"
-              />
-            ) : (
-              <img
-                src={m.url}
-                alt={m.title || ""}
-                className="w-full max-h-[420px] object-contain cursor-zoom-in"
-                onClick={() => !viewMode && setLightboxUrl(m.url)}
-              />
-            )}
-            {!viewMode && (
-              <button
-                type="button"
-                onClick={() => removeItem(i)}
-                className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
-                title="Remove media"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          <ThumbnailContextMenu
+            isThumbnail={!!thumbnailImage && thumbnailImage === m.url}
+            onToggle={() => onThumbnailChange(thumbnailImage === m.url ? "" : m.url)}
+            disabled={m.type !== "image" || viewMode}
+          >
+            <div className="relative bg-muted/10">
+              {m.type === "image" && thumbnailImage === m.url && <ThumbnailBadge />}
+              {m.type === "video" ? (
+                <video
+                  src={m.url}
+                  controls
+                  className="w-full max-h-[420px] object-contain bg-black"
+                />
+              ) : (
+                <img
+                  src={m.url}
+                  alt={m.title || ""}
+                  className="w-full max-h-[420px] object-contain cursor-zoom-in"
+                  onClick={() => !viewMode && setLightboxUrl(m.url)}
+                />
+              )}
+              {!viewMode && (
+                <button
+                  type="button"
+                  onClick={() => removeItem(i)}
+                  className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
+                  title="Remove media"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </ThumbnailContextMenu>
 
           {/* Note */}
           <div className="p-3 pt-2">

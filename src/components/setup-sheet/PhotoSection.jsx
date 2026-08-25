@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
+import ThumbnailContextMenu from "./ThumbnailContextMenu";
 import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
@@ -124,6 +125,11 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 
       {/* Photo + note */}
       <div className={large ? "flex flex-col sm:flex-row gap-3" : "contents"}>
+        <ThumbnailContextMenu
+          isThumbnail={!!thumbnailImage && thumbnailImage === url}
+          onToggle={() => onThumbnailChange(thumbnailImage === url ? "" : url)}
+          disabled={!url || readOnly}
+        >
         <div
           className={`relative rounded-lg overflow-hidden border-2 border-dashed border-border bg-muted/10 ${large ? "flex-1" : ""}`}
           style={{ minHeight: large ? "500px" : "420px" }}
@@ -184,6 +190,7 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
             </label>
           )}
         </div>
+        </ThumbnailContextMenu>
 
         {(showNote || note) && (
           large ? (

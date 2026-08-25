@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Plus, Trash2, GripVertical, Lock, Unlock, Menu } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, GripVertical, Lock, Unlock, Menu, Star } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import {
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator
+} from "@/components/ui/context-menu";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -205,6 +208,12 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     setDeleteSheetId(null);
   };
 
+  const handleMakeFolderThumbnail = async (sheetId) => {
+    const updates = sheets.map(s => ({ id: s.id, is_folder_thumbnail: s.id === sheetId }));
+    await base44.entities.SetupSheet.bulkUpdate(updates);
+    onSheetsChange(sheets.map(s => ({ ...s, is_folder_thumbnail: s.id === sheetId })));
+  };
+
   const opLabel = (sheet) => sheet.operation_name || "Operation";
 
   return (
@@ -312,6 +321,8 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
               {sorted.map((sheet, index) => (
                 <Draggable key={sheet.id} draggableId={sheet.id} index={index}>
                   {(dragProvided, snapshot) => (
+                    <ContextMenu>
+                    <ContextMenuTrigger asChild>
                     <div
                       ref={dragProvided.innerRef}
                       {...dragProvided.draggableProps}
@@ -332,6 +343,11 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         </div>
                       )}
                       <div className="relative w-full h-28 bg-muted/30 rounded-xl overflow-hidden mb-3 flex items-center justify-center">
+                        {sheet.is_folder_thumbnail && (
+                          <div className="absolute top-1.5 left-1.5 bg-amber-500 text-white rounded-full p-1 shadow-lg z-10" title="Folder thumbnail">
+                            <Star className="w-3 h-3 fill-white" />
+                          </div>
+                        )}
                         {(() => { const icon = getSheetThumbnail(sheet); return icon ? (
                           <img src={icon} alt="Part" className="w-full h-full object-cover" />
                         ) : (
@@ -367,6 +383,20 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         )}
                       </div>
                     </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-48">
+                      <ContextMenuItem onSelect={() => navigate(`/sheet/${sheet.id}`)} className="gap-2">
+                        <FileText className="w-4 h-4" /> Open
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => handleMakeFolderThumbnail(sheet.id)}
+                        className="gap-2"
+                      >
+                        <Star className={`w-4 h-4 ${sheet.is_folder_thumbnail ? "fill-amber-500 text-amber-500" : ""}`} />
+                        {sheet.is_folder_thumbnail ? "Folder Thumbnail" : "Make Folder Thumbnail"}
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                   )}
                 </Draggable>
               ))}

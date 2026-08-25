@@ -275,6 +275,11 @@
       "type": "boolean",
       "default": false,
       "description": "Whether this sheet is published/locked from non-admin edits"
+    },
+    "is_folder_thumbnail": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this sheet's thumbnail is used as the part folder's card image"
     }
   },
   "required": [
