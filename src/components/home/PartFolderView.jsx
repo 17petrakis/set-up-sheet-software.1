@@ -15,7 +15,7 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
-import { getPartIconPhoto } from "@/lib/photoSlots";
+import { getSheetThumbnail } from "@/lib/photoSlots";
 import { verifyAdminPassword } from "@/lib/adminPassword";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 
@@ -331,14 +331,14 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                           <GripVertical className="w-3.5 h-3.5" />
                         </div>
                       )}
-                      <div className="flex items-start gap-3 mb-3">
-                        {(() => { const icon = getPartIconPhoto(sheet.photos); return icon ? (
-                          <img src={icon} alt="Part" className="w-9 h-9 rounded-lg object-cover border border-border shrink-0" />
+                      <div className="relative w-full h-28 bg-muted/30 rounded-xl overflow-hidden mb-3 flex items-center justify-center">
+                        {(() => { const icon = getSheetThumbnail(sheet); return icon ? (
+                          <img src={icon} alt="Part" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <FileText className="w-4 h-4 text-primary" />
-                          </div>
+                          <FileText className="w-8 h-8 text-muted-foreground/40" />
                         ); })()}
+                      </div>
+                      <div className="flex items-start gap-3 mb-3">
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm text-foreground truncate">{opLabel(sheet)}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sheet.machine_type || "milling"}</p>

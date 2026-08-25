@@ -25,6 +25,14 @@ export function getEffectiveIconSlotId(photos) {
   return findSlot("iso")?.id || findSlot("drawing")?.id || slots.find(s => s.category === "custom" && s.url)?.id || null;
 }
 
+// Returns the effective thumbnail image URL for a sheet.
+// Priority: explicit thumbnail_image field → legacy icon selection (getPartIconPhoto).
+export function getSheetThumbnail(sheet) {
+  if (!sheet) return null;
+  if (sheet.thumbnail_image) return sheet.thumbnail_image;
+  return getPartIconPhoto(sheet.photos);
+}
+
 // Pick the best photo to use as a part icon.
 // Priority: explicit icon override → final_part → iso → drawing → first custom (in order of appearance)
 // If __icon_cleared is set, auto-selection is suppressed until a new icon is explicitly chosen.

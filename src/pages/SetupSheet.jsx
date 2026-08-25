@@ -31,7 +31,8 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 import { sortTurningToolsByTNumber } from "@/lib/turningToolConfig";
 import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
-import { getPartIconPhoto } from "@/lib/photoSlots";
+import { getPartIconPhoto, getSheetThumbnail } from "@/lib/photoSlots";
+import ThumbnailToggle, { ThumbnailBadge } from "@/components/setup-sheet/ThumbnailToggle";
 import { verifyAdminPassword } from "@/lib/adminPassword";
 import { Monitor, ClipboardList } from "lucide-react";
 
@@ -655,7 +656,7 @@ export default function SetupSheet() {
             }}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            {(() => { const icon = getPartIconPhoto(photos); return icon ? (
+            {(() => { const icon = getSheetThumbnail({ thumbnail_image: general.thumbnail_image, photos }); return icon ? (
               <img src={icon} alt="Part" className="w-9 h-9 rounded-xl object-cover border border-border" />
             ) : (
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
@@ -1064,11 +1065,11 @@ export default function SetupSheet() {
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-                    <MediaNoteSection data={mcMachiningData} onChange={handleMcMachiningDataChange} title="MC Machining Data Screen" icon={Monitor} />
+                    <MediaNoteSection data={mcMachiningData} onChange={handleMcMachiningDataChange} title="MC Machining Data Screen" icon={Monitor} thumbnailImage={general.thumbnail_image} onThumbnailChange={(url) => handleGeneralChange("thumbnail_image", url)} />
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.12 }}>
-                    <MediaNoteSection data={preparationScreen} onChange={handlePreparationScreenChange} title="Preparation Screen" icon={ClipboardList} permanentNote="Offsets will need adjustments — this is for REFERENCE ONLY." />
+                    <MediaNoteSection data={preparationScreen} onChange={handlePreparationScreenChange} title="Preparation Screen" icon={ClipboardList} permanentNote="Offsets will need adjustments — this is for REFERENCE ONLY." thumbnailImage={general.thumbnail_image} onThumbnailChange={(url) => handleGeneralChange("thumbnail_image", url)} />
                   </motion.div>
 
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.14 }}>
@@ -1079,6 +1080,8 @@ export default function SetupSheet() {
                         media={general.operation_media}
                         onMediaChange={(media) => handleGeneralChange("operation_media", media)}
                         machineType={general.machine_type}
+                        thumbnailImage={general.thumbnail_image}
+                        onThumbnailChange={(url) => handleGeneralChange("thumbnail_image", url)}
                       />
                     )}
                   </motion.div>
@@ -1125,6 +1128,8 @@ export default function SetupSheet() {
                     media={general.operation_media}
                     onMediaChange={(media) => handleGeneralChange("operation_media", media)}
                     machineType={general.machine_type}
+                    thumbnailImage={general.thumbnail_image}
+                    onThumbnailChange={(url) => handleGeneralChange("thumbnail_image", url)}
                   />
                 )}
               </motion.div>
@@ -1137,7 +1142,7 @@ export default function SetupSheet() {
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
             {(mode === "edit" || Object.values(photos).some(v => typeof v === "string" && v)) && (
-              <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} />
+              <PhotoSection photos={photos} onChange={handlePhotosChange} readOnly={mode === "view"} thumbnailImage={general.thumbnail_image} onThumbnailChange={(url) => handleGeneralChange("thumbnail_image", url)} />
             )}
           </motion.div>
         </>

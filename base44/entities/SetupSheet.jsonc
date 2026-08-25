@@ -234,6 +234,10 @@
       "type": "object",
       "description": "Preparation screen: {photo, note}"
     },
+    "thumbnail_image": {
+      "type": "string",
+      "description": "URL of the image chosen as the part thumbnail (shown on dashboard cards)"
+    },
     "photos": {
       "type": "object",
       "description": "Photo URLs for work holding, drawing, ISO, material stock, and final part"
