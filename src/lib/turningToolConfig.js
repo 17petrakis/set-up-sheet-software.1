@@ -34,16 +34,16 @@ export function getTypeFields(toolKind, typeValue) {
         { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
       ];
       case "Drill": return [
-        { key: "dia", label: "Dia.", type: "input" },
         { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
+        { key: "dia", label: "Dia.", type: "input" },
       ];
       case "Taps": return [
         { key: "dia", label: "Dia.", type: "input" },
         { key: "pitch", label: "Thread Lead", type: "input" },
       ];
       case "Engraving": return [
-        { key: "dia", label: "Dia.", type: "input" },
         { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
+        { key: "dia", label: "Dia.", type: "input" },
       ];
       default: return [];
     }
@@ -58,8 +58,8 @@ export function getTypeFields(toolKind, typeValue) {
       { key: "width", label: "Tool Width", type: "select", options: WIDTH_OPTIONS },
     ];
     case "Drill": return [
-      { key: "dia", label: "Dia.", type: "input" },
       { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
+      { key: "dia", label: "Dia.", type: "input" },
     ];
     case "Taps": return [
       { key: "dia", label: "Dia.", type: "input" },
@@ -78,8 +78,8 @@ export function getTypeFields(toolKind, typeValue) {
       { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
     ];
     case "Reaming": return [
-      { key: "dia", label: "Dia.", type: "input" },
       { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
+      { key: "dia", label: "Dia.", type: "input" },
     ];
     case "Engraving": return [
       { key: "deg", label: "Tip Angle", type: "select", options: DEG_TURN_OPTIONS },
