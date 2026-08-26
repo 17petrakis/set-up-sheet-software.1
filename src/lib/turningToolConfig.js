@@ -50,8 +50,8 @@ export function getTypeFields(toolKind, typeValue) {
   }
   switch (typeValue) {
     case "Turning": return [
-      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
       { key: "deg", label: "Tip Angle", type: "select", options: DEG_TURN_OPTIONS },
+      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
     ];
     case "Groove/Cutoff": return [
       { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
@@ -82,8 +82,8 @@ export function getTypeFields(toolKind, typeValue) {
       { key: "angle", label: "Tip Angle", type: "select", options: ANGLE_DRILL_OPTIONS },
     ];
     case "Engraving": return [
-      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
       { key: "deg", label: "Tip Angle", type: "select", options: DEG_TURN_OPTIONS },
+      { key: "rad", label: "Corner Rad", type: "select", options: RAD_OPTIONS },
     ];
     case "Manual": return [];
     default: return [];
