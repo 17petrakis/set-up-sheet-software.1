@@ -677,16 +677,15 @@ export default function SetupSheet() {
               <p className="lg:hidden text-xs text-muted-foreground mt-0.5 truncate">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.operation_name || "")}
               </p>
-              {/* Desktop: title wraps to 2 lines so it never overlaps the button group */}
-              <div className="hidden lg:flex items-center gap-2 min-w-0">
-                <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
-                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground min-w-0 line-clamp-2 break-words">{general.operation_name || "Operation"}</span>
+              {/* Desktop: primary line stays single; part name drops to a second line */}
+              <div className="hidden lg:flex flex-col min-w-0 gap-0.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
+                  <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
+                  <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground min-w-0 truncate">{general.operation_name || "Operation"}</span>
+                </div>
                 {general.part_name && general.part_name.trim() && (
-                  <>
-                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground min-w-0 line-clamp-2 break-words">{general.part_name}</span>
-                  </>
+                  <span className="hidden md:inline text-xs md:text-sm font-medium tracking-tight text-muted-foreground min-w-0 truncate">{general.part_name}</span>
                 )}
               </div>
               <p className="hidden lg:block text-xs text-muted-foreground mt-0.5 truncate">
