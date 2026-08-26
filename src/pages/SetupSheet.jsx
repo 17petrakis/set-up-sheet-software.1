@@ -645,13 +645,13 @@ export default function SetupSheet() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 lg:hidden" onClick={() => {
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 lg:hidden shrink-0" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:inline-flex" onClick={() => {
+            <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:inline-flex shrink-0" onClick={() => {
               navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
             }}>
               <ArrowLeft className="w-4 h-4" />
@@ -677,15 +677,15 @@ export default function SetupSheet() {
               <p className="lg:hidden text-xs text-muted-foreground mt-0.5 truncate">
                 {saveStatus === "saved" ? "Saved ✓" : saving ? "Saving…" : (general.operation_name || "")}
               </p>
-              {/* Desktop: unchanged layout */}
+              {/* Desktop: title truncates so it never overlaps the button group */}
               <div className="hidden lg:flex items-center gap-2 min-w-0">
                 <span className="text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 whitespace-nowrap">{general.part_number}</span>
                 <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.operation_name || "Operation"}</span>
+                <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground min-w-0 truncate">{general.operation_name || "Operation"}</span>
                 {general.part_name && general.part_name.trim() && (
                   <>
                     <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-muted-foreground shrink-0">—</span>
-                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground shrink-0 truncate">{general.part_name}</span>
+                    <span className="hidden md:inline text-sm md:text-lg font-bold tracking-tight text-foreground min-w-0 truncate">{general.part_name}</span>
                   </>
                 )}
               </div>
@@ -695,7 +695,7 @@ export default function SetupSheet() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             <input ref={debugFileInputRef} type="file" accept=".pdf" onChange={handleDebugPDF} className="hidden" />
 
