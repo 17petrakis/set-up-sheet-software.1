@@ -455,12 +455,12 @@ export default function PrintView() {
                       <p className="text-xs text-gray-800 whitespace-pre-wrap">{partZero.program_coord_zero_note}</p>
                     </div>
                   )}
-                  {getMachineGroup(general.machine) === "hmc" && (
-                    <div className={`flex items-center gap-2 rounded border-2 px-3 py-2 ${partZero.g10_in_program ? "border-amber-400 bg-amber-50" : "border-amber-300/70 bg-amber-50/40"}`}>
-                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-sm border-2 ${partZero.g10_in_program ? "bg-amber-500 border-amber-500 text-white" : "border-amber-400"}`}>
-                        {partZero.g10_in_program && <Check className="h-3 w-3" strokeWidth={3} />}
+                  {getMachineGroup(general.machine) === "hmc" && partZero.g10_in_program && (
+                    <div className="flex items-center gap-2 rounded border-2 border-gray-800 bg-gray-900 px-3 py-2">
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-sm border-2 border-gray-800 bg-white text-gray-900">
+                        <Check className="h-3 w-3" strokeWidth={3} />
                       </span>
-                      <span className="text-xs font-bold text-gray-900">G10 (work offsets in program)</span>
+                      <span className="text-xs font-bold text-white">G10 (work offsets in program)</span>
                     </div>
                   )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">
