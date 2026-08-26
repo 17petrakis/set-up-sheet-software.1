@@ -33,6 +33,19 @@ export function getSheetThumbnail(sheet) {
   return getPartIconPhoto(sheet.photos);
 }
 
+// Returns the effective thumbnail image URL for a CMM sheet.
+// Priority: explicit thumbnail_image field → first work_holding photo_url
+export function getCMMThumbnail(sheet) {
+  if (!sheet) return null;
+  if (sheet.thumbnail_image) return sheet.thumbnail_image;
+  const wh = sheet.work_holding;
+  if (Array.isArray(wh)) {
+    const withPhoto = wh.find(w => w && w.photo_url);
+    if (withPhoto) return withPhoto.photo_url;
+  }
+  return null;
+}
+
 // Pick the best photo to use as a part icon.
 // Priority: explicit icon override → final_part → iso → drawing → first custom (in order of appearance)
 // If __icon_cleared is set, auto-selection is suppressed until a new icon is explicitly chosen.

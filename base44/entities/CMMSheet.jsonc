@@ -77,6 +77,15 @@
     "sort_order": {
       "type": "number",
       "description": "Manual sort order within the folder; defaults to creation time"
+    },
+    "thumbnail_image": {
+      "type": "string",
+      "description": "URL of the image chosen as the sheet thumbnail (shown on dashboard cards)"
+    },
+    "is_folder_thumbnail": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this sheet's thumbnail is used as the part folder's card image"
     }
   },
   "required": [

@@ -2,14 +2,18 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, ClipboardList, Trash2, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, ClipboardList, Trash2, GripVertical, Star } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import {
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem
+} from "@/components/ui/context-menu";
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { getCMMThumbnail } from "@/lib/photoSlots";
 import AddCMMOperationDialog from "./AddCMMOperationDialog";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
@@ -48,6 +52,12 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
     onSheetsChange([]);
     setDeleteFolderTarget(false);
     onBack();
+  };
+
+  const handleMakeFolderThumbnail = async (sheetId) => {
+    const updates = (folder.sheets || []).map(s => ({ id: s.id, is_folder_thumbnail: s.id === sheetId }));
+    await base44.entities.CMMSheet.bulkUpdate(updates);
+    onSheetsChange((folder.sheets || []).map(s => ({ ...s, is_folder_thumbnail: s.id === sheetId })));
   };
 
   const handleAddOperation = async (opName) => {
@@ -98,6 +108,8 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
               {sorted.map((sheet, index) => (
                 <Draggable key={sheet.id} draggableId={sheet.id} index={index}>
                   {(dragProvided, snapshot) => (
+                    <ContextMenu>
+                    <ContextMenuTrigger asChild>
                     <div
                       ref={dragProvided.innerRef}
                       {...dragProvided.draggableProps}
@@ -112,38 +124,67 @@ export default function CMMFolderView({ folder, onBack, onSheetsChange }) {
                           <div
                             {...dragProvided.dragHandleProps}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
+                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing z-10"
                             title="Drag to reorder"
                           >
                             <GripVertical className="w-3.5 h-3.5" />
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); setDeleteTarget(sheet); }}
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-destructive/10 hover:bg-destructive text-destructive hover:text-white rounded-lg p-1.5 transition-all z-10"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </>
                       )}
-                      <div className="flex items-start gap-3 mb-2">
-                        {sheet.work_holding?.[0]?.photo_url ? (
-                          <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-muted">
-                            <img src={sheet.work_holding[0].photo_url} alt="" className="w-full h-full object-cover" />
-                          </div>
-                        ) : (
-                          <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                            <ClipboardList className="w-4 h-4 text-emerald-600" />
+                      <div className="relative w-full h-28 bg-muted/30 rounded-xl overflow-hidden mb-3 flex items-center justify-center">
+                        {sheet.is_folder_thumbnail && (
+                          <div className="absolute top-1.5 left-1.5 bg-amber-500 text-white rounded-full p-1 shadow-lg z-10" title="Folder thumbnail">
+                            <Star className="w-3 h-3 fill-white" />
                           </div>
                         )}
+                        {(() => { const icon = getCMMThumbnail(sheet); return icon ? (
+                          <img src={icon} alt="Part" className="w-full h-full object-cover" />
+                        ) : (
+                          <ClipboardList className="w-8 h-8 text-emerald-600/40" />
+                        ); })()}
+                      </div>
+                      <div className="flex items-start gap-3 mb-3">
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-foreground">{sheet.part_number}</p>
-                          {sheet.description && <p className="text-xs text-muted-foreground mt-0.5 truncate italic">{sheet.description}</p>}
+                          <p className="font-bold text-sm text-foreground truncate">{sheet.description || "Operation"}</p>
+                          <p className="text-xs text-muted-foreground">CMM</p>
                         </div>
                       </div>
-                      {sheet.updated_date && (
-                        <p className="text-[11px] text-muted-foreground">{format(new Date(sheet.updated_date), "MMM d, yyyy")}</p>
-                      )}
+
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                        {sheet.machine && (
+                          <div>
+                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Machine</p>
+                            <p className="text-foreground font-medium truncate">{sheet.machine}</p>
+                          </div>
+                        )}
+                        {sheet.updated_date && (
+                          <div>
+                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-[9px]">Updated</p>
+                            <p className="text-foreground font-medium">{format(new Date(sheet.updated_date), "MMM d")}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-48">
+                      <ContextMenuItem onSelect={() => navigate(`/cmm-sheet/${sheet.id}`)} className="gap-2">
+                        <ClipboardList className="w-4 h-4" /> Open
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => handleMakeFolderThumbnail(sheet.id)}
+                        className="gap-2"
+                      >
+                        <Star className={`w-4 h-4 ${sheet.is_folder_thumbnail ? "fill-amber-500 text-amber-500" : ""}`} />
+                        {sheet.is_folder_thumbnail ? "Folder Thumbnail" : "Make Folder Thumbnail"}
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                   )}
                 </Draggable>
               ))}
