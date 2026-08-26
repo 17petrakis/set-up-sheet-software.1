@@ -1116,7 +1116,7 @@ export default function SetupSheet() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-                <PartZero data={partZero} onChange={handlePartZeroChange} machineType="milling" />
+                <PartZero data={partZero} onChange={handlePartZeroChange} machineType="milling" machine={general.machine} />
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.13 }}>

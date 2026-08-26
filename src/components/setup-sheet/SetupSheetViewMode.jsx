@@ -1,4 +1,5 @@
 import React from "react";
+import { Check } from "lucide-react";
 import { TOOL_FIELDS, TOOL_FIELD_SHORT, getEffectiveVisibleFields } from "@/lib/toolTypeOptions";
 import { getMachineGroup, isCitizenMachine } from "@/lib/machineGroups";
 import { emptyGeneral, emptyPartZero } from "@/lib/setupSheetDefaults";
@@ -129,6 +130,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
   const partZero = pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : emptyPartZero;
   const partZeroHasData = Object.entries(partZero).some(([k, v]) => {
     if (k === "part_zero_enabled") return false;
+    if (k === "g10_in_program") return v === true;
     if (Array.isArray(v)) return v.length > 0;
     if (typeof v === "object" && v !== null) return Object.keys(v).length > 0;
     return v !== "" && v !== null && v !== undefined;
@@ -580,6 +582,14 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Program Coordinate Zero Note</p>
                       <p className="text-xs text-gray-800 whitespace-pre-wrap">{partZero.program_coord_zero_note}</p>
+                    </div>
+                  )}
+                  {getMachineGroup(general.machine) === "hmc" && (
+                    <div className={`flex items-center gap-2 rounded border-2 px-3 py-2 ${partZero.g10_in_program ? "border-amber-400 bg-amber-50" : "border-amber-300/70 bg-amber-50/40"}`}>
+                      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-sm border-2 ${partZero.g10_in_program ? "bg-amber-500 border-amber-500 text-white" : "border-amber-400"}`}>
+                        {partZero.g10_in_program && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </span>
+                      <span className="text-xs font-bold text-gray-900">G10 (work offsets in program)</span>
                     </div>
                   )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">

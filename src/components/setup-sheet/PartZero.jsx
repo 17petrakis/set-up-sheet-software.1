@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
 import { ViewModeContext } from "@/lib/viewModeContext";
+import { getMachineGroup } from "@/lib/machineGroups";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
-import { Crosshair, Plus, Trash2 } from "lucide-react";
+import { Crosshair, Plus, Trash2, Check } from "lucide-react";
 
 const G_CODES = ["G54", "G55", "G56", "G57", "G58", "G59"];
 
@@ -135,14 +136,19 @@ function OffsetRow({ offset, onChange, onRemove, showRemove, index }) {
   );
 }
 
-export default function PartZero({ data, onChange, machineType }) {
+export default function PartZero({ data, onChange, machineType, machine }) {
   const viewMode = useContext(ViewModeContext);
   const update = (field) => (e) => onChange({ ...data, [field]: e.target.value });
   const isTurning = machineType === "turning";
+  const isHmc = getMachineGroup(machine) === "hmc";
 
   const hasPartZeroData = (d) => {
     if (!d) return false;
     for (const [key, val] of Object.entries(d)) {
+      if (key === "g10_in_program") {
+        if (val === true) return true;
+        continue;
+      }
       if (key === "offsets") {
         if (Array.isArray(val) && val.some(o => o && Object.entries(o).some(([k, v]) => k !== "g_code" && v && String(v).trim()))) return true;
       } else if (typeof val === "string" && val.trim()) {
@@ -229,6 +235,20 @@ export default function PartZero({ data, onChange, machineType }) {
                 />
               </div>
             </div>
+            {isHmc && (
+              <label className={`flex items-center gap-2.5 mt-3 rounded-lg border-2 px-3.5 py-2.5 cursor-pointer select-none transition-colors ${data.g10_in_program ? "border-amber-400 bg-amber-50" : "border-amber-300 bg-amber-50/40 hover:bg-amber-50"}`}>
+                <span className={`inline-flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${data.g10_in_program ? "bg-amber-500 border-amber-500 text-white" : "border-amber-400 bg-white"}`}>
+                  {data.g10_in_program && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={!!data.g10_in_program}
+                  onChange={(e) => onChange({ ...data, g10_in_program: e.target.checked })}
+                  className="sr-only"
+                />
+                <span className="text-sm font-bold text-gray-900">G10 (work offsets in program)</span>
+              </label>
+            )}
           </>
         )}
       </CardContent>
