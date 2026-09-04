@@ -4,8 +4,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound, Bell, Check, X } from "lucide-react";
+import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound, Bell, Check, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
+import EditEmployeeDialog from "@/components/employees/EditEmployeeDialog";
 
 export default function EmployeeManagement() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function EmployeeManagement() {
   const [authorized, setAuthorized] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [codeSaved, setCodeSaved] = useState("");
+  const [editingEmp, setEditingEmp] = useState(null);
 
   // All hooks before any conditional return
   const { data: employees = [], isLoading } = useQuery({
@@ -91,6 +93,14 @@ export default function EmployeeManagement() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Employee.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["employees"] }),
+  });
+
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Employee.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      setEditingEmp(null);
+    },
   });
 
   useEffect(() => {
@@ -232,6 +242,13 @@ export default function EmployeeManagement() {
                     {emp.isActive ? "Active" : "Inactive"}
                   </span>
                   <button
+                    onClick={() => setEditingEmp(emp)}
+                    className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                    title="Edit"
+                  >
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button
                     onClick={() => toggleMutation.mutate({ id: emp.id, isActive: emp.isActive })}
                     className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                     title={emp.isActive ? "Deactivate" : "Activate"}
@@ -251,6 +268,13 @@ export default function EmployeeManagement() {
           )}
         </div>
       </div>
+
+      <EditEmployeeDialog
+        employee={editingEmp}
+        open={!!editingEmp}
+        onClose={() => setEditingEmp(null)}
+        onSave={(data) => editMutation.mutate({ id: editingEmp.id, data })}
+      />
     </div>
   );
 }
