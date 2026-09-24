@@ -14,6 +14,7 @@ import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
 import MachineToolListsContent from "@/components/machine-tools/MachineToolListsContent";
 import DuplicatePartDialog from "@/components/home/DuplicatePartDialog";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -340,6 +341,11 @@ export default function Home() {
         </nav>
       </aside>
 
+      {/* Desktop theme toggle — fixed top-right */}
+      <div className="hidden lg:block fixed top-3 right-5 z-40">
+        <ThemeToggle />
+      </div>
+
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
@@ -354,9 +360,12 @@ export default function Home() {
               className="h-7 w-auto object-contain"
             />
           </button>
-          <button onClick={() => { setNewSheetAllowCMM(true); activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true); }} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
-            <FilePlus className="w-6 h-6 text-foreground" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle />
+            <button onClick={() => { setNewSheetAllowCMM(true); activeNav === "quality_control" ? setShowNewCMMDialog(true) : setShowNewDialog(true); }} className="p-2.5 -mr-2.5 rounded-lg hover:bg-muted transition-colors">
+              <FilePlus className="w-6 h-6 text-foreground" />
+            </button>
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
 
