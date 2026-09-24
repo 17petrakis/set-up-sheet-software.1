@@ -270,7 +270,7 @@ export default function Home() {
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
             alt="Logo"
-            className="h-10 w-auto object-contain"
+            className="h-10 w-auto object-contain dark:invert"
           />
         </button>
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -357,7 +357,7 @@ export default function Home() {
             <img
               src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
               alt="Logo"
-              className="h-7 w-auto object-contain"
+              className="h-7 w-auto object-contain dark:invert"
             />
           </button>
           <div className="flex items-center gap-1.5">

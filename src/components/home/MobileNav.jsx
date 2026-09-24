@@ -22,7 +22,7 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
           <img
             src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
             alt="Logo"
-            className="h-8 w-auto object-contain"
+            className="h-8 w-auto object-contain dark:invert"
           />
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
             <X className="w-4 h-4 text-muted-foreground" />
