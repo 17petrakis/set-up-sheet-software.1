@@ -341,11 +341,6 @@ export default function Home() {
         </nav>
       </aside>
 
-      {/* Desktop theme toggle — fixed top-right */}
-      <div className="hidden lg:block fixed top-3 right-5 z-40">
-        <ThemeToggle />
-      </div>
-
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
@@ -501,9 +496,12 @@ export default function Home() {
                   <h1 className="text-xl lg:text-2xl font-bold text-foreground">Setup Sheets</h1>
                   <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 hidden lg:block">Manage and organize your machine shop setup documentation</p>
                 </div>
-                <Button onClick={() => { setNewSheetAllowCMM(true); setShowNewDialog(true); }} className="gap-2 hidden lg:flex">
-                  <FilePlus className="w-4 h-4" /> New Setup Sheet
-                </Button>
+                <div className="hidden lg:flex items-center gap-3">
+                  <ThemeToggle />
+                  <Button onClick={() => { setNewSheetAllowCMM(true); setShowNewDialog(true); }} className="gap-2">
+                    <FilePlus className="w-4 h-4" /> New Setup Sheet
+                  </Button>
+                </div>
               </div>
 
               {/* Recents — recent setup sheets + part search */}
