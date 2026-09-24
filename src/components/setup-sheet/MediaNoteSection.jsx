@@ -5,14 +5,17 @@ import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import SectionHeader from "./SectionHeader";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
-import { Loader2, X, Upload } from "lucide-react";
+import { Loader2, X, Upload, PenTool } from "lucide-react";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
+import ImageAnnotator from "@/components/annotation/ImageAnnotator";
+import AnnotatedImage from "@/components/annotation/AnnotatedImage";
 
 export default function MediaNoteSection({ data, onChange, title, icon, permanentNote, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [annotating, setAnnotating] = useState(false);
 
   const d = data || {};
   const set = (field, val) => onChange({ ...d, [field]: val });
@@ -45,7 +48,7 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
               d.photo ? (
                 <div className="relative flex justify-center">
                   {thumbnailImage === d.photo && <ThumbnailBadge />}
-                  <img src={d.photo} alt={title} className="max-w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
+                  <AnnotatedImage src={d.photo} annotations={d.annotations || []} alt={title} className="max-w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground min-h-[2.25rem] flex items-center justify-center">—</p>
@@ -60,9 +63,13 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
                   >
                   <div className="relative">
                     {thumbnailImage === d.photo && <ThumbnailBadge />}
-                    <img src={d.photo} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
+                    <AnnotatedImage src={d.photo} annotations={d.annotations || []} alt={title} className="w-full max-h-[420px] object-contain rounded-lg border border-border/60 bg-muted/10" />
                     <button type="button" onClick={() => set("photo", "")} className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors" title="Remove photo">
                       <X className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" onClick={() => setAnnotating(true)} className={`absolute top-2 left-2 flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${d.annotations?.length ? "bg-blue-500 text-white" : "bg-black/60 hover:bg-black/90 text-white"}`} title="Annotate photo">
+                      <PenTool className="w-3 h-3" />
+                      {d.annotations?.length ? `${d.annotations.length}` : "Markup"}
                     </button>
                   </div>
                   </ThumbnailContextMenu>
@@ -102,6 +109,14 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
           </div>
         </div>
       </CardContent>
+      {annotating && d.photo && (
+        <ImageAnnotator
+          imageUrl={d.photo}
+          initialAnnotations={d.annotations || []}
+          onSave={(newAnns) => { set("annotations", newAnns); setAnnotating(false); }}
+          onCancel={() => setAnnotating(false)}
+        />
+      )}
     </Card>
   );
 }
