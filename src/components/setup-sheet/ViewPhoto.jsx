@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import PhotoLightbox from "./PhotoLightbox";
+import AnnotatedImage from "@/components/annotation/AnnotatedImage";
 
-export default function ViewPhoto({ url, label, className, style }) {
+export default function ViewPhoto({ url, label, annotations, className, style }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      {open && <PhotoLightbox url={url} label={label} onClose={() => setOpen(false)} />}
-      <img
+      {open && <PhotoLightbox url={url} label={label} annotations={annotations} onClose={() => setOpen(false)} />}
+      <AnnotatedImage
         src={url}
-        alt={label || ""}
-        onClick={() => setOpen(true)}
+        annotations={annotations || []}
+        alt={label}
         className={`cursor-zoom-in ${className || ""}`}
         style={style}
+        onClick={() => setOpen(true)}
       />
     </>
   );

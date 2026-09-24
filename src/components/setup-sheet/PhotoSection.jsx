@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import PhotoLightbox from "./PhotoLightbox";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
+import ImageAnnotator from "@/components/annotation/ImageAnnotator";
 import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
@@ -41,11 +42,13 @@ function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   );
 }
 
-function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, thumbnailImage = "", onThumbnailChange }) {
+function PhotoSlot({ slotKey, label, url, note, annotations, onAnnotationsChange, onUpload, onRemove, onNoteChange, onDeleteSlot, onLabelChange, large, readOnly = false, thumbnailImage = "", onThumbnailChange }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
   const [editingLabel, setEditingLabel] = useState(false);
+  const [annotating, setAnnotating] = useState(false);
+  const hasAnnotations = annotations && annotations.length > 0;
 
   const isPdf = url && (url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("application/pdf") || url.includes("pdf"));
 
@@ -72,7 +75,15 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
 
   return (
     <div className="flex flex-col gap-2">
-      {lightbox && <PhotoLightbox url={url} label={label} onClose={() => setLightbox(false)} />}
+      {lightbox && <PhotoLightbox url={url} label={label} annotations={annotations} onClose={() => setLightbox(false)} />}
+      {annotating && (
+        <ImageAnnotator
+          imageUrl={url}
+          initialAnnotations={annotations || []}
+          onSave={(newAnns) => { onAnnotationsChange(newAnns); setAnnotating(false); }}
+          onCancel={() => setAnnotating(false)}
+        />
+      )}
 
       <div className="flex items-center justify-between">
         {editingLabel && onLabelChange ? (
@@ -93,6 +104,16 @@ function PhotoSlot({ slotKey, label, url, note, onUpload, onRemove, onNoteChange
           </span>
         )}
         <div className="flex items-center gap-2">
+          {url && !readOnly && !isPdf && (
+            <button
+              onClick={() => setAnnotating(true)}
+              className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${hasAnnotations ? "text-blue-600 bg-blue-50" : "text-muted-foreground hover:text-foreground"}`}
+              title="Annotate photo"
+            >
+              <PenTool className="w-3 h-3" />
+              {hasAnnotations ? `Markup (${annotations.length})` : "Markup"}
+            </button>
+          )}
           {url && !readOnly && (
             <ThumbnailToggle
               isThumbnail={!!thumbnailImage && thumbnailImage === url}
@@ -290,6 +311,10 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
     updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
   };
 
+  const handleSlotAnnotationsChange = (id, annotations) => {
+    updateSlots(slots.map(s => s.id === id ? { ...s, annotations } : s));
+  };
+
   const iconSlotId = getEffectiveIconSlotId(photos);
 
   const handleToggleIcon = (id) => {
@@ -359,6 +384,8 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
             label={slot.label}
             url={slot.url}
             note={slot.note}
+            annotations={slot.annotations}
+            onAnnotationsChange={(annotations) => handleSlotAnnotationsChange(slot.id, annotations)}
             onUpload={(url) => handleSlotUpload(slot.id, url)}
             onRemove={() => handleSlotRemove(slot.id)}
             onDeleteSlot={() => handleSlotRemove(slot.id)}

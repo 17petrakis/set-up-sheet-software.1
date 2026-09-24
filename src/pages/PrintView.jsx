@@ -9,6 +9,7 @@ import { getMachineGroup } from "@/lib/machineGroups";
 import TurningChuckView, { hasTurningChuckData } from "@/components/setup-sheet/TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "@/components/setup-sheet/TurningToolsView";
 import { migratePhotoSlots } from "@/lib/photoSlots";
+import AnnotatedImage from "@/components/annotation/AnnotatedImage";
 
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Type", "Feed", "Max RPM", "Cut Time", "Cycle Time"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "type", "feed", "max_rpm", "cut_time", "cycle_time"];
@@ -229,7 +230,7 @@ export default function PrintView() {
                       <div className="space-y-3 mt-1.5">
                         {fix.photos.map((p, pi) => (
                           <div key={pi}>
-                            <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                            <AnnotatedImage src={p.url} annotations={p.annotations} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                             {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                           </div>
                         ))}
@@ -318,7 +319,7 @@ export default function PrintView() {
                                 <div className="space-y-3 mt-1.5">
                                   {s.fixture_photos.map((p, pi) => (
                                     <div key={pi}>
-                                      <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                      <AnnotatedImage src={p.url} annotations={p.annotations} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                       {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                                     </div>
                                   ))}
@@ -328,7 +329,7 @@ export default function PrintView() {
                                 <div className="space-y-3 mt-1.5">
                                   {s.photos.map((p, pi) => (
                                     <div key={pi}>
-                                      <img src={p.url} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                      <AnnotatedImage src={p.url} annotations={p.annotations} alt="" className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                       {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                                     </div>
                                   ))}
@@ -484,7 +485,7 @@ export default function PrintView() {
                         {m.type === "video" ? (
                           <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
                         ) : (
-                          <img src={m.url} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                          <AnnotatedImage src={m.url} annotations={m.annotations} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
                         )}
                         {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{m.note}</p>}
                       </div>
@@ -531,8 +532,9 @@ export default function PrintView() {
                 {allPhotoSlots.map((slot) => (
                   <div key={slot.id} className="photo-slot space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
-                    <img
+                    <AnnotatedImage
                       src={slot.url}
+                      annotations={slot.annotations}
                       alt={slot.label}
                       className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"
                       style={{ maxHeight: slot.category === "work_holding" ? "500px" : "600px" }}

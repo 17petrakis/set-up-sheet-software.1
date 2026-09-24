@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import PhotoLightbox from "@/components/setup-sheet/PhotoLightbox";
-import { Plus, X, Loader2, GripVertical } from "lucide-react";
+import ImageAnnotator from "@/components/annotation/ImageAnnotator";
+import AnnotatedImage from "@/components/annotation/AnnotatedImage";
+import { Plus, X, Loader2, GripVertical, PenTool } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
@@ -20,6 +22,7 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
   const [uploading, setUploading] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState(null);
   const [editingTitle, setEditingTitle] = useState(null);
+  const [annotatingIdx, setAnnotatingIdx] = useState(null);
 
   const media = items || [];
 
@@ -164,8 +167,9 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
                   className="w-full max-h-[420px] object-contain bg-black"
                 />
               ) : (
-                <img
+                <AnnotatedImage
                   src={m.url}
+                  annotations={m.annotations || []}
                   alt={m.title || ""}
                   className="w-full max-h-[420px] object-contain cursor-zoom-in"
                   onClick={() => !viewMode && setLightboxUrl(m.url)}
@@ -179,6 +183,17 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
                   title="Remove media"
                 >
                   <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {!viewMode && m.type === "image" && (
+                <button
+                  type="button"
+                  onClick={() => setAnnotatingIdx(i)}
+                  className={`absolute top-2 left-2 flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${m.annotations?.length ? "bg-blue-500 text-white" : "bg-black/60 hover:bg-black/90 text-white"}`}
+                  title="Annotate photo"
+                >
+                  <PenTool className="w-3 h-3" />
+                  {m.annotations?.length ? `${m.annotations.length}` : "Markup"}
                 </button>
               )}
             </div>
@@ -209,7 +224,15 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
         </Droppable>
       </DragDropContext>
 
-      {lightboxUrl && <PhotoLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
+      {lightboxUrl && <PhotoLightbox url={lightboxUrl} annotations={media.find(m => m.url === lightboxUrl)?.annotations} onClose={() => setLightboxUrl(null)} />}
+      {annotatingIdx !== null && media[annotatingIdx] && (
+        <ImageAnnotator
+          imageUrl={media[annotatingIdx].url}
+          initialAnnotations={media[annotatingIdx].annotations || []}
+          onSave={(newAnns) => { updateItem(annotatingIdx, { annotations: newAnns }); setAnnotatingIdx(null); }}
+          onCancel={() => setAnnotatingIdx(null)}
+        />
+      )}
     </div>
   );
 }

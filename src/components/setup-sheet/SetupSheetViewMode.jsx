@@ -66,7 +66,7 @@ function MediaNoteView({ data, title, permanentNote }) {
       <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">{title}</p>
       {d.photo && (
         <div className="flex justify-center">
-          <ViewPhoto url={d.photo} className="max-w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+          <ViewPhoto url={d.photo} annotations={d.annotations} className="max-w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
         </div>
       )}
       {permanentNote && (
@@ -348,7 +348,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                                 {s.fixture_photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
-                                    <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    <ViewPhoto url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                     {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                                   </div>
                                 ))}
@@ -359,7 +359,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                                 {s.photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
-                                    <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    <ViewPhoto url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                     {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                                   </div>
                                 ))}
@@ -466,7 +466,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                           {m.type === "video" ? (
                             <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
                           ) : (
-                            <img src={m.url} alt={m.title || ""} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                            <ViewPhoto url={m.url} annotations={m.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
                           )}
                           {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{m.note}</p>}
                         </div>
@@ -661,6 +661,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                   <ViewPhoto
                     url={slot.url}
                     label={slot.label}
+                    annotations={slot.annotations}
                     className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"
                     style={{ maxHeight: slot.category === "work_holding" ? "500px" : "600px" }}
                   />

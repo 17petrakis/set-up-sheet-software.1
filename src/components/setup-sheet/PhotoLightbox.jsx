@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import AnnotatedImage from "@/components/annotation/AnnotatedImage";
 
-export default function PhotoLightbox({ url, label, onClose }) {
+export default function PhotoLightbox({ url, label, annotations, onClose }) {
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -26,12 +27,15 @@ export default function PhotoLightbox({ url, label, onClose }) {
           {label}
         </div>
       )}
-      <img
-        src={url}
-        alt={label}
-        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div onClick={(e) => e.stopPropagation()} className="max-w-full max-h-full">
+        <AnnotatedImage
+          src={url}
+          annotations={annotations || []}
+          alt={label}
+          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          style={{ maxHeight: "90vh" }}
+        />
+      </div>
     </div>
   );
 }
