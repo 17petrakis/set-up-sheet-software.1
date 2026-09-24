@@ -278,21 +278,21 @@ export default function Home() {
             onClick={() => switchNav("dashboard")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "dashboard" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+              activeNav === "dashboard" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" /> Dashboard
           </button>
           <button
             onClick={() => { setNewSheetAllowCMM(true); setShowNewDialog(true); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
           </button>
           {isAdmin && (
             <button
               onClick={() => navigate("/employee-management")}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <div className="relative">
                 <Users className="w-4 h-4 shrink-0" />
@@ -310,7 +310,7 @@ export default function Home() {
             onClick={() => switchNav("quality_control")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "quality_control" ? "bg-emerald-600 text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+              activeNav === "quality_control" ? "bg-emerald-600 text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <ClipboardList className="w-4 h-4 shrink-0" /> Quality Control
@@ -319,7 +319,7 @@ export default function Home() {
             onClick={() => switchNav("machine_tool_lists")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "machine_tool_lists" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100 hover:text-slate-900"
+              activeNav === "machine_tool_lists" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             <Wrench className="w-4 h-4 shrink-0" /> Machine Tool Lists
@@ -328,13 +328,13 @@ export default function Home() {
             href="https://straightline-precision-industries-procedures.base44.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <BookOpen className="w-4 h-4 shrink-0" /> Procedures
           </a>
           <button
             onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 hover:text-slate-900 transition-colors mt-2"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mt-2"
           >
             <LogOut className="w-4 h-4 shrink-0" /> Logout
           </button>

@@ -33,21 +33,21 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
             onClick={() => { onSwitchNav("dashboard"); onClose(); }}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "dashboard" ? "bg-primary text-white" : "text-slate-800 hover:bg-slate-100"
+              activeNav === "dashboard" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
             )}
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" /> Dashboard
           </button>
           <button
             onClick={() => { onNewSheet(); onClose(); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
           >
             <FilePlus className="w-4 h-4 shrink-0" /> New Setup Sheet
           </button>
           {isAdmin && (
             <button
               onClick={() => { navigate("/employee-management"); onClose(); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
             >
               <Users className="w-4 h-4 shrink-0" /> Employees
             </button>
@@ -56,14 +56,14 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
             onClick={() => { onSwitchNav("quality_control"); onClose(); }}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              activeNav === "quality_control" ? "bg-emerald-600 text-white" : "text-slate-800 hover:bg-slate-100"
+              activeNav === "quality_control" ? "bg-emerald-600 text-white" : "text-muted-foreground hover:bg-muted"
             )}
           >
             <ClipboardList className="w-4 h-4 shrink-0" /> Quality Control
           </button>
           <button
             onClick={() => { navigate("/machine-tool-lists"); onClose(); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
           >
             <Wrench className="w-4 h-4 shrink-0" /> Machine Tool Lists
           </button>
@@ -71,13 +71,13 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
             href="https://straightline-precision-industries-procedures.base44.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
           >
             <BookOpen className="w-4 h-4 shrink-0" /> Procedures
           </a>
           <button
             onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors mt-2"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors mt-2"
           >
             <LogOut className="w-4 h-4 shrink-0" /> Logout
           </button>
