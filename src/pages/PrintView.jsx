@@ -10,6 +10,7 @@ import TurningChuckView, { hasTurningChuckData } from "@/components/setup-sheet/
 import TurningToolsView, { hasTurningToolsData } from "@/components/setup-sheet/TurningToolsView";
 import { migratePhotoSlots } from "@/lib/photoSlots";
 import AnnotatedImage from "@/components/annotation/AnnotatedImage";
+import ProcessStepsView from "@/components/setup-sheet/ProcessStepsView";
 
 const OP_COLS = ["OP #", "Operation Name", "Comment", "Tool #", "Min Z", "Type", "Feed", "Max RPM", "Cut Time", "Cycle Time"];
 const OP_KEYS = ["op_number", "operation_name", "comment", "tool_number", "min_z", "type", "feed", "max_rpm", "cut_time", "cycle_time"];
@@ -521,6 +522,14 @@ export default function PrintView() {
               <div className="border border-gray-200 rounded p-3">
                 <p className="text-xs text-gray-800 whitespace-pre-wrap">{general.operation_notes}</p>
               </div>
+            </section>
+          )}
+
+          {/* Process Steps */}
+          {general.process_steps?.length > 0 && (
+            <section>
+              <h2 className="print-section-title">Process Steps</h2>
+              <ProcessStepsView steps={general.process_steps} />
             </section>
           )}
 

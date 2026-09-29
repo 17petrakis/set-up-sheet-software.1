@@ -7,6 +7,7 @@ import TurningChuckView, { hasTurningChuckData } from "./TurningChuckView";
 import TurningToolsView, { hasTurningToolsData } from "./TurningToolsView";
 import { getProgramMode, getProgramLabel } from "@/lib/turningMachineConfig";
 import ViewPhoto from "./ViewPhoto";
+import ProcessStepsView from "./ProcessStepsView";
 import { migratePhotoSlots } from "@/lib/photoSlots";
 
 function CitizenWorkholdingView({ data }) {
@@ -648,6 +649,13 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
             <div className="border border-gray-200 rounded p-3">
               <p className="text-xs text-gray-800 whitespace-pre-wrap">{gen.operation_notes}</p>
             </div>
+          </section>
+        )}
+
+        {gen.process_steps?.length > 0 && (
+          <section>
+            <SectionTitle>Process Steps</SectionTitle>
+            <ProcessStepsView steps={gen.process_steps} />
           </section>
         )}
 

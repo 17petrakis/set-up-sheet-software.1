@@ -14,6 +14,7 @@ import PartZero from "@/components/setup-sheet/PartZero";
 import OperationsList from "@/components/setup-sheet/OperationsList";
 import ImportBanner from "@/components/setup-sheet/ImportBanner";
 import DebugPDFModal from "@/components/setup-sheet/DebugPDFModal";
+import ProcessSteps from "@/components/setup-sheet/ProcessSteps";
 import PhotoSection from "@/components/setup-sheet/PhotoSection";
 import OperationNotes from "@/components/setup-sheet/OperationNotes";
 import TurningChuckSection from "@/components/setup-sheet/TurningChuckSection";
@@ -950,7 +951,7 @@ export default function SetupSheet() {
               "total_additional_time", "deburring_time", "finishing_time", "wash_time",
               "has_deburring", "deburring_notes", "finishing_notes", "wash_notes",
               "operation_description", "operation_notes", "work_holding_notes",
-              "fixturing_notes", "operation_name", "stops",
+              "fixturing_notes", "operation_name", "stops", "process_steps",
             ];
             const carriedGeneral = Object.fromEntries(
               Object.entries(general).filter(([k]) => !EXCLUDE_FIELDS.includes(k))
@@ -1138,6 +1139,13 @@ export default function SetupSheet() {
               </motion.div>
             </>
           )}
+
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.17 }}>
+            <ProcessSteps
+              steps={general.process_steps}
+              onChange={(val) => handleGeneralChange("process_steps", val)}
+            />
+          </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
             {(mode === "edit" || Object.values(photos).some(v => typeof v === "string" && v)) && (
