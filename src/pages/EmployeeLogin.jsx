@@ -66,7 +66,7 @@ export default function EmployeeLogin() {
             <img
               src="https://media.base44.com/images/public/6a1e12b8c62750465a101e9a/815a07707_BlackwithSPILettering1.svg"
               alt="Logo"
-              className="h-12 w-auto object-contain"
+              className="h-12 w-auto object-contain dark:invert"
             />
           </div>
           <h1 className="text-xl font-bold text-foreground text-center mb-1">Shop Floor Login</h1>
