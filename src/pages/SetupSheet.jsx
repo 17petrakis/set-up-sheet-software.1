@@ -119,8 +119,9 @@ export default function SetupSheet() {
       try {
         await base44.entities.SetupSheet.update(id, {
           ...d.gen,
-          tools: d.t,
-          turning_tools: d.tt,
+          // Tools are always stored in ascending T# order
+          tools: sortToolsByTNumber(d.t),
+          turning_tools: sortTurningToolsByTNumber(d.tt),
           part_zero: d.pz,
           operations: d.ops,
           photos: d.ph,

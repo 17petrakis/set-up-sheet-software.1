@@ -22,7 +22,9 @@ export default function TurretBlock({ turret, onChange, onRemove, index, turretO
   const addTool = (kind) => {
     if (maxTools != null && (turret.tools || []).length >= maxTools) return;
     const newTool = { _id: Date.now() + Math.random(), tool_kind: kind, tool_number: "", tool_type: "" };
-    setField("tools", [...(turret.tools || []), newTool]);
+    // New tools go to the top of the turret so they're immediately visible;
+    // the list is sorted by T# when the sheet is saved.
+    setField("tools", [newTool, ...(turret.tools || [])]);
   };
 
   const updateTool = (i, updated) => {

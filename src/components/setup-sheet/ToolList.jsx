@@ -22,7 +22,9 @@ export default function ToolList({ tools, onChange, machine, slotCount, sheetId 
   const viewMode = useContext(ViewModeContext);
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const addRow = () => onChange([...tools, { ...emptyTool }]);
+  // New tools go to the top of the list so they're immediately visible;
+  // the list is sorted by T# when the sheet is saved.
+  const addRow = () => onChange([{ ...emptyTool }, ...tools]);
   const removeRow = (i) => onChange(tools.filter((_, idx) => idx !== i));
   const duplicateRow = (i) => {
     const copy = { ...tools[i], tool_number: "" };
