@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell, Layers, RotateCw } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import NewCMMSheetDialog from "@/components/cmm/NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
@@ -12,6 +12,8 @@ import PartFolderCard from "@/components/home/PartFolderCard";
 import PartFolderView from "@/components/home/PartFolderView";
 import CMMDashboardContent from "@/components/cmm/CMMDashboardContent";
 import MachineToolListsContent from "@/components/machine-tools/MachineToolListsContent";
+import TypeDashboardContent from "@/components/home/TypeDashboardContent";
+import SetupTypeWidgets from "@/components/home/SetupTypeWidgets";
 import DuplicatePartDialog from "@/components/home/DuplicatePartDialog";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -49,22 +51,23 @@ export default function Home() {
   const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [deleteFolderTarget, setDeleteFolderTarget] = useState(null);
   const [duplicateFolderTarget, setDuplicateFolderTarget] = useState(null);
+  const [cmmSheetCount, setCmmSheetCount] = useState(0);
 
   const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
   const isAdmin = session?.isAdmin === true;
 
   useEffect(() => {
     if (!session) navigate("/employee-login");
-    // Support ?tab=quality_control redirect from CMM sheet back button
+    // Restore the active tab from the URL (set by switchNav so the browser
+    // back button returns to the same tab).
     const params = new URLSearchParams(window.location.search);
-    if (params.get("tab") === "quality_control") {
-      setActiveNav("quality_control");
-      // Don't strip URL here — CMMDashboardContent reads cmm_folder/pn/cu params itself
-    }
+    const tab = params.get("tab");
+    const ALT_TABS = ["milling", "turning", "quality_control", "machine_tool_lists"];
+    if (ALT_TABS.includes(tab)) setActiveNav(tab);
     // Open the part folder immediately when returning from a setup sheet,
     // so the dashboard doesn't flash before the folder loads.
-    // Skip for quality_control tab — CMM params (cmm_folder/pn/cu) are handled by CMMDashboardContent.
-    if (params.get("tab") !== "quality_control") {
+    // Skip for alternate tabs — those pages manage their own folder state.
+    if (!ALT_TABS.includes(tab)) {
       const folderId = params.get("folder");
       const pn = params.get("pn");
       if (folderId || pn) {
@@ -80,14 +83,16 @@ export default function Home() {
 
   const load = async () => {
     setLoading(true);
-    const [data, customerData, mtData] = await Promise.all([
+    const [data, customerData, mtData, cmmData] = await Promise.all([
       base44.entities.SetupSheet.list("-updated_date", PAGE_SIZE, 0),
       base44.entities.Customer.list("name", 200),
       base44.entities.MachineTool.list("machine_name", 200),
+      base44.entities.CMMSheet.list("-updated_date", 200),
     ]);
     setSheets(data);
     setCustomers(customerData);
     setMachineTools(mtData);
+    setCmmSheetCount(cmmData.length);
     setLoading(false);
     if (isAdmin) {
      try {
@@ -179,7 +184,7 @@ export default function Home() {
   const recentFolders = allFolders
     .map(f => ({ ...f, _last: Math.max(...f.sheets.map(s => new Date(s.updated_date || s.created_date || 0).getTime())) }))
     .sort((a, b) => b._last - a._last)
-    .slice(0, 8);
+    .slice(0, 4);
 
   const handleDeleteCustomer = async () => {
     if (!deleteCustomerTarget) return;
@@ -307,6 +312,24 @@ export default function Home() {
             </button>
           )}
           <button
+            onClick={() => switchNav("milling")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "milling" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Layers className="w-4 h-4 shrink-0" /> Milling
+          </button>
+          <button
+            onClick={() => switchNav("turning")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "turning" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <RotateCw className="w-4 h-4 shrink-0" /> Turning
+          </button>
+          <button
             onClick={() => switchNav("quality_control")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
@@ -366,6 +389,12 @@ export default function Home() {
 
           {activeNav === "quality_control" ? (
             <CMMDashboardContent customers={customers} onCustomersChange={setCustomers} />
+          ) : activeNav === "milling" || activeNav === "turning" ? (
+            <TypeDashboardContent
+              machineType={activeNav}
+              customers={customers}
+              onCustomersChange={setCustomers}
+            />
           ) : activeNav === "machine_tool_lists" ? (
             <MachineToolListsContent />
           ) : openFolder ? (
@@ -561,6 +590,16 @@ export default function Home() {
                   </div>
                 )}
               </section>
+
+              {/* Machine-type widgets — quick jump into the Milling / Turning / CMM pages */}
+              <SetupTypeWidgets
+                counts={{
+                  milling: sheets.filter(s => (s.machine_type || "milling") === "milling").length,
+                  turning: sheets.filter(s => s.machine_type === "turning").length,
+                  cmm: cmmSheetCount,
+                }}
+                onOpen={(type) => switchNav(type === "cmm" ? "quality_control" : type)}
+              />
 
               {/* Customers / Machines — toggle between customer and machine grouping */}
               <section>

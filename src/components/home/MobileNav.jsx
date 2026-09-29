@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft, Wrench } from "lucide-react";
+import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft, Wrench, Layers, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNewSheet, isAdmin }) {
@@ -52,6 +52,24 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
               <Users className="w-4 h-4 shrink-0" /> Employees
             </button>
           )}
+          <button
+            onClick={() => { onSwitchNav("milling"); onClose(); }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "milling" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <Layers className="w-4 h-4 shrink-0" /> Milling
+          </button>
+          <button
+            onClick={() => { onSwitchNav("turning"); onClose(); }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              activeNav === "turning" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <RotateCw className="w-4 h-4 shrink-0" /> Turning
+          </button>
           <button
             onClick={() => { onSwitchNav("quality_control"); onClose(); }}
             className={cn(

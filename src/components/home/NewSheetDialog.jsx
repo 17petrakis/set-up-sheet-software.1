@@ -8,9 +8,9 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 import ComboBox from "@/components/ui/ComboBox";
 import DuplicatePartDialog from "./DuplicatePartDialog";
 
-export default function NewSheetDialog({ onClose, onCreate, onCreateCMM, existingCustomers = [], defaultCustomer = "", existingSheets = [], allowCMM = false }) {
+export default function NewSheetDialog({ onClose, onCreate, onCreateCMM, existingCustomers = [], defaultCustomer = "", existingSheets = [], allowCMM = false, defaultMachineType = "milling" }) {
   const [partNumber, setPartNumber] = useState("");
-  const [machineType, setMachineType] = useState("milling");
+  const [machineType, setMachineType] = useState(defaultMachineType);
   const [customer, setCustomer] = useState(defaultCustomer);
   const [opName, setOpName] = useState("Op 1");
   const [saving, setSaving] = useState(false);
