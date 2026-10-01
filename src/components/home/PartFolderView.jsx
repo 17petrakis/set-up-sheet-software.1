@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChuck, emptyTurningTools, emptyTurningOperation } from "@/lib/setupSheetDefaults";
 import { getSheetThumbnail } from "@/lib/photoSlots";
-import { verifyAdminPassword } from "@/lib/adminPassword";
+import { verifyAdminPassword, getEmployeeSession } from "@/lib/employeeSession";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
@@ -38,7 +38,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const [deleteSheetId, setDeleteSheetId] = useState(null);
   const [showDeleteSheetConfirm, setShowDeleteSheetConfirm] = useState(false);
 
-  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const session = getEmployeeSession();
   const isAdmin = session?.isAdmin === true;
 
   const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));

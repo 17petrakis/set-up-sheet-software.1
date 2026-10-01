@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Trash2, UserCheck, UserX, Plus, Save, KeyRound, Bell, Check, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import EditEmployeeDialog from "@/components/employees/EditEmployeeDialog";
+import {
+  getEmployeeSession, getLoginCode, setLoginCode,
+  listEmployees, createEmployee, updateEmployee, deleteEmployee,
+} from "@/lib/employeeSession";
 
 export default function EmployeeManagement() {
   const navigate = useNavigate();
@@ -20,7 +24,7 @@ export default function EmployeeManagement() {
   // All hooks before any conditional return
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["employees"],
-    queryFn: () => base44.entities.Employee.list("-created_date"),
+    queryFn: () => listEmployees(),
     enabled: authorized,
   });
 
@@ -50,10 +54,7 @@ export default function EmployeeManagement() {
 
   const { data: loginSetting } = useQuery({
     queryKey: ["login_code"],
-    queryFn: async () => {
-      const rows = await base44.entities.Setting.filter({ key: "login_code" });
-      return rows && rows.length > 0 ? rows[0] : null;
-    },
+    queryFn: async () => ({ value: await getLoginCode() }),
   });
 
   useEffect(() => {
@@ -64,13 +65,7 @@ export default function EmployeeManagement() {
   }, [loginSetting]);
 
   const updateCodeMutation = useMutation({
-    mutationFn: async (newCode) => {
-      if (loginSetting) {
-        return base44.entities.Setting.update(loginSetting.id, { value: newCode });
-      } else {
-        return base44.entities.Setting.create({ key: "login_code", value: newCode });
-      }
-    },
+    mutationFn: (newCode) => setLoginCode(newCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["login_code"] });
       setCodeSaved(codeInput);
@@ -78,7 +73,7 @@ export default function EmployeeManagement() {
   });
 
   const addMutation = useMutation({
-    mutationFn: (data) => base44.entities.Employee.create(data),
+    mutationFn: (data) => createEmployee(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       setForm({ employeeNumber: "", name: "" });
@@ -86,17 +81,17 @@ export default function EmployeeManagement() {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }) => base44.entities.Employee.update(id, { isActive: !isActive }),
+    mutationFn: ({ id, isActive }) => updateEmployee(id, { isActive: !isActive }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["employees"] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Employee.delete(id),
+    mutationFn: (id) => deleteEmployee(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["employees"] }),
   });
 
   const editMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Employee.update(id, data),
+    mutationFn: ({ id, data }) => updateEmployee(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       setEditingEmp(null);
@@ -104,7 +99,7 @@ export default function EmployeeManagement() {
   });
 
   useEffect(() => {
-    const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+    const session = getEmployeeSession();
     if (!session?.isAdmin) {
       navigate("/");
     } else {

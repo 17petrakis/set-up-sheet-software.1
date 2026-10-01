@@ -18,6 +18,7 @@ import MachineToolListsHome from '@/pages/MachineToolListsHome';
 import MachineToolList from '@/pages/MachineToolList';
 import MachineToolSync from '@/pages/MachineToolSync';
 import TurningToolSync from '@/pages/TurningToolSync';
+import EmployeeSessionGate from '@/components/EmployeeSessionGate';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <EmployeeSessionGate>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/sheet/:id" element={<SetupSheet />} />
@@ -56,6 +58,7 @@ const AuthenticatedApp = () => {
       <Route path="/turning-tool-sync/:sheetId" element={<TurningToolSync />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </EmployeeSessionGate>
   );
 };
 

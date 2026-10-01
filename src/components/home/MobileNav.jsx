@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, FilePlus, BookOpen, LogOut, X, ClipboardList, ArrowLeft, Wrench, Layers, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clearEmployeeSession } from "@/lib/employeeSession";
 
 export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNewSheet, isAdmin }) {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ export default function MobileNav({ open, onClose, activeNav, onSwitchNav, onNew
             <BookOpen className="w-4 h-4 shrink-0" /> Procedures
           </a>
           <button
-            onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
+            onClick={() => { clearEmployeeSession(); navigate("/employee-login"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted transition-colors mt-2"
           >
             <LogOut className="w-4 h-4 shrink-0" /> Logout

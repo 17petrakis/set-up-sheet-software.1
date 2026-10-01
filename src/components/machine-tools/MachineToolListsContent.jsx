@@ -4,6 +4,7 @@ import { ChevronRight, Wrench, Plus, Trash2, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMachines } from "@/hooks/useMachines";
 import AddMachineDialog from "./AddMachineDialog";
+import { getEmployeeSession } from "@/lib/employeeSession";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const TYPE_LABEL = { mill: "Mill", lathe: "Lathe", saw: "Saw" };
@@ -15,7 +16,7 @@ export default function MachineToolListsContent() {
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const session = getEmployeeSession();
   const isAdmin = session?.isAdmin === true;
 
   const handleAdd = async (machine) => {

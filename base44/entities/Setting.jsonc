@@ -21,7 +21,23 @@
         "role": "admin"
       }
     },
-    "read": null,
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.key": {
+            "$nin": [
+              "login_code",
+              "admin_code"
+            ]
+          }
+        }
+      ]
+    },
     "update": {
       "user_condition": {
         "role": "admin"

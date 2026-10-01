@@ -23,6 +23,7 @@ import {
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getEmployeeSession, clearEmployeeSession } from "@/lib/employeeSession";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ export default function Home() {
   const [duplicateFolderTarget, setDuplicateFolderTarget] = useState(null);
   const [cmmSheetCount, setCmmSheetCount] = useState(0);
 
-  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const session = getEmployeeSession();
   const isAdmin = session?.isAdmin === true;
 
   useEffect(() => {
@@ -356,7 +357,7 @@ export default function Home() {
             <BookOpen className="w-4 h-4 shrink-0" /> Procedures
           </a>
           <button
-            onClick={() => { localStorage.removeItem("employeeSession"); navigate("/employee-login"); }}
+            onClick={() => { clearEmployeeSession(); navigate("/employee-login"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mt-2"
           >
             <LogOut className="w-4 h-4 shrink-0" /> Logout

@@ -34,7 +34,7 @@ import { isCitizenMachine } from "@/lib/machineGroups";
 import { parseExcel, extractExcelImage } from "@/lib/fileImport";
 import { getPartIconPhoto, getSheetThumbnail } from "@/lib/photoSlots";
 import ThumbnailToggle, { ThumbnailBadge } from "@/components/setup-sheet/ThumbnailToggle";
-import { verifyAdminPassword } from "@/lib/adminPassword";
+import { verifyAdminPassword, getEmployeeSession } from "@/lib/employeeSession";
 import { Monitor, ClipboardList } from "lucide-react";
 
 export default function SetupSheet() {
@@ -72,7 +72,7 @@ export default function SetupSheet() {
     const params = new URLSearchParams(window.location.search);
     return params.get("mode") === "edit" ? "edit" : "view";
   });
-  const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+  const session = getEmployeeSession();
   const isAdmin = session?.isAdmin === true;
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
@@ -434,7 +434,7 @@ export default function SetupSheet() {
 
   const saveRevision = async (note = "") => {
     if (!id) return;
-    const session = JSON.parse(localStorage.getItem("employeeSession") || "null");
+    const session = getEmployeeSession();
     const snapshot = {
       ...generalRef.current,
       tools: sortToolsByTNumber(toolsRef.current),

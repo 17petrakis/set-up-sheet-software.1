@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { employeeLogin, getEmployeeSession } from "@/lib/employeeSession";
 
 export default function EmployeeLogin() {
   const navigate = useNavigate();
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loginCode, setLoginCode] = useState("SUS");
 
   useEffect(() => {
-    const session = localStorage.getItem("employeeSession");
-    if (session) navigate("/");
+    if (getEmployeeSession()) navigate("/");
   }, [navigate]);
-
-  useEffect(() => {
-    base44.entities.Setting.filter({ key: "login_code" }).then((rows) => {
-      if (rows && rows.length > 0) setLoginCode(rows[0].value || "SUS");
-    });
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,31 +20,16 @@ export default function EmployeeLogin() {
     const entered = employeeNumber.trim();
     if (!entered) return;
 
-    // Admin special case
-    if (entered === "ADMIN001SUS") {
-      localStorage.setItem("employeeSession", JSON.stringify({ employeeNumber: "ADMIN001", isAdmin: true }));
-      navigate("/");
-      return;
-    }
-
-    // Require the login code suffix
-    const code = loginCode;
-    if (entered.length < code.length || entered.slice(-code.length).toUpperCase() !== code.toUpperCase()) {
-      setError("Invalid employee number or code.");
-      return;
-    }
-    const num = entered.slice(0, entered.length - code.length);
-
     setLoading(true);
     try {
-      const results = await base44.entities.Employee.filter({ employeeNumber: num, isActive: true });
-      if (results && results.length > 0) {
-        const emp = results[0];
-        localStorage.setItem("employeeSession", JSON.stringify({ employeeNumber: emp.employeeNumber, name: emp.name }));
-        navigate("/");
-      } else {
-        setError("Employee number not found or inactive.");
+      const { error: loginError } = await employeeLogin(entered);
+      if (loginError) {
+        setError(loginError);
+        return;
       }
+      navigate("/");
+    } catch (err) {
+      setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
