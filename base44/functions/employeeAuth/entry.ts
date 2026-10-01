@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { signEmployeeToken, verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import {
+  loginThrottleKeys,
+  unlockThrottleKeys,
+  throttleScopes,
+  blockedFor,
+  recordFailure,
+  lockoutMessage,
+} from '../../shared/authThrottle.ts';
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -34,6 +42,15 @@ export default async function (req) {
       const raw = String(body?.entered || '').trim();
       if (!raw) return Response.json({ error: 'Enter your employee number and code.' });
 
+      // Brute-force guard: repeated failed guesses from the same caller block
+      // the attempt before any credential is compared.
+      const loginKeys = loginThrottleKeys(req, raw);
+      const loginBlockedMs = await blockedFor(base44, loginKeys);
+      if (loginBlockedMs > 0) {
+        console.log('[employeeAuth] login blocked; scopes:', throttleScopes(loginKeys));
+        return Response.json({ error: lockoutMessage(loginBlockedMs) });
+      }
+
       const loginCode = await readSetting(base44, 'login_code', 'SUS');
       const adminCode = await readSetting(base44, 'admin_code', 'ADMIN001SUS');
       const upper = raw.toUpperCase();
@@ -45,14 +62,19 @@ export default async function (req) {
       }
 
       const suffix = loginCode.trim().toUpperCase();
-      if (!suffix || upper.length <= suffix.length || upper.slice(-suffix.length) !== suffix) {
-        return Response.json({ error: 'Invalid employee number or code.' });
-      }
+      const suffixMatches =
+        Boolean(suffix) && upper.length > suffix.length && upper.slice(-suffix.length) === suffix;
+      const employeeNumber = suffixMatches ? raw.slice(0, raw.length - suffix.length) : '';
+      const rows = suffixMatches
+        ? await base44.asServiceRole.entities.Employee.filter({ employeeNumber, isActive: true })
+        : [];
 
-      const employeeNumber = raw.slice(0, raw.length - suffix.length);
-      const rows = await base44.asServiceRole.entities.Employee.filter({ employeeNumber, isActive: true });
       if (!rows || rows.length === 0) {
-        return Response.json({ error: 'Employee number not found or inactive.' });
+        await recordFailure(base44, loginKeys);
+        console.log('[employeeAuth] login failed; scopes:', throttleScopes(loginKeys));
+        // One answer for both a wrong code and an unknown employee number, so
+        // the reply cannot be used to confirm a guessed login code.
+        return Response.json({ error: 'Invalid employee number or code.' });
       }
 
       const emp = rows[0];
@@ -93,8 +115,20 @@ export default async function (req) {
     if (action === 'adminUnlock') {
       const payload = await sessionFromToken();
       if (!payload) return Response.json({ ok: false }, { status: 401 });
+
+      const unlockKeys = unlockThrottleKeys(req, payload.employeeNumber);
+      const unlockBlockedMs = await blockedFor(base44, unlockKeys);
+      if (unlockBlockedMs > 0) {
+        console.log('[employeeAuth] adminUnlock blocked; scopes:', throttleScopes(unlockKeys));
+        return Response.json({ ok: false, retryAfterMs: unlockBlockedMs });
+      }
+
       const adminCode = await readSetting(base44, 'admin_code', 'ADMIN001SUS');
       const ok = String(body?.password || '').trim().toUpperCase() === adminCode.trim().toUpperCase();
+      if (!ok) {
+        await recordFailure(base44, unlockKeys);
+        console.log('[employeeAuth] adminUnlock failed; scopes:', throttleScopes(unlockKeys));
+      }
       return Response.json({ ok });
     }
 
