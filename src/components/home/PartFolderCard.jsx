@@ -24,12 +24,12 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
           onClick={() => onOpen(partNumber, customer)}
         >
       {/* Thumbnail image */}
-      <div className="relative w-full h-36 bg-muted/30 flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-24 sm:h-36 bg-muted/30 flex items-center justify-center overflow-hidden">
         {thumbnail ? (
           <img src={thumbnail} alt={partNumber || "Part"} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
         ) : (
           <div className="flex items-center justify-center">
-            <FileText className="w-10 h-10 text-muted-foreground/40" />
+            <FileText className="w-7 h-7 sm:w-10 sm:h-10 text-muted-foreground/40" />
           </div>
         )}
       </div>
