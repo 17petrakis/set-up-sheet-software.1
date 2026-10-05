@@ -85,8 +85,25 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground font-body;
+  /* No page zoom: double-tap zoom is off everywhere (pinch is blocked in JS,
+     since Safari ignores user-scalable=no). */
+  html {
+    touch-action: manipulation;
+  }
+  /* Phones and tablets scroll up and down only — no sideways pull. Larger
+     screens keep their previous behaviour. Photos keep their own zoom inside
+     the photo viewer. */
+  @media (max-width: 1023px) {
+    html {
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    body {
+      overflow-x: clip;
+      overscroll-behavior-x: none;
+    }
   }
 }
 
