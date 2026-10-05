@@ -604,12 +604,12 @@ export default function Home() {
 
               {/* Customers / Machines — toggle between customer and machine grouping */}
               <section>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <h2 className="text-sm font-bold text-foreground uppercase tracking-widest">
                       {groupingMode === "customer" ? "Customers" : "Machines"}
                     </h2>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <label className="flex items-center gap-1.5 cursor-pointer">
                         <Checkbox
                           checked={groupingMode === "customer"}

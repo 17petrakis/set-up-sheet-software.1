@@ -104,6 +104,10 @@
       overflow-x: clip;
       overscroll-behavior-x: none;
     }
+    /* No pane inside the app can be dragged sideways on a phone or tablet. */
+    main {
+      overflow-x: clip;
+    }
   }
 }
 
