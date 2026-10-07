@@ -4,18 +4,17 @@
 // bypasses the entity rules for these internal rows), so a lockout survives a
 // cold start or a second function instance instead of living in memory only.
 //
-// Every failed guess is counted against up to three independent buckets:
-//   ip     — the caller's network address, when the platform exposes one
+// Every failed guess is counted against two independent buckets:
+//   ip     — the caller's network address as set by the platform edge
 //   login  — the employee-number prefix that was submitted (or "nodigits")
-//   global — a flood guard shared by all callers
-// Hitting the limit on any bucket blocks that caller until the window clears.
+// Hitting the limit on either bucket blocks that caller until the window clears.
+// There is deliberately no shared bucket: no single caller may be able to lock
+// every employee out of signing in.
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILURES = 8;
 const LOCKOUT_MS = 10 * 60 * 1000;
 const MAX_LOCKOUT_MS = 60 * 60 * 1000;
-const GLOBAL_MAX_FAILURES = 40;
-const GLOBAL_LOCKOUT_MS = 10 * 60 * 1000;
 const PREFIX = "auth_throttle_";
 
 // Non-reversible bucket id, so raw addresses and employee numbers are never
@@ -30,16 +29,19 @@ function fingerprint(value) {
   return hash.toString(36);
 }
 
-// The caller's address as seen by the platform proxy, or "" when unavailable.
+// The caller's address as set by the platform edge, or "" when unavailable.
+// A client-supplied X-Forwarded-For list is untrusted — the caller controls
+// every hop they prepend — so only the last hop, the one appended by the
+// platform proxy, is used, together with the edge-set Cloudflare header.
 export function callerAddress(req) {
   const headers = req?.headers;
   if (!headers || typeof headers.get !== "function") return "";
-  const raw =
-    headers.get("x-forwarded-for") ||
-    headers.get("cf-connecting-ip") ||
-    headers.get("x-real-ip") ||
-    "";
-  return String(raw).split(",")[0].trim();
+  const chain = String(headers.get("x-forwarded-for") || "")
+    .split(",")
+    .map((hop) => hop.trim())
+    .filter(Boolean);
+  if (chain.length > 0) return chain[chain.length - 1];
+  return String(headers.get("cf-connecting-ip") || headers.get("x-real-ip") || "").trim();
 }
 
 export function loginThrottleKeys(req, entered) {
@@ -48,7 +50,6 @@ export function loginThrottleKeys(req, entered) {
   if (address) keys.push(`ip_${fingerprint(address)}`);
   const digits = String(entered || "").trim().match(/^[0-9]+/);
   keys.push(`login_${digits ? fingerprint(digits[0]) : "nodigits"}`);
-  keys.push("global");
   return keys;
 }
 
@@ -58,7 +59,6 @@ export function unlockThrottleKeys(req, employeeNumber) {
   if (address) keys.push(`ip_${fingerprint(address)}`);
   const who = String(employeeNumber || "unknown").trim().toUpperCase();
   keys.push(`unlock_${fingerprint(who)}`);
-  keys.push("global");
   return keys;
 }
 
@@ -67,10 +67,8 @@ export function throttleScopes(keys) {
   return keys.map((key) => String(key).split("_")[0]).join(",");
 }
 
-function limitFor(key) {
-  return key === "global"
-    ? { failures: GLOBAL_MAX_FAILURES, lockout: GLOBAL_LOCKOUT_MS }
-    : { failures: MAX_FAILURES, lockout: LOCKOUT_MS };
+function limitFor() {
+  return { failures: MAX_FAILURES, lockout: LOCKOUT_MS };
 }
 
 export function lockoutMessage(retryAfterMs) {
@@ -113,7 +111,7 @@ export async function recordFailure(base44, keys) {
   const now = Date.now();
   await Promise.all(
     keys.map(async (key) => {
-      const limits = limitFor(key);
+      const limits = limitFor();
       const row = await readState(base44, key);
       const state = row?.state && typeof row.state === "object" ? row.state : {};
       let fails = Number(state.fails || 0);

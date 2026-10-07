@@ -10,6 +10,7 @@ import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
 import ImageAnnotator from "@/components/annotation/ImageAnnotator";
 import { migratePhotoSlots, DEFAULT_CATEGORIES, getEffectiveIconSlotId } from "@/lib/photoSlots";
+import { safeStorageUrl, isPdfUrl } from "@/lib/mediaUrl";
 
 function CustomPhotoTitleDialog({ open, onClose, onConfirm }) {
   const [title, setTitle] = useState("");
@@ -50,7 +51,11 @@ function PhotoSlot({ slotKey, label, url, note, annotations, onAnnotationsChange
   const [annotating, setAnnotating] = useState(false);
   const hasAnnotations = annotations && annotations.length > 0;
 
-  const isPdf = url && (url.toLowerCase().includes(".pdf") || url.toLowerCase().includes("application/pdf") || url.includes("pdf"));
+  // The stored link is untrusted — any signed-in user can write it — so it is
+  // checked before it is handed to the browser, and only a real .pdf path may be
+  // embedded in the document viewer.
+  const safeUrl = safeStorageUrl(url);
+  const isPdf = Boolean(safeUrl) && isPdfUrl(safeUrl);
 
   if (readOnly && !url) return null;
 
@@ -104,7 +109,7 @@ function PhotoSlot({ slotKey, label, url, note, annotations, onAnnotationsChange
           </span>
         )}
         <div className="flex items-center gap-2">
-          {url && !readOnly && !isPdf && (
+          {safeUrl && !readOnly && !isPdf && (
             <button
               onClick={() => setAnnotating(true)}
               className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${hasAnnotations ? "text-blue-600 bg-blue-50" : "text-muted-foreground hover:text-foreground"}`}
@@ -160,19 +165,24 @@ function PhotoSlot({ slotKey, label, url, note, annotations, onAnnotationsChange
               {thumbnailImage === url && <ThumbnailBadge />}
               {isPdf ? (
                 <iframe
-                  src={url}
+                  src={safeUrl}
                   title={label}
                   className="absolute inset-0 w-full h-full border-0"
                   style={{ minHeight: large ? "500px" : "420px" }}
                 />
-              ) : (
+              ) : safeUrl ? (
                 <img
-                  src={url}
+                  src={safeUrl}
                   alt={label}
                   className={`w-full h-full absolute inset-0 cursor-pointer ${large ? "object-contain" : "object-cover"}`}
                   style={{ minHeight: large ? "500px" : "420px" }}
                   onClick={() => setLightbox(true)}
                 />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <Image className="w-10 h-10 opacity-30" />
+                  <span className="text-sm font-medium">This file link can't be shown here.</span>
+                </div>
               )}
               {!readOnly && (
               <div className="absolute top-2 right-2 flex gap-1.5 no-print">
