@@ -1,9 +1,10 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
-import { Button } from "@/components/ui/button";
+import MediaSourcePicker from "@/components/media/MediaSourcePicker";
+import { PHOTO_OVERLAY, ADD_MEDIA } from "@/lib/tapTargets";
 import SectionHeader from "./SectionHeader";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
@@ -21,7 +22,6 @@ function FieldWrap({ label, children }) {
 
 export default function CitizenWorkholdingSection({ data, onChange }) {
   const viewMode = useContext(ViewModeContext);
-  const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
   const d = data || {};
@@ -39,8 +39,7 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
     onChange(next);
   };
 
-  const handlePhoto = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadPhoto = async (file) => {
     if (!file) return;
     setUploading(true);
     try {
@@ -50,7 +49,6 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
       console.error("Upload failed:", err);
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
@@ -217,16 +215,15 @@ export default function CitizenWorkholdingSection({ data, onChange }) {
                   {d.part_ejection_photo && (
                     <div className="relative">
                       <img src={d.part_ejection_photo} alt="Part ejection" className="w-full max-h-[280px] object-contain rounded-lg border border-border/60 bg-muted/10" />
-                      <button type="button" onClick={() => set("part_ejection_photo", "")} className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors" title="Remove photo">
-                        <X className="w-3.5 h-3.5" />
+                      <button type="button" onClick={() => set("part_ejection_photo", "")} className={`${PHOTO_OVERLAY} absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white`} title="Remove photo">
+                        <X className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                       </button>
                     </div>
                   )}
-                  <Button type="button" size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-8 px-3 text-xs gap-1.5">
+                  <MediaSourcePicker onSelect={uploadPhoto} disabled={uploading} className={ADD_MEDIA}>
                     {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                     {d.part_ejection_photo ? "Replace Photo" : "Add Photo"}
-                  </Button>
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+                  </MediaSourcePicker>
                 </div>
               )}
             </FieldWrap>

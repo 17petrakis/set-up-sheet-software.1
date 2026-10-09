@@ -35,6 +35,7 @@ export default function ProcessStepsView({ steps }) {
                 ) : (
                   <ViewPhoto
                     key={mi}
+                    items={step.media}
                     url={m.url}
                     annotations={m.annotations}
                     className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50"

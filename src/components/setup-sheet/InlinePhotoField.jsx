@@ -3,17 +3,15 @@ import { base44 } from "@/api/base44Client";
 import { Upload, X, Image } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import PhotoLightbox from "./PhotoLightbox";
-
-let _seq = 0;
+import MediaSourcePicker from "@/components/media/MediaSourcePicker";
+import { PHOTO_OVERLAY, PHOTO_ACTION } from "@/lib/tapTargets";
 
 export default function InlinePhotoField({ value, note, onUpload, onRemove, onNoteChange, label = "Photo" }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [showNote, setShowNote] = useState(!!note);
-  const [inputId] = useState(() => `inline-photo-${++_seq}`);
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
     try {
@@ -23,7 +21,6 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
       setUploading(false);
-      e.target.value = "";
     }
   };
 
@@ -37,7 +34,7 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
           <button
             type="button"
             onClick={() => setShowNote(v => !v)}
-            className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors ${showNote ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+            className={`${PHOTO_ACTION} ${showNote ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
           >
             {showNote ? "Hide note" : "Add note"}
           </button>
@@ -56,27 +53,34 @@ export default function InlinePhotoField({ value, note, onUpload, onRemove, onNo
                 onClick={() => setLightbox(true)}
               />
               <div className="absolute top-2 right-2 flex gap-1.5">
-                <label htmlFor={inputId} className="bg-black/60 hover:bg-black/90 text-white rounded-lg p-1.5 cursor-pointer transition-colors" title="Replace photo">
-                  <Upload className="w-3.5 h-3.5" />
-                </label>
-                <input id={inputId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
-                <button type="button" onClick={onRemove} className="bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors" title="Remove photo">
-                  <X className="w-3.5 h-3.5" />
+                <MediaSourcePicker
+                  unstyled
+                  onSelect={uploadFile}
+                  title="Replace photo"
+                  className={`${PHOTO_OVERLAY} bg-black/60 hover:bg-black/90 text-white cursor-pointer`}
+                >
+                  <Upload className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
+                </MediaSourcePicker>
+                <button type="button" onClick={onRemove} className={`${PHOTO_OVERLAY} bg-black/60 hover:bg-red-600 text-white`} title="Remove photo">
+                  <X className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                 </button>
               </div>
             </>
           ) : (
-            <label htmlFor={inputId} className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors">
-              <input id={inputId} type="file" accept="image/*,application/pdf,.pdf,.heic,.heif" className="hidden" onChange={handleFile} />
+            <MediaSourcePicker
+              unstyled
+              onSelect={uploadFile}
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors"
+            >
               {uploading ? (
                 <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
               ) : (
                 <>
                   <Image className="w-10 h-10 opacity-20" />
-                  <span className="text-xs font-medium opacity-50">Click to upload</span>
+                  <span className="text-xs font-medium opacity-50">Tap to upload</span>
                 </>
               )}
-            </label>
+            </MediaSourcePicker>
           )}
         </div>
 

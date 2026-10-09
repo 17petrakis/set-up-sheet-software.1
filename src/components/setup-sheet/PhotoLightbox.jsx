@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import AnnotatedImage from "@/components/annotation/AnnotatedImage";
 
 const MAX_SCALE = 6;
 const DOUBLE_TAP_SCALE = 2.5;
+const SWIPE_DISTANCE = 50; // px a finger must travel sideways to change photo
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -15,15 +16,24 @@ const touchMidpoint = (touches) => ({
   y: (touches[0].clientY + touches[1].clientY) / 2,
 });
 
-export default function PhotoLightbox({ url, label, annotations, onClose }) {
+/**
+ * Full-screen photo viewer. Zoomed out, a sideways swipe (or the arrows) moves
+ * to the next/previous photo of the same set; zoomed in, one finger pans.
+ */
+export default function PhotoLightbox({ url, label, annotations, onClose, onPrev, onNext, position }) {
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
   const gesture = useRef(null);
+  const canNavigate = Boolean(onPrev || onNext);
 
   useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft" && onPrev) onPrev();
+      else if (e.key === "ArrowRight" && onNext) onNext();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [onClose, onPrev, onNext]);
 
   // Every photo opens unzoomed.
   useEffect(() => { setView({ scale: 1, x: 0, y: 0 }); gesture.current = null; }, [url]);
@@ -40,15 +50,23 @@ export default function PhotoLightbox({ url, label, annotations, onClose }) {
         startDistance: touchDistance(e.touches) || 1,
         startMidpoint: touchMidpoint(e.touches),
       };
-    } else if (e.touches.length === 1 && view.scale > 1) {
-      gesture.current = {
-        mode: "pan",
-        scale: view.scale,
-        x: view.x,
-        y: view.y,
-        touchX: e.touches[0].clientX,
-        touchY: e.touches[0].clientY,
-      };
+    } else if (e.touches.length === 1) {
+      if (view.scale > 1) {
+        gesture.current = {
+          mode: "pan",
+          scale: view.scale,
+          x: view.x,
+          y: view.y,
+          touchX: e.touches[0].clientX,
+          touchY: e.touches[0].clientY,
+        };
+      } else if (canNavigate) {
+        gesture.current = {
+          mode: "swipe",
+          touchX: e.touches[0].clientX,
+          touchY: e.touches[0].clientY,
+        };
+      }
     }
   };
 
@@ -84,7 +102,18 @@ export default function PhotoLightbox({ url, label, annotations, onClose }) {
     }
   };
 
-  const endGesture = () => { gesture.current = null; };
+  const handleTouchEnd = (e) => {
+    const active = gesture.current;
+    gesture.current = null;
+    if (!active || active.mode !== "swipe") return;
+    const touch = e.changedTouches?.[0];
+    if (!touch) return;
+    const dx = touch.clientX - active.touchX;
+    const dy = touch.clientY - active.touchY;
+    if (Math.abs(dx) < SWIPE_DISTANCE || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) onNext?.();
+    else onPrev?.();
+  };
 
   // Double click / double tap toggles zoom, so photos zoom on a desktop too.
   const toggleZoom = () => {
@@ -101,23 +130,54 @@ export default function PhotoLightbox({ url, label, annotations, onClose }) {
       onClick={onClose}
     >
       <button
-        onClick={onClose}
-        className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors"
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="absolute top-3 right-3 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors"
+        aria-label="Close photo"
       >
-        <X className="w-5 h-5" />
+        <X className="w-6 h-6" />
       </button>
+
       {label && (
-        <div className="absolute top-4 left-4 z-10 text-white text-sm font-semibold uppercase tracking-widest opacity-70">
+        <div className="absolute top-4 left-4 right-20 z-10 text-white text-sm font-semibold uppercase tracking-widest opacity-70 truncate">
           {label}
         </div>
       )}
+
+      {onPrev && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors"
+          aria-label="Previous photo"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+      {onNext && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors"
+          aria-label="Next photo"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+
+      {position && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-sm font-semibold text-white/85 tabular-nums">
+          {position}
+        </div>
+      )}
+
       <div
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={toggleZoom}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onTouchEnd={endGesture}
-        onTouchCancel={endGesture}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         className="max-w-full max-h-full flex items-center justify-center"
         style={{ touchAction: "none" }}
       >

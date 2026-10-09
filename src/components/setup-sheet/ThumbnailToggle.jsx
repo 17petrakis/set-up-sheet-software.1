@@ -26,7 +26,7 @@ export default function ThumbnailToggle({ isThumbnail, onToggle, readOnly = fals
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); onToggle(); }}
-      className={`no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors shrink-0 ${
+      className={`no-print flex items-center justify-center gap-1 min-h-11 px-3 text-xs rounded transition-colors shrink-0 lg:min-h-0 lg:px-2 lg:py-0.5 ${
         isThumbnail
           ? "text-amber-600 bg-amber-50 border border-amber-200"
           : "text-muted-foreground hover:text-foreground hover:bg-muted/40"

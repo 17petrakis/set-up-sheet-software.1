@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Plus, Trash2, Image, Pencil } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import PhotoMarkupEditor from "@/components/cmm/PhotoMarkupEditor";
+import MediaSourcePicker from "@/components/media/MediaSourcePicker";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -12,8 +13,8 @@ import {
 function Lightbox({ url, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85" onClick={onClose}>
-      <button onClick={onClose} className="absolute top-4 right-4 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 transition-colors">
-        <X className="w-5 h-5" />
+      <button onClick={onClose} className="absolute top-4 right-4 w-12 h-12 flex items-center justify-center bg-black/60 hover:bg-black/90 text-white rounded-full transition-colors" aria-label="Close photo">
+        <X className="w-6 h-6" />
       </button>
       <img
         src={url}
@@ -31,8 +32,6 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
   const [markup, setMarkup] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const inputId = `cmm-photo-${index}`;
-  const replaceId = `cmm-photo-replace-${index}`;
 
   const uploadFile = async (file) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -40,11 +39,6 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
     const result = await base44.integrations.Core.UploadFile({ file });
     onUpdate({ ...item, photo_url: result.file_url });
     setUploading(false);
-  };
-
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) { await uploadFile(file); e.target.value = ""; }
   };
 
   const handleDrop = async (e) => {
@@ -125,20 +119,21 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
                   />
                 </>
               ) : (
-                <label
-                  htmlFor={inputId}
+                <MediaSourcePicker
+                  unstyled
+                  onSelect={uploadFile}
+                  accept="image/*,.heic,.heif"
                   className="flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:bg-muted/30 transition-colors w-full py-8"
                 >
-                  <input id={inputId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
                   {uploading ? (
                     <div className="w-7 h-7 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
                   ) : (
                     <>
                       <Image className="w-10 h-10 opacity-20" />
-                      <span className="text-xs font-medium opacity-50">Click, drag & drop, or paste image</span>
+                      <span className="text-xs font-medium opacity-50">Tap, drag & drop, or paste image</span>
                     </>
                   )}
-                </label>
+                </MediaSourcePicker>
               )}
             </div>
           )}
@@ -150,22 +145,21 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
           <div className="flex items-center gap-1">
             {!noteOnly && item.photo_url && (
               <>
-                <button onClick={() => setMarkup(true)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                <button onClick={() => setMarkup(true)} className="flex items-center justify-center gap-1 min-h-11 px-3 text-xs text-muted-foreground hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors lg:min-h-0 lg:px-2 lg:py-1">
                   <Pencil className="w-3.5 h-3.5" /> Markup
                 </button>
-                <label htmlFor={replaceId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors cursor-pointer">
+                <MediaSourcePicker unstyled onSelect={uploadFile} accept="image/*,.heic,.heif" className="flex items-center justify-center gap-1 min-h-11 px-3 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors lg:min-h-0 lg:px-2 lg:py-1">
                   <Upload className="w-3.5 h-3.5" /> Replace
-                </label>
-                <input id={replaceId} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={handleFile} />
-                <button onClick={() => onUpdate({ ...item, photo_url: "" })} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors">
+                </MediaSourcePicker>
+                <button onClick={() => onUpdate({ ...item, photo_url: "" })} className="flex items-center justify-center gap-1 min-h-11 px-3 text-xs text-muted-foreground hover:text-destructive rounded hover:bg-destructive/10 transition-colors lg:min-h-0 lg:px-2 lg:py-1">
                   <X className="w-3.5 h-3.5" /> Remove photo
                 </button>
               </>
             )}
             {!noteOnly && !item.photo_url && !uploading && (
-              <label htmlFor={inputId} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors cursor-pointer">
+              <MediaSourcePicker unstyled onSelect={uploadFile} accept="image/*,.heic,.heif" className="flex items-center justify-center gap-1 min-h-11 px-3 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors lg:min-h-0 lg:px-2 lg:py-1">
                 <Upload className="w-3.5 h-3.5" /> Upload photo
-              </label>
+              </MediaSourcePicker>
             )}
           </div>
 
@@ -173,7 +167,7 @@ function PhotoRow({ item, isFirst, index, onUpdate, onRemove }) {
           {!isFirst && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors ml-auto"
+              className="flex items-center justify-center gap-1 min-h-11 px-3 text-xs text-muted-foreground hover:text-destructive rounded hover:bg-destructive/10 transition-colors ml-auto lg:min-h-0 lg:px-2 lg:py-1"
             >
               <Trash2 className="w-3.5 h-3.5" /> Delete row
             </button>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { ViewModeContext } from "@/lib/viewModeContext";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,16 @@ import { Plus, X, Loader2, GripVertical, PenTool } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
+import MediaSourcePicker from "@/components/media/MediaSourcePicker";
+import { PHOTO_OVERLAY, PHOTO_ACTION, ADD_MEDIA } from "@/lib/tapTargets";
 
 /**
  * Media items: [{ url, type: "image"|"video", title, note }]
  */
 export default function OperationMedia({ items, onChange, onAddNote, thumbnailImage = "", onThumbnailChange }) {
   const viewMode = useContext(ViewModeContext);
-  const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
-  const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [lightboxIdx, setLightboxIdx] = useState(null);
   const [editingTitle, setEditingTitle] = useState(null);
   const [annotatingIdx, setAnnotatingIdx] = useState(null);
 
@@ -35,8 +36,7 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
     return "image";
   };
 
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
     try {
@@ -46,9 +46,11 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
       console.error("Upload failed:", err);
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
     }
   };
+
+  // The photos of this operation, in order — the viewer swipes between them.
+  const imageIndexes = media.map((m, i) => (m.type === "video" ? -1 : i)).filter((i) => i !== -1);
 
   const updateItem = (i, patch) => {
     const next = [...media];
@@ -83,24 +85,15 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
             Add Operation Note
           </Button>
         )}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => fileRef.current?.click()}
+        <MediaSourcePicker
+          onSelect={uploadFile}
+          accept="image/*,video/*"
           disabled={uploading}
-          className="h-8 px-3 text-xs gap-1.5"
+          className={ADD_MEDIA}
         >
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
           Add Media (Photo/Video)
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,video/*"
-          onChange={handleUpload}
-          className="hidden"
-        />
+        </MediaSourcePicker>
       </div>
 
       {!viewMode && media.length > 1 && (
@@ -172,14 +165,14 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
                   annotations={m.annotations || []}
                   alt={m.title || ""}
                   className="w-full max-h-[420px] object-contain cursor-zoom-in"
-                  onClick={() => !viewMode && setLightboxUrl(m.url)}
+                  onClick={() => !viewMode && setLightboxIdx(i)}
                 />
               )}
               {!viewMode && (
                 <button
                   type="button"
                   onClick={() => removeItem(i)}
-                  className="absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white rounded-lg p-1.5 transition-colors"
+                  className={`${PHOTO_OVERLAY} absolute top-2 right-2 bg-black/60 hover:bg-red-600 text-white`}
                   title="Remove media"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -189,7 +182,7 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
                 <button
                   type="button"
                   onClick={() => setAnnotatingIdx(i)}
-                  className={`absolute top-2 left-2 flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${m.annotations?.length ? "bg-blue-500 text-white" : "bg-black/60 hover:bg-black/90 text-white"}`}
+                  className={`${PHOTO_ACTION} absolute top-2 left-2 ${m.annotations?.length ? "bg-blue-500 text-white" : "bg-black/60 hover:bg-black/90 text-white"}`}
                   title="Annotate photo"
                 >
                   <PenTool className="w-3 h-3" />
@@ -224,7 +217,21 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
         </Droppable>
       </DragDropContext>
 
-      {lightboxUrl && <PhotoLightbox url={lightboxUrl} annotations={media.find(m => m.url === lightboxUrl)?.annotations} onClose={() => setLightboxUrl(null)} />}
+      {lightboxIdx !== null && media[lightboxIdx] && (() => {
+        const position = imageIndexes.indexOf(lightboxIdx);
+        const canNavigate = imageIndexes.length > 1;
+        const step = (delta) => setLightboxIdx(imageIndexes[(position + delta + imageIndexes.length) % imageIndexes.length]);
+        return (
+          <PhotoLightbox
+            url={media[lightboxIdx].url}
+            annotations={media[lightboxIdx].annotations}
+            position={canNavigate ? `${position + 1} / ${imageIndexes.length}` : undefined}
+            onPrev={canNavigate ? () => step(-1) : undefined}
+            onNext={canNavigate ? () => step(1) : undefined}
+            onClose={() => setLightboxIdx(null)}
+          />
+        );
+      })()}
       {annotatingIdx !== null && media[annotatingIdx] && (
         <ImageAnnotator
           imageUrl={media[annotatingIdx].url}

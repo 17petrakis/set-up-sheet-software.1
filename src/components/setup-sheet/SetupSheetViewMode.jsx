@@ -259,7 +259,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                     <div className="space-y-3 mt-1.5">
                       {fix.photos.map((p, pi) => (
                         <div key={pi}>
-                          <ViewPhoto url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                          <ViewPhoto items={fix.photos} url={p.url} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                           {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                         </div>
                       ))}
@@ -349,7 +349,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                                 {s.fixture_photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
-                                    <ViewPhoto url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    <ViewPhoto items={s.fixture_photos} url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                     {p.note && <p className="text-[9px] text-gray-600 mt-0.5 italic">{p.note}</p>}
                                   </div>
                                 ))}
@@ -360,7 +360,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                                 {s.photos.map((p, pi) => (
                                   <div key={pi}>
                                     {p.title && <p className="text-xs font-bold text-gray-800 mb-1">{p.title}</p>}
-                                    <ViewPhoto url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
+                                    <ViewPhoto items={s.photos} url={p.url} annotations={p.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "500px" }} />
                                     {p.note && <p className="text-xs text-gray-800 whitespace-pre-wrap mt-1">{p.note}</p>}
                                   </div>
                                 ))}
@@ -467,7 +467,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                           {m.type === "video" ? (
                             <video src={m.url} controls className="w-full rounded-lg border border-gray-200 bg-black" style={{ maxHeight: "420px" }} />
                           ) : (
-                            <ViewPhoto url={m.url} annotations={m.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
+                            <ViewPhoto items={gen.operation_media} url={m.url} annotations={m.annotations} className="w-full rounded-lg border border-gray-200 object-contain bg-gray-50" style={{ maxHeight: "420px" }} />
                           )}
                           {m.note && <p className="text-xs text-gray-600 whitespace-pre-wrap mt-1">{m.note}</p>}
                         </div>
@@ -667,6 +667,7 @@ export default function SetupSheetViewMode({ general, tools, turningTools, partZ
                 <div key={slot.id} className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1">{slot.label}</p>
                   <ViewPhoto
+                    items={allPhotoSlots}
                     url={slot.url}
                     label={slot.label}
                     annotations={slot.annotations}
