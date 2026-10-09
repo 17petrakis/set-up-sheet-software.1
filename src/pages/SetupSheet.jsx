@@ -36,6 +36,8 @@ import { getPartIconPhoto, getSheetThumbnail } from "@/lib/photoSlots";
 import ThumbnailToggle, { ThumbnailBadge } from "@/components/setup-sheet/ThumbnailToggle";
 import { verifyAdminPassword, getEmployeeSession } from "@/lib/employeeSession";
 import { Monitor, ClipboardList } from "lucide-react";
+import useLeaveGuard from "@/hooks/useLeaveGuard";
+import LeaveSheetDialog from "@/components/setup-sheet/LeaveSheetDialog";
 
 export default function SetupSheet() {
   const { id } = useParams();
@@ -79,6 +81,9 @@ export default function SetupSheet() {
   const saveTimer = useRef(null);
   const latestData = useRef({});
   const menuRef = useRef(null);
+
+  // Ask before leaving while editing, so a half-saved sheet can't slip out the door.
+  const leaveGuard = useLeaveGuard({ enabled: mode === "edit" && !loading });
 
   // Load existing sheet
   useEffect(() => {
@@ -494,7 +499,14 @@ export default function SetupSheet() {
     setImportError(null);
   };
 
-  const handleSaveAndExit = async () => {
+  // Persist everything right now (used by the View button and the leave popup).
+  // Resolves true when the sheet was saved.
+  const flushSave = useCallback(async () => {
+    if (!id) return true;
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
     // Sort tools by T# before saving so reordering happens behind the scenes
     const sortedTools = sortToolsByTNumber(toolsRef.current);
     setTools(sortedTools);
@@ -504,10 +516,6 @@ export default function SetupSheet() {
     setTurningTools(sortedTurningTools);
     turningToolsRef.current = sortedTurningTools;
 
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-      saveTimer.current = null;
-    }
     setSaving(true);
     try {
       await base44.entities.SetupSheet.update(id, {
@@ -523,11 +531,19 @@ export default function SetupSheet() {
         mc_machining_data: mcMachiningDataRef.current,
         preparation_screen: preparationScreenRef.current,
       });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(null), 2000);
+      return true;
     } catch (err) {
-      // ignore
+      // Sheet may have been deleted — the caller stays put instead of leaving
+      return false;
     } finally {
       setSaving(false);
     }
+  }, [id]);
+
+  const handleSaveAndExit = async () => {
+    await flushSave();
     setMode("view");
   };
 
@@ -555,6 +571,12 @@ export default function SetupSheet() {
   };
 
   const isLocked = general.published && !isAdmin;
+
+  // Header back button — confirms before leaving while editing
+  const handleBackClick = () => {
+    const to = `/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`;
+    leaveGuard.requestLeave({ type: "path", to });
+  };
 
   const handleAttemptEdit = () => {
     if (isLocked) {
@@ -648,14 +670,10 @@ export default function SetupSheet() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 no-print">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 lg:hidden shrink-0" onClick={() => {
-              navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
-            }}>
+            <Button variant="ghost" size="icon" className="h-10 w-10 -ml-1 lg:hidden shrink-0" onClick={handleBackClick}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:inline-flex shrink-0" onClick={() => {
-              navigate(`/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`);
-            }}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:inline-flex shrink-0" onClick={handleBackClick}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
             {(() => { const icon = getSheetThumbnail({ thumbnail_image: general.thumbnail_image, photos }); return icon ? (
@@ -851,6 +869,13 @@ export default function SetupSheet() {
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
+
+      <LeaveSheetDialog
+        open={leaveGuard.promptOpen}
+        onStay={leaveGuard.cancelLeave}
+        onSave={flushSave}
+        onLeave={leaveGuard.leaveNow}
+      />
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
