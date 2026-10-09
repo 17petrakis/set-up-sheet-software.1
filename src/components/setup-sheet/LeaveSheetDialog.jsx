@@ -49,7 +49,7 @@ export default function LeaveSheetDialog({ open, onStay, onSave, onLeave }) {
   return (
     <AlertDialog open={open}>
       <AlertDialogContent
-        className="max-w-sm"
+        className="!inset-0 !m-auto !h-fit !translate-x-0 !translate-y-0 !w-[calc(100%-2rem)] max-w-sm"
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
       >
