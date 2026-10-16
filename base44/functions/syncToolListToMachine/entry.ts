@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import { sanitizeToolList } from '../../shared/toolPayloadValidation.ts';
 
 export default async function (req) {
   try {
@@ -34,8 +35,11 @@ export default async function (req) {
     if (!machineId || typeof machineId !== 'string' || machineId.length > 120) {
       return Response.json({ error: 'machineId is required' }, { status: 400 });
     }
-    if (!Array.isArray(tools) || tools.length > 200) {
-      return Response.json({ error: 'tools must be an array of at most 200 tools' }, { status: 400 });
+    // Rebuild every tool from the fields this app stores before forwarding it —
+    // the procedure app treats whatever arrives as trusted machine tool data.
+    const { tools: safeTools, error: toolsError } = sanitizeToolList(tools);
+    if (toolsError) {
+      return Response.json({ error: toolsError }, { status: 400 });
     }
 
     // Only a machine that actually exists in this app may be synced.
@@ -51,7 +55,7 @@ export default async function (req) {
       body: JSON.stringify({
         syncKey,
         machineId,
-        tools,
+        tools: safeTools,
       }),
     });
 

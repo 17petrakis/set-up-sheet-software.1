@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 import { verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import { sanitizeTurretList } from '../../shared/toolPayloadValidation.ts';
 
 export default async function (req) {
   try {
@@ -34,8 +35,11 @@ export default async function (req) {
     if (!machineId || typeof machineId !== 'string' || machineId.length > 120) {
       return Response.json({ error: 'machineId is required' }, { status: 400 });
     }
-    if (!Array.isArray(turrets) || turrets.length > 20) {
-      return Response.json({ error: 'turrets must be an array' }, { status: 400 });
+    // Rebuild every turret and its tools from the fields this app stores before
+    // forwarding them — the procedure app treats whatever arrives as trusted data.
+    const { turrets: safeTurrets, error: turretsError } = sanitizeTurretList(turrets);
+    if (turretsError) {
+      return Response.json({ error: turretsError }, { status: 400 });
     }
 
     // Only a machine that actually exists in this app may be synced.
@@ -51,7 +55,7 @@ export default async function (req) {
       body: JSON.stringify({
         syncKey,
         machineId,
-        turrets,
+        turrets: safeTurrets,
       }),
     });
 
