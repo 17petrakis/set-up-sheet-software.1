@@ -9,7 +9,7 @@ import {
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
 
-export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete, onDuplicate }) {
+export default function PartFolderCard({ partNumber, customer, sheets, onOpen, onDelete, onDuplicate, compactOnMobile = false }) {
   const primarySheet = sheets.find(s => s.operation_number === 1) || sheets[0];
   const opCount = sheets.length;
   const thumbnailSheet = sheets.find(s => s.is_folder_thumbnail) || null;
@@ -23,8 +23,51 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
           className="relative bg-card border border-border rounded-2xl cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden flex flex-col"
           onClick={() => onOpen(partNumber, customer)}
         >
+      {/* Phones: one compact row per part so far more fit on screen */}
+      {compactOnMobile && (
+        <div className="flex items-center gap-3 p-3 sm:hidden">
+          <div className="relative w-16 h-16 rounded-xl bg-muted/30 flex items-center justify-center overflow-hidden shrink-0">
+            {thumbnail ? (
+              <img src={thumbnail} alt={partNumber || "Part"} className="w-full h-full object-cover" />
+            ) : (
+              <FileText className="w-6 h-6 text-muted-foreground/40" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-bold text-sm text-foreground truncate">{partNumber || "Unnamed"}</span>
+              {primarySheet?.revision && (
+                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+                  Rev {primarySheet.revision}
+                </span>
+              )}
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide bg-slate-100 text-slate-600 shrink-0 ml-auto">
+                {opCount} {opCount === 1 ? "Op" : "Ops"}
+              </span>
+            </div>
+            {(customer || primarySheet?.part_name?.trim()) && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {[customer, primarySheet?.part_name?.trim()].filter(Boolean).join(" · ")}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted-foreground mt-1">
+              {[
+                primarySheet?.job_number,
+                primarySheet?.machine,
+                primarySheet?.updated_date ? format(new Date(primarySheet.updated_date), "MMM d, yyyy") : null,
+              ].filter(Boolean).map((item, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <span className="text-muted-foreground/50">·</span>}
+                  <span className="truncate max-w-[60%]">{item}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Thumbnail image */}
-      <div className="relative w-full h-24 sm:h-36 bg-muted/30 flex items-center justify-center overflow-hidden">
+      <div className={cn("relative w-full h-24 sm:h-36 bg-muted/30 flex items-center justify-center overflow-hidden", compactOnMobile && "hidden sm:flex")}>
         {thumbnail ? (
           <img src={thumbnail} alt={partNumber || "Part"} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
         ) : (
@@ -34,7 +77,7 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
         )}
       </div>
 
-      <div className="p-3 flex flex-col gap-2 flex-1">
+      <div className={cn("p-3 flex flex-col gap-2 flex-1", compactOnMobile && "hidden sm:flex")}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-sm text-foreground truncate max-w-[140px]">{partNumber || "Unnamed"}</span>

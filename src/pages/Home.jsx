@@ -561,6 +561,7 @@ export default function Home() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                         {matches.map(folder => (
                           <PartFolderCard
+                            compactOnMobile
                             key={folder.key}
                             partNumber={folder.partNumber}
                             customer={folder.customer}
@@ -579,6 +580,7 @@ export default function Home() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
                     {recentFolders.map(folder => (
                       <PartFolderCard
+                        compactOnMobile
                         key={folder.key}
                         partNumber={folder.partNumber}
                         customer={folder.customer}
