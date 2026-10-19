@@ -53,6 +53,30 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
 
   const btnBase = "w-full text-left px-3 py-2 text-sm flex items-center transition-colors";
 
+  // The machines inside one group — shared by the phone list and the side panel
+  const renderModels = (group, models, className = "") =>
+    (models || []).map(m => {
+      const label = group === m ? group : `${group} ${m}`;
+      const isSelected = value === label;
+      return (
+        <button
+          key={label}
+          type="button"
+          onClick={() => handleSelect(label)}
+          className={`${btnBase} gap-2 ${className}`}
+          style={{
+            backgroundColor: !isSelected ? "transparent" : "hsl(var(--muted))",
+            color: isSelected ? ACCENT : "hsl(var(--foreground))",
+          }}
+          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "hsl(var(--muted))"; }}
+          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "transparent"; }}
+        >
+          {isSelected && <Check className="w-4 h-4" style={{ color: ACCENT }} />}
+          {m}
+        </button>
+      );
+    });
+
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
@@ -65,7 +89,7 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
       </button>
 
       {open && (
-        <div className="absolute z-[500] top-full left-0 mt-0.5 w-full rounded-md shadow-xl border border-border/60 bg-popover py-1">
+        <div className="absolute z-[500] top-full left-0 mt-0.5 w-full max-h-[65vh] overflow-y-auto sm:max-h-none sm:overflow-visible rounded-md shadow-xl border border-border/60 bg-popover py-1">
           {/* Group headers or flat options */}
           {isGrouped ? (
             options.map(g => {
@@ -75,25 +99,34 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
                 return label === value;
               });
               return (
-                <button
-                  key={g.group}
-                  ref={el => { itemRefs.current[g.group] = el; }}
-                  type="button"
-                  onClick={() => handleGroupClick(g.group)}
-                  className={`${btnBase} justify-between`}
-                  style={{
-                    backgroundColor: isActive ? "hsl(var(--accent))" : "transparent",
-                    color: isActive ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
-                  }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = "hsl(var(--muted))"; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = "transparent"; }}
-                >
-                  <span className="flex items-center gap-2">
-                    {hasSelected && <Check className="w-4 h-4" style={{ color: ACCENT }} />}
-                    {g.group}
-                  </span>
-                  <ChevronRight className="w-4 h-4" style={{ color: isActive ? "hsl(var(--accent-foreground))" : ACCENT, opacity: isActive ? 1 : 0.5 }} />
-                </button>
+                <React.Fragment key={g.group}>
+                  <button
+                    ref={el => { itemRefs.current[g.group] = el; }}
+                    type="button"
+                    onClick={() => handleGroupClick(g.group)}
+                    className={`${btnBase} justify-between`}
+                    style={{
+                      backgroundColor: isActive ? "hsl(var(--accent))" : "transparent",
+                      color: isActive ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = "hsl(var(--muted))"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <span className="flex items-center gap-2">
+                      {hasSelected && <Check className="w-4 h-4" style={{ color: ACCENT }} />}
+                      {g.group}
+                    </span>
+                    <ChevronRight className="w-4 h-4" style={{ color: isActive ? "hsl(var(--accent-foreground))" : ACCENT, opacity: isActive ? 1 : 0.5 }} />
+                  </button>
+
+                  {/* Phones: the group's machines open in place — a side panel
+                      would run off the right edge of the screen */}
+                  {isActive && (
+                    <div className="sm:hidden border-l-2 border-accent/40 ml-3 my-0.5">
+                      {renderModels(g.group, g.models, "pl-4")}
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })
           ) : (
@@ -119,33 +152,13 @@ export default function CascadingDropdown({ value, onChange, options, placeholde
             })
           )}
 
-          {/* Right panel — originates from the selected header position */}
+          {/* Wider screens: panel flies out beside the selected group header */}
           {isGrouped && expandedGroup && (
             <div
-              className="bg-popover py-1 min-w-[160px] absolute left-full ml-0.5 rounded-md border border-border/60 shadow-xl"
+              className="hidden sm:block bg-popover py-1 min-w-[160px] absolute left-full ml-0.5 rounded-md border border-border/60 shadow-xl"
               style={{ top: expandedTop }}
             >
-              {(options.find(g => g.group === expandedGroup)?.models || []).map(m => {
-                const label = expandedGroup === m ? expandedGroup : `${expandedGroup} ${m}`;
-                const isSelected = value === label;
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => handleSelect(label)}
-                    className={`${btnBase} gap-2`}
-                    style={{
-                      backgroundColor:!isSelected ? "transparent" : "hsl(var(--muted))",
-                      color: isSelected ? ACCENT : "hsl(var(--foreground))",
-                    }}
-                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "hsl(var(--muted))"; }}
-                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = "transparent"; }}
-                  >
-                    {isSelected && <Check className="w-4 h-4" style={{ color: ACCENT }} />}
-                    {m}
-                  </button>
-                );
-              })}
+              {renderModels(expandedGroup, options.find(g => g.group === expandedGroup)?.models)}
             </div>
           )}
         </div>
