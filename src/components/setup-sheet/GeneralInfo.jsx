@@ -11,6 +11,7 @@ import SectionHeader from "./SectionHeader";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import MaterialField from "./MaterialField";
 import TimeInput from "@/components/ui/TimeInput";
+import DateInput from "@/components/ui/DateInput";
 import { parseTimeToSeconds, formatSecondsToTime } from "@/lib/timeFormat";
 import { useMachines } from "@/hooks/useMachines";
 import { buildCascadingMachineOptions } from "@/lib/machines";
@@ -26,7 +27,7 @@ const MACHINES = [
 
 const PROGRAMS = ["Mastercam", "Gibbscam", "Feature Cam", "G-Code", "Finger-Code", "N/A"];
 
-const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, hrs, onHrsChange }) => {
+const Field = ({ label, note, value, onChange, type = "text", className = "", placeholder = "", time = false, date = false, hrs, onHrsChange }) => {
   const viewMode = useContext(ViewModeContext);
   if (viewMode && !value && !hrs) return null;
   return (
@@ -37,6 +38,8 @@ const Field = ({ label, note, value, onChange, type = "text", className = "", pl
       </Label>
       {time ? (
         <TimeInput value={value} onChange={onChange} hrs={hrs} onHrsChange={onHrsChange} viewMode={viewMode} />
+      ) : date ? (
+        <DateInput value={value} onChange={onChange} viewMode={viewMode} />
       ) : (
         <Input
           type={type}
@@ -160,7 +163,7 @@ export default function GeneralInfo({ data, onChange, onReplace, machineType }) 
           )}
           <Field label="Operation Name" value={data.operation_name} onChange={update("operation_name")} placeholder="e.g. Op 10, Face & Drill" className="sm:col-span-4" />
           <Field label="Program Desc." value={data.program_description} onChange={update("program_description")} className="sm:col-span-4" />
-          <Field label="Date" value={data.date} onChange={update("date")} type="date" className="sm:col-span-4" />
+          <Field label="Date" value={data.date} onChange={update("date")} date className="sm:col-span-4" />
         </div>
 
         {/* Row: Cycle Time */}
