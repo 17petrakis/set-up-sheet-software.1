@@ -17,7 +17,7 @@ import {
 const RECENT_LIMIT = 8;
 const PAGE_SIZE = 200;
 
-const folderKeyOf = (sheet) => sheet.folder_id || `legacy__${sheet.part_number}__${sheet.customer || ""}`;
+import { folderKeyOf } from "@/lib/folderKey";
 
 export default function TypeDashboardContent({ machineType, customers = [], onCustomersChange }) {
   const navigate = useNavigate();
@@ -84,8 +84,10 @@ export default function TypeDashboardContent({ machineType, customers = [], onCu
 
   const openFolder = openFolderKey ? allFolders.find(f => f.key === openFolderKey) : null;
 
-  const handleOpenFolder = (partNumber, customer) => {
-    const folder = allFolders.find(f => f.partNumber === partNumber && f.customer === customer);
+  const handleOpenFolder = (partNumber, customer, key) => {
+    const folder = key
+      ? allFolders.find(f => f.key === key)
+      : allFolders.find(f => f.partNumber === partNumber && f.customer === customer);
     if (folder) setOpenFolderKey(folder.key);
   };
 
@@ -106,12 +108,15 @@ export default function TypeDashboardContent({ machineType, customers = [], onCu
   };
 
   // Delete the whole part folder (every operation, regardless of type)
-  const handleDeleteFolder = async () => {
-    if (!deleteFolderTarget) return;
-    const key = folderKeyOf(deleteFolderTarget.sheets[0]);
+  const deleteFolderByKey = async (key) => {
     const ids = allSheets.filter(s => folderKeyOf(s) === key).map(s => s.id);
     await Promise.all(ids.map(id => base44.entities.SetupSheet.delete(id)));
     setAllSheets(prev => prev.filter(s => folderKeyOf(s) !== key));
+  };
+
+  const handleDeleteFolder = async () => {
+    if (!deleteFolderTarget) return;
+    await deleteFolderByKey(folderKeyOf(deleteFolderTarget.sheets[0]));
     setDeleteFolderTarget(null);
   };
 
@@ -150,9 +155,13 @@ export default function TypeDashboardContent({ machineType, customers = [], onCu
         customer={openFolder.customer}
         sheets={openFolder.sheets}
         onBack={() => setOpenFolderKey(null)}
+        onDeleteFolder={() => deleteFolderByKey(openFolderKey)}
         onSheetsChange={(updated) => {
-          const ids = new Set(openFolder.sheets.map(s => s.id));
-          setAllSheets(prev => [...prev.filter(s => !ids.has(s.id)), ...updated]);
+          const updatedIds = new Set(updated.map(s => s.id));
+          setAllSheets(prev => {
+            const folderIds = new Set(prev.filter(s => folderKeyOf(s) === openFolderKey).map(s => s.id));
+            return [...prev.filter(s => !folderIds.has(s.id) && !updatedIds.has(s.id)), ...updated];
+          });
           if (updated.length === 0) setOpenFolderKey(null);
         }}
       />

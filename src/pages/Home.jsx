@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, ArrowLeftCircle, Wrench, Bell, Layers, RotateCw } from "lucide-react";
+import { Search, LayoutDashboard, Users, FilePlus, FolderOpen, ChevronRight, ArrowLeft, Plus, Trash2, LogOut, BookOpen, Menu, ClipboardList, Wrench, Bell, Layers, RotateCw } from "lucide-react";
 import NewSheetDialog from "@/components/home/NewSheetDialog";
 import NewCMMSheetDialog from "@/components/cmm/NewCMMSheetDialog";
 import AddCustomerDialog from "@/components/home/AddCustomerDialog";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getEmployeeSession, clearEmployeeSession } from "@/lib/employeeSession";
+import { folderKeyOf } from "@/lib/folderKey";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -73,9 +74,9 @@ export default function Home() {
       const pn = params.get("pn");
       if (folderId || pn) {
         setOpenFolder({
+          key: folderId || folderKeyOf({ part_number: pn || "Unnamed", customer: params.get("cu") || "" }),
           partNumber: pn || "Unnamed",
           customer: params.get("cu") || "",
-          folderId: folderId || undefined,
         });
         window.history.replaceState({}, "", "/");
       }
@@ -127,9 +128,7 @@ export default function Home() {
     const folderMap = {}; // key -> { partNumber, customer, sheets[] }
 
     for (const sheet of sheets) {
-      const key = sheet.folder_id
-        ? sheet.folder_id
-        : `legacy__${sheet.part_number}__${sheet.customer || ""}`;
+      const key = folderKeyOf(sheet);
 
       if (!folderMap[key]) {
         folderMap[key] = {
@@ -232,7 +231,7 @@ export default function Home() {
     }));
     setSheets(prev => [...prev, ...newSheets]);
     setDuplicateFolderTarget(null);
-    setOpenFolder({ partNumber, customer, folderId: newFolderId });
+    setOpenFolder({ key: newFolderId, partNumber, customer });
   };
 
   const switchNav = (nav) => {
@@ -252,10 +251,7 @@ export default function Home() {
 
   // Get sheets for the open folder
   const openFolderSheetsResolved = openFolder
-    ? (allFolders.find(f =>
-        (openFolder.folderId && f.key === openFolder.folderId) ||
-        (f.partNumber === openFolder.partNumber && f.customer === openFolder.customer)
-      )?.sheets || [])
+    ? (allFolders.find(f => openFolder.key && f.key === openFolder.key)?.sheets || [])
     : [];
 
   return (
@@ -406,11 +402,18 @@ export default function Home() {
               sheets={openFolderSheetsResolved}
               onBack={() => setOpenFolder(null)}
               onSheetsChange={(updated) => {
-                const folderIds = new Set(openFolderSheetsResolved.map(s => s.id));
+                // Resolve the folder from current state by its stable key, and drop
+                // anything the folder no longer owns — deleted operations can never
+                // leave stale copies behind or drag in another part's operations.
+                const updatedIds = new Set(updated.map(s => s.id));
                 setSheets(prev => {
-                  const withoutFolder = prev.filter(s => !folderIds.has(s.id));
-                  return [...withoutFolder, ...updated];
+                  const folderIds = new Set(
+                    prev.filter(s => folderKeyOf(s) === openFolder.key).map(s => s.id)
+                  );
+                  const kept = prev.filter(s => !folderIds.has(s.id) && !updatedIds.has(s.id));
+                  return [...kept, ...updated];
                 });
+                if (updated.length === 0) setOpenFolder(null);
               }}
             />
           ) : selectedMachine ? (
@@ -443,7 +446,7 @@ export default function Home() {
                       partNumber={folder.partNumber}
                       customer={folder.customer}
                       sheets={folder.sheets}
-                      onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                      onOpen={(pn, cust, key) => setOpenFolder({ key, partNumber: pn, customer: cust })}
                       onDelete={(f) => setDeleteFolderTarget(f)}
                       onDuplicate={(f) => setDuplicateFolderTarget(f)}
                     />
@@ -491,7 +494,7 @@ export default function Home() {
                       partNumber={folder.partNumber}
                       customer={folder.customer}
                       sheets={folder.sheets}
-                      onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                      onOpen={(pn, cust, key) => setOpenFolder({ key, partNumber: pn, customer: cust })}
                       onDelete={(f) => setDeleteFolderTarget(f)}
                       onDuplicate={(f) => setDuplicateFolderTarget(f)}
                     />
@@ -566,7 +569,7 @@ export default function Home() {
                             partNumber={folder.partNumber}
                             customer={folder.customer}
                             sheets={folder.sheets}
-                            onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                            onOpen={(pn, cust, key) => setOpenFolder({ key, partNumber: pn, customer: cust })}
                             onDelete={(f) => setDeleteFolderTarget(f)}
                             onDuplicate={(f) => setDuplicateFolderTarget(f)}
                           />
@@ -585,7 +588,7 @@ export default function Home() {
                         partNumber={folder.partNumber}
                         customer={folder.customer}
                         sheets={folder.sheets}
-                        onOpen={(pn, cust) => setOpenFolder({ partNumber: pn, customer: cust })}
+                        onOpen={(pn, cust, key) => setOpenFolder({ key, partNumber: pn, customer: cust })}
                         onDelete={(f) => setDeleteFolderTarget(f)}
                         onDuplicate={(f) => setDuplicateFolderTarget(f)}
                       />

@@ -7,7 +7,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import {
-  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator
+  ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem
 } from "@/components/ui/context-menu";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -21,11 +21,13 @@ import { emptyGeneral, emptyPartZero, emptyTool, emptyOperation, emptyTurningChu
 import { getSheetThumbnail } from "@/lib/photoSlots";
 import { verifyAdminPassword, getEmployeeSession } from "@/lib/employeeSession";
 import AddOperationDialog from "@/components/home/AddOperationDialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const getSortKey = (s) => s.sort_order ?? new Date(s.created_date).getTime() ?? 0;
 
-export default function PartFolderView({ partNumber, customer, sheets, onBack, onSheetsChange }) {
+export default function PartFolderView({ partNumber, customer, sheets, onBack, onSheetsChange, onDeleteFolder }) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showAddOp, setShowAddOp] = useState(false);
   const [showDeleteFolder, setShowDeleteFolder] = useState(false);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
@@ -42,7 +44,11 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const isAdmin = session?.isAdmin === true;
 
   const sorted = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b));
-  const folderId = sorted[0]?.folder_id;
+  // Only reuse a folder id that every operation shares — otherwise the new
+  // operation would land in a different folder than the rest of the part.
+  const folderId = sheets.length && sheets.every(s => s.folder_id && s.folder_id === sheets[0].folder_id)
+    ? sheets[0].folder_id
+    : undefined;
   const isPublished = sorted.some(s => s.published);
 
   const handleAddOperation = async (machineType, opName) => {
@@ -108,6 +114,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
 
   const handleDragEnd = async (result) => {
     if (!result.destination || result.source.index === result.destination.index) return;
+    const previous = sorted;
     const reordered = [...sorted];
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
@@ -115,14 +122,30 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
     const now = Date.now();
     const updates = reordered.map((s, i) => ({ ...s, sort_order: now + i }));
     onSheetsChange(updates);
-    await base44.entities.SetupSheet.bulkUpdate(
-      updates.map(s => ({ id: s.id, sort_order: s.sort_order }))
-    );
+    try {
+      await base44.entities.SetupSheet.bulkUpdate(
+        updates.map(s => ({ id: s.id, sort_order: s.sort_order }))
+      );
+    } catch {
+      // Never leave the screen showing an order that was not saved
+      onSheetsChange(previous);
+      toast({
+        title: "Couldn't save the new order",
+        description: "The operations were put back the way they were. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteFolder = async () => {
-    await Promise.all(sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
-    onSheetsChange([]);
+    // The parent knows every operation in the part (including other machine
+    // types), so let it remove the whole folder rather than only what is shown.
+    if (onDeleteFolder) {
+      await onDeleteFolder();
+    } else {
+      await Promise.all(sheets.map(s => base44.entities.SetupSheet.delete(s.id)));
+      onSheetsChange([]);
+    }
     setShowDeleteFolder(false);
     onBack();
   };
@@ -203,9 +226,12 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
   const handleDeleteSheet = async () => {
     if (!deleteSheetId) return;
     await base44.entities.SetupSheet.delete(deleteSheetId);
-    onSheetsChange(sheets.filter(s => s.id !== deleteSheetId));
+    const remaining = sheets.filter(s => s.id !== deleteSheetId);
+    onSheetsChange(remaining);
     setShowDeleteSheetConfirm(false);
     setDeleteSheetId(null);
+    // Last operation deleted — the part no longer exists, go back to the list
+    if (remaining.length === 0) onBack();
   };
 
   const handleMakeFolderThumbnail = async (sheetId) => {
@@ -336,7 +362,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         <div
                           {...dragProvided.dragHandleProps}
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
+                          className="absolute top-2 left-2 opacity-60 lg:opacity-0 lg:group-hover:opacity-100 text-muted-foreground hover:text-foreground rounded-lg p-1 transition-all cursor-grab active:cursor-grabbing"
                           title="Drag to reorder"
                         >
                           <GripVertical className="w-3.5 h-3.5" />
@@ -361,7 +387,7 @@ export default function PartFolderView({ partNumber, customer, sheets, onBack, o
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleAttemptDeleteSheet(sheet.id); }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-lg p-1 transition-all"
+                          className="absolute top-2 right-2 lg:opacity-0 lg:group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded-lg p-1.5 transition-all"
                           title="Delete operation"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

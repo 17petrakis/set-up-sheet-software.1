@@ -3,6 +3,7 @@ import { FileText, Pencil, Trash2, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getSheetThumbnail } from "@/lib/photoSlots";
+import { folderKeyOf } from "@/lib/folderKey";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator
 } from "@/components/ui/context-menu";
@@ -15,13 +16,15 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
   const thumbnailSheet = sheets.find(s => s.is_folder_thumbnail) || null;
   const firstSheet = [...sheets].sort((a, b) => getSortKey(a) - getSortKey(b))[0] || primarySheet;
   const thumbnail = (thumbnailSheet && getSheetThumbnail(thumbnailSheet)) || getSheetThumbnail(firstSheet) || getSheetThumbnail(primarySheet);
+  // Pass the folder's own key up, so the folder that opens is always the one clicked
+  const folderKey = folderKeyOf(sheets?.[0] || { part_number: partNumber, customer });
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
           className="relative bg-card border border-border rounded-2xl cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group overflow-hidden flex flex-col"
-          onClick={() => onOpen(partNumber, customer)}
+          onClick={() => onOpen(partNumber, customer, folderKey)}
         >
       {/* Phones: one compact row per part so far more fit on screen */}
       {compactOnMobile && (
@@ -125,7 +128,7 @@ export default function PartFolderCard({ partNumber, customer, sheets, onOpen, o
     </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-44">
-        <ContextMenuItem onSelect={() => onOpen(partNumber, customer)} className="gap-2">
+        <ContextMenuItem onSelect={() => onOpen(partNumber, customer, folderKey)} className="gap-2">
           <Pencil className="w-4 h-4" /> Edit
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => onDuplicate({ partNumber, customer, sheets })} className="gap-2">
