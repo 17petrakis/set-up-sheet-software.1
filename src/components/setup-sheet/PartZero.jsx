@@ -164,13 +164,18 @@ export default function PartZero({ data, onChange, machineType, machine }) {
     ? data.offsets
     : [{ g_code: "G54", z: "", c: "", dist_from_jaws: "" }]; // C defaults to "C Null" via placeholder
 
+  const newKey = () => (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `k${Date.now()}${Math.random()}`);
+  // Give each stage a stable key the first time the list is changed, so the
+  // Note/C toggles stay with their own stage instead of jumping to a neighbour.
+  const withKeys = (arr) => arr.map((o) => (o._k ? o : { ...o, _k: newKey() }));
+
   const updateOffset = (i, updated) => {
     const next = [...offsets];
     next[i] = updated;
     onChange({ ...data, offsets: next });
   };
-  const addOffset = () => onChange({ ...data, offsets: [...offsets, { g_code: "G54", z: "", c: "", dist_from_jaws: "" }] }); // C Null by default
-  const removeOffset = (i) => onChange({ ...data, offsets: offsets.filter((_, idx) => idx !== i) });
+  const addOffset = () => onChange({ ...data, offsets: [...withKeys(offsets), { _k: newKey(), g_code: "G54", z: "", c: "", dist_from_jaws: "" }] }); // C Null by default
+  const removeOffset = (i) => onChange({ ...data, offsets: withKeys(offsets).filter((_, idx) => idx !== i) });
 
   return (
     <Card className="border-border/50 shadow-sm">
@@ -181,7 +186,7 @@ export default function PartZero({ data, onChange, machineType, machine }) {
           <>
             {offsets.map((offset, i) => (
               <OffsetRow
-                key={i}
+                key={offset._k || i}
                 index={i}
                 offset={offset}
                 onChange={(updated) => updateOffset(i, updated)}

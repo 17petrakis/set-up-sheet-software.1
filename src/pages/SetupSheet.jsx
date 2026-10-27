@@ -58,6 +58,8 @@ export default function SetupSheet() {
   const [importing, setImporting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null); // "saved" | null
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [conflict, setConflict] = useState(false);
   const [debugText, setDebugText] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [showHistory, setShowHistory] = useState(false);
@@ -79,11 +81,33 @@ export default function SetupSheet() {
   const fileInputRef = useRef(null);
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
-  const latestData = useRef({});
+  const writeQueue = useRef(Promise.resolve());
+  const baseUpdated = useRef(null); // the updated_date we last saw on the server
+  const skipAutoSave = useRef(false); // loading / restoring a sheet is not an edit
+  const conflictRef = useRef(false);
   const menuRef = useRef(null);
 
   // Ask before leaving while editing, so a half-saved sheet can't slip out the door.
   const leaveGuard = useLeaveGuard({ enabled: mode === "edit" && !loading });
+
+  // Put a sheet from the server into the editor without writing anything back.
+  const hydrateSheet = useCallback((sheet) => {
+    const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = sheet;
+    const isTurning = gen.machine_type === "turning";
+    skipAutoSave.current = true;
+    baseUpdated.current = sheet.updated_date || null;
+    setGeneral({ ...emptyGeneral, ...gen });
+    setTools(t?.length ? t : [{ ...emptyTool }]);
+    setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
+    setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
+    setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
+    setPhotos(ph || {});
+    setFixturingNotes(sheet.fixturing_notes || {});
+    setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
+    setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
+    setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
+    setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
+  }, []);
 
   // Load existing sheet
   useEffect(() => {
@@ -91,19 +115,7 @@ export default function SetupSheet() {
     (async () => {
       try {
         const sheet = await base44.entities.SetupSheet.get(id);
-        const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = sheet;
-        const isTurning = gen.machine_type === "turning";
-        setGeneral({ ...emptyGeneral, ...gen });
-        setTools(t?.length ? t : [{ ...emptyTool }]);
-        setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
-        setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
-        setOperations(ops?.length ? ops : isTurning ? [{ ...emptyTurningOperation }] : [{ ...emptyOperation }]);
-        setPhotos(ph || {});
-        setFixturingNotes(sheet.fixturing_notes || {});
-        setTurningChuck(tc && Object.keys(tc).length ? { ...emptyTurningChuck, ...tc } : { ...emptyTurningChuck });
-        setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
-        setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
-        setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
+        hydrateSheet(sheet);
         if (sheet.published && !isAdmin) setMode("view");
         setLoading(false);
       } catch (err) {
@@ -113,78 +125,86 @@ export default function SetupSheet() {
     })();
   }, [id]);
 
-  // Auto-save debounce
-  const triggerSave = useCallback((gen, t, tt, pz, ops, ph, fn, tc, cw, mc, ps) => {
-    if (!id) return;
-    latestData.current = { gen, t, tt, pz, ops, ph, fn, tc, cw, mc, ps };
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
+  // The one place that writes the sheet. Writes are chained, so a debounced save
+  // and a leave-save can never land out of order.
+  const writeSheet = useCallback((force = false) => {
+    const run = async () => {
+      if (!id) return "ok";
       setSaving(true);
-      const d = latestData.current;
       try {
-        await base44.entities.SetupSheet.update(id, {
-          ...d.gen,
+        // Someone else may have saved since we loaded — never silently
+        // overwrite their work.
+        if (!force && baseUpdated.current) {
+          const current = await base44.entities.SetupSheet.get(id);
+          if (current?.updated_date && current.updated_date !== baseUpdated.current) {
+            conflictRef.current = true;
+            setConflict(true);
+            return "conflict";
+          }
+        }
+        const saved = await base44.entities.SetupSheet.update(id, {
+          ...generalRef.current,
           // Tools are always stored in ascending T# order
-          tools: sortToolsByTNumber(d.t),
-          turning_tools: sortTurningToolsByTNumber(d.tt),
-          part_zero: d.pz,
-          operations: d.ops,
-          photos: d.ph,
-          fixturing_notes: d.fn,
-          turning_chuck: d.tc,
-          citizen_workholding: d.cw,
-          mc_machining_data: d.mc,
-          preparation_screen: d.ps,
+          tools: sortToolsByTNumber(toolsRef.current),
+          turning_tools: sortTurningToolsByTNumber(turningToolsRef.current),
+          part_zero: partZeroRef.current,
+          operations: operationsRef.current,
+          photos: photosRef.current,
+          fixturing_notes: fixturingNotesRef.current,
+          turning_chuck: turningChuckRef.current,
+          citizen_workholding: citizenWorkholdingRef.current,
+          mc_machining_data: mcMachiningDataRef.current,
+          preparation_screen: preparationScreenRef.current,
         });
+        if (saved?.updated_date) baseUpdated.current = saved.updated_date;
+        setSaveFailed(false);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus(null), 2000);
+        return "ok";
       } catch (err) {
-        // Sheet may have been deleted — silently redirect home
-        navigate("/", { replace: true });
+        return "error";
       } finally {
         setSaving(false);
       }
-    }, 800);
+    };
+    const next = writeQueue.current.then(run, run);
+    writeQueue.current = next.then(() => {}, () => {});
+    return next;
   }, [id]);
 
-  // Flush save immediately on unmount so navigation doesn't lose data
-  // Only flush if there's actually a pending debounced save (saveTimer is set)
+  // Auto-save debounce. Callers pass the slice they changed, but the write reads
+  // the latest refs, so a slow save can never store an older copy.
+  const triggerSave = useCallback(() => {
+    if (!id) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      saveTimer.current = null;
+      if (conflictRef.current) return;
+      const result = await writeSheet();
+      if (result === "error") {
+        setSaveFailed(true);
+        // One quiet retry; after that the message stays up for the operator.
+        saveTimer.current = setTimeout(() => {
+          saveTimer.current = null;
+          writeSheet();
+        }, 4000);
+      }
+    }, 800);
+  }, [id, writeSheet]);
+
+  // Flush save immediately on unmount so navigation doesn't lose data.
+  // Only when a debounced save is pending; it is queued behind any save already
+  // running, so the newest state always lands last.
   useEffect(() => {
     return () => {
       if (!id || !saveTimer.current) return;
       clearTimeout(saveTimer.current);
       saveTimer.current = null;
-      // Use refs which are always up-to-date — latestData.current can be stale/empty
-      const gen = generalRef.current;
-      const t = toolsRef.current;
-      const tt = sortTurningToolsByTNumber(turningToolsRef.current);
-      const pz = partZeroRef.current;
-      const ops = operationsRef.current;
-      const ph = photosRef.current;
-      const fn = fixturingNotesRef.current;
-      const tc = turningChuckRef.current;
-      const cw = citizenWorkholdingRef.current;
-      const mc = mcMachiningDataRef.current;
-      const ps = preparationScreenRef.current;
-      // Only flush if general has real data (i.e. we've finished loading)
-      if (gen && gen.part_number !== undefined) {
-        const sortedTools = sortToolsByTNumber(t);
-        base44.entities.SetupSheet.update(id, {
-          ...gen,
-          tools: sortedTools,
-          turning_tools: tt,
-          part_zero: pz,
-          operations: ops,
-          photos: ph,
-          fixturing_notes: fn,
-          turning_chuck: tc,
-          citizen_workholding: cw,
-          mc_machining_data: mc,
-          preparation_screen: ps,
-        }).catch(() => {});
+      if (generalRef.current && generalRef.current.part_number !== undefined) {
+        writeSheet();
       }
     };
-  }, [id]);
+  }, [id, writeSheet]);
 
   // Save scroll position when leaving the sheet (e.g. navigating to sync page)
   useEffect(() => {
@@ -248,6 +268,8 @@ export default function SetupSheet() {
       };
       const sameFamily = machineFamily(machine) && machineFamily(machine) === machineFamily(prevMachine);
       const existingS1 = turningChuckRef.current.wh_s1 || {};
+      // Stage 2 keeps its own settings when only the model changes.
+      const existingS2 = turningChuckRef.current.wh_s2 || {};
       let chuckUpdate = null;
 
       if (machine === "Doosan Puma 2100Y II") {
@@ -259,7 +281,7 @@ export default function SetupSheet() {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: true,
           wh_s1: sameFamily ? { ...existingS1, chuck_type: '8" 3-Jaw' } : { chuck_type: '8" 3-Jaw' },
-          wh_s2: { chuck_type: '8" 3-Jaw' },
+          wh_s2: sameFamily ? { ...existingS2, chuck_type: existingS2.chuck_type || '8" 3-Jaw' } : { chuck_type: '8" 3-Jaw' },
         };
       } else if (machine === "HAAS SL-10") {
         chuckUpdate = {
@@ -275,7 +297,7 @@ export default function SetupSheet() {
         chuckUpdate = {
           wh_s1_active: true, wh_s2_active: true,
           wh_s1: { chuck_type: 'Collet – NJ-5' },
-          wh_s2: { chuck_type: '6" 3-Jaw' },
+          wh_s2: sameFamily ? { ...existingS2, chuck_type: existingS2.chuck_type || '6" 3-Jaw' } : { chuck_type: '6" 3-Jaw' },
         };
       }
 
@@ -299,9 +321,11 @@ export default function SetupSheet() {
 
   // Trigger save whenever general changes (using refs for other slices to avoid stale closures)
   useEffect(() => {
-    if (!loading) {
-      triggerSave(general, toolsRef.current, turningToolsRef.current, partZeroRef.current, operationsRef.current, photosRef.current, fixturingNotesRef.current, turningChuckRef.current, citizenWorkholdingRef.current, mcMachiningDataRef.current, preparationScreenRef.current);
-    }
+    if (loading) return;
+    // The render that finishes loading (or restoring) a sheet is not an edit —
+    // never write it back.
+    if (skipAutoSave.current) { skipAutoSave.current = false; return; }
+    triggerSave();
   }, [general]);
 
   const handleToolsChange = useCallback((val) => {
@@ -470,7 +494,10 @@ export default function SetupSheet() {
     const snap = revision.snapshot;
     if (!snap) return;
     const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, fixturing_notes: fn, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = snap;
-    setGeneral({ ...emptyGeneral, ...gen });
+    // Restoring old content must not change whether the sheet is locked today.
+    const keepPublished = generalRef.current.published;
+    skipAutoSave.current = true;
+    setGeneral({ ...emptyGeneral, ...gen, published: keepPublished });
     setTools(t?.length ? t : [{ ...emptyTool }]);
     setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
     setPartZero(pz && Object.keys(pz).length ? { ...emptyPartZero, ...pz } : { ...emptyPartZero });
@@ -481,13 +508,16 @@ export default function SetupSheet() {
     setCitizenWorkholding(cw && Object.keys(cw).length ? { ...emptyCitizenWorkholding, ...cw } : { ...emptyCitizenWorkholding });
     setMcMachiningData(mc && Object.keys(mc).length ? { ...emptyMediaNote, ...mc } : { ...emptyMediaNote });
     setPreparationScreen(ps && Object.keys(ps).length ? { ...emptyMediaNote, ...ps } : { ...emptyMediaNote });
-    // Persist the restored snapshot (with sorted tools)
-    const snapToSave = {
-      ...snap,
+    // Persist the restored snapshot (with sorted tools). Record fields and the
+    // lock state stay exactly as they are now.
+    const { id: _rid, created_date: _rcd, updated_date: _rud, created_by_id: _rcb, published: _rpub, ...rest } = snap;
+    const saved = await base44.entities.SetupSheet.update(id, {
+      ...rest,
       tools: sortToolsByTNumber(snap.tools || []),
       turning_tools: sortTurningToolsByTNumber(snap.turning_tools),
-    };
-    await base44.entities.SetupSheet.update(id, snapToSave);
+      published: keepPublished,
+    });
+    if (saved?.updated_date) baseUpdated.current = saved.updated_date;
     setShowHistory(false);
   };
 
@@ -516,35 +546,34 @@ export default function SetupSheet() {
     setTurningTools(sortedTurningTools);
     turningToolsRef.current = sortedTurningTools;
 
-    setSaving(true);
-    try {
-      await base44.entities.SetupSheet.update(id, {
-        ...generalRef.current,
-        tools: sortedTools,
-        turning_tools: sortedTurningTools,
-        part_zero: partZeroRef.current,
-        operations: operationsRef.current,
-        photos: photosRef.current,
-        fixturing_notes: fixturingNotesRef.current,
-        turning_chuck: turningChuckRef.current,
-        citizen_workholding: citizenWorkholdingRef.current,
-        mc_machining_data: mcMachiningDataRef.current,
-        preparation_screen: preparationScreenRef.current,
-      });
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus(null), 2000);
-      return true;
-    } catch (err) {
-      // Sheet may have been deleted — the caller stays put instead of leaving
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [id]);
+    const result = await writeSheet();
+    if (result === "error") setSaveFailed(true);
+    // "conflict" keeps the operator on the page too — the dialog explains why.
+    return result === "ok";
+  }, [id, writeSheet]);
 
   const handleSaveAndExit = async () => {
     await flushSave();
     setMode("view");
+  };
+
+  // Keep my work: overwrite whatever the other person saved.
+  const handleKeepMyVersion = async () => {
+    conflictRef.current = false;
+    setConflict(false);
+    await writeSheet(true);
+  };
+
+  // Take their work: reload the sheet from the server and drop my unsaved edits.
+  const handleTakeTheirVersion = async () => {
+    conflictRef.current = false;
+    setConflict(false);
+    try {
+      const sheet = await base44.entities.SetupSheet.get(id);
+      hydrateSheet(sheet);
+    } catch (e) {
+      navigate("/", { replace: true });
+    }
   };
 
   const handleDeleteSheet = async () => {
@@ -876,6 +905,21 @@ export default function SetupSheet() {
         onSave={flushSave}
         onLeave={leaveGuard.leaveNow}
       />
+      <AlertDialog open={conflict} onOpenChange={(open) => !open && setConflict(false)}>
+        <AlertDialogContent className="!inset-0 !m-auto !h-fit !translate-x-0 !translate-y-0 !w-[calc(100%-2rem)] max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Someone else saved this sheet</AlertDialogTitle>
+            <AlertDialogDescription>
+              Another person changed this setup sheet while you were working on it. Choose which version to keep.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel onClick={handleTakeTheirVersion}>Use their version</AlertDialogCancel>
+            <AlertDialogAction onClick={handleKeepMyVersion}>Keep my version</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1050,6 +1094,22 @@ export default function SetupSheet() {
 
       <ViewModeContext.Provider value={mode === "view"}>
       <main className="max-w-6xl mx-auto px-2 sm:px-4 md:px-6 py-3 md:py-6 print-container space-y-3 md:space-y-5">
+        {saveFailed && (
+          <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2">
+            <p className="text-sm font-medium text-destructive">
+              Couldn't save your changes — check the connection. Nothing on this screen is lost yet.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="min-h-11 lg:min-h-0 shrink-0"
+              onClick={() => { flushSave(); }}
+            >
+              Try again
+            </Button>
+          </div>
+        )}
+
         {importError && (
           <ImportBanner message={importError} onClose={() => setImportError(null)} />
         )}

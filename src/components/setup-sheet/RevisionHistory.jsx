@@ -92,7 +92,7 @@ export default function RevisionHistory({ sheetId, open, onClose, onRestore }) {
       {/* Backdrop */}
       <div className="flex-1 bg-black/30" onClick={onClose} />
       {/* Panel */}
-      <div className="w-[420px] bg-background border-l border-border flex flex-col shadow-2xl">
+      <div className="w-full max-w-[420px] bg-background border-l border-border flex flex-col shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-primary" />

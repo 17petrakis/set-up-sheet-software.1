@@ -17,6 +17,7 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
   const viewMode = useContext(ViewModeContext);
   const [uploading, setUploading] = useState(false);
   const [annotating, setAnnotating] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
 
   const d = data || {};
   const set = (field, val) => onChange({ ...d, [field]: val });
@@ -24,11 +25,13 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
   const uploadPhoto = async (file) => {
     if (!file) return;
     setUploading(true);
+    setUploadError(false);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       set("photo", file_url);
     } catch (err) {
       console.error("Upload failed:", err);
+      setUploadError(true);
     } finally {
       setUploading(false);
     }
@@ -85,6 +88,11 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
                     />
                   )}
                 </div>
+                {uploadError && (
+                  <p className="text-xs font-medium text-destructive">
+                    Upload failed — check the connection and try again.
+                  </p>
+                )}
               </div>
             )}
           </div>

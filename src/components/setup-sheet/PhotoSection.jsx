@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Camera, Upload, X, Image, Plus, MessageSquare, Trash2, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import PhotoLightbox from "./PhotoLightbox";
 import ThumbnailToggle, { ThumbnailBadge } from "./ThumbnailToggle";
 import ThumbnailContextMenu from "./ThumbnailContextMenu";
@@ -248,6 +249,10 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
   const [uploading, setUploading] = useState(false);
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
   const [lightboxId, setLightboxId] = useState(null);
+  const [deleteSlotId, setDeleteSlotId] = useState(null);
+  // Always read the newest slots, so two quick uploads both land.
+  const slotsRef = useRef(slots);
+  slotsRef.current = slots;
 
   const updateSlots = (newSlots) => onChange({
     __slots: newSlots,
@@ -260,6 +265,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
     setUploading(true);
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
+      const current = slotsRef.current;
       const newSlot = { id: `slot_${Date.now()}`, url: result.file_url, note: "" };
       if (category === "custom") {
         newSlot.category = "custom";
@@ -267,10 +273,14 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
       } else {
         const cat = DEFAULT_CATEGORIES.find(c => c.key === category);
         newSlot.category = category;
-        const count = slots.filter(s => s.category === category).length;
-        newSlot.label = count === 0 ? `${cat.label} Photo` : `${cat.label} Photo ${count + 1}`;
+        // Never reuse a title that is already on the sheet.
+        const used = new Set(current.filter(s => s.category === category).map(s => s.label));
+        let label = `${cat.label} Photo`;
+        let n = 2;
+        while (used.has(label)) label = `${cat.label} Photo ${n++}`;
+        newSlot.label = label;
       }
-      updateSlots([...slots, newSlot]);
+      updateSlots([...current, newSlot]);
     } catch (err) {
       alert("Upload failed: " + (err?.message || "Unknown error"));
     } finally {
@@ -284,11 +294,22 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
   };
 
   const handleSlotUpload = (id, url) => {
-    updateSlots(slots.map(s => s.id === id ? { ...s, url } : s));
+    updateSlots(slotsRef.current.map(s => s.id === id ? { ...s, url } : s));
   };
 
+  // The X on a photo clears the image but keeps the field, its title and note.
+  const handleSlotClearImage = (id) => {
+    const slot = slotsRef.current.find(s => s.id === id);
+    if (slot?.url && thumbnailImage && thumbnailImage === slot.url) onThumbnailChange?.("");
+    updateSlots(slotsRef.current.map(s => (s.id === id ? { ...s, url: "", annotations: [] } : s)));
+  };
+
+  // The bin removes the whole photo field.
   const handleSlotRemove = (id) => {
-    const newSlots = slots.filter(s => s.id !== id);
+    const slot = slotsRef.current.find(s => s.id === id);
+    // Never leave the part thumbnail pointing at a photo that is gone.
+    if (slot?.url && thumbnailImage && thumbnailImage === slot.url) onThumbnailChange?.("");
+    const newSlots = slotsRef.current.filter(s => s.id !== id);
     if (iconSlotId === id) {
       onChange({ __slots: newSlots, __icon_slot_id: undefined, __icon_cleared: true });
     } else {
@@ -397,9 +418,9 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
             annotations={slot.annotations}
             onAnnotationsChange={(annotations) => handleSlotAnnotationsChange(slot.id, annotations)}
             onUpload={(url) => handleSlotUpload(slot.id, url)}
-            onRemove={() => handleSlotRemove(slot.id)}
+            onRemove={() => handleSlotClearImage(slot.id)}
             onOpenPhoto={() => setLightboxId(slot.id)}
-            onDeleteSlot={() => handleSlotRemove(slot.id)}
+            onDeleteSlot={() => setDeleteSlotId(slot.id)}
             onNoteChange={(note) => handleSlotNoteChange(slot.id, note)}
             onLabelChange={(newLabel) => handleSlotLabelChange(slot.id, newLabel)}
             large={slot.category === "work_holding"}
@@ -409,6 +430,26 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
           />
         ))}
       </div>
+
+      <AlertDialog open={!!deleteSlotId} onOpenChange={(open) => !open && setDeleteSlotId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this photo field?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the photo together with its title, note and markup. If you only want the picture gone, use the X on the photo instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-white"
+              onClick={() => { handleSlotRemove(deleteSlotId); setDeleteSlotId(null); }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

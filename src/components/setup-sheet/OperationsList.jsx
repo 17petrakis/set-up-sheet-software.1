@@ -112,7 +112,7 @@ export default function OperationsList({ operations, onChange, includeInView, on
                           size="icon"
                           variant="ghost"
                           onClick={() => removeRow(i)}
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          className="h-7 w-7 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>

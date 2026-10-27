@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ImagePlus, Loader2, PenTool, Trash2 } from "lucide-react";
@@ -17,15 +17,21 @@ export default function ProcessStepMedia({ media = [], onChange }) {
   const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState(null);
   const [annotating, setAnnotating] = useState(null);
+  const [uploadError, setUploadError] = useState(false);
+  // Always read the newest list, so two quick uploads both land.
+  const mediaRef = useRef(media);
+  mediaRef.current = media;
 
   const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
+    setUploadError(false);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onChange([...media, { url: file_url, type: detectType(file), annotations: [] }]);
+      onChange([...mediaRef.current, { url: file_url, type: detectType(file), annotations: [] }]);
     } catch (err) {
       console.error("Upload failed:", err);
+      setUploadError(true);
     } finally {
       setUploading(false);
     }
@@ -91,6 +97,11 @@ export default function ProcessStepMedia({ media = [], onChange }) {
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
           Add Photo / Video
         </MediaSourcePicker>
+        {uploadError && (
+          <p className="text-xs font-medium text-destructive mt-1.5">
+            Upload failed — check the connection and try again.
+          </p>
+        )}
       </div>
 
       {lightbox !== null && media[lightbox] && (() => {

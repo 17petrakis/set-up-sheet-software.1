@@ -1,11 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import AutoResizeTextarea from "@/components/ui/AutoResizeTextarea";
 import { GripVertical, Trash2 } from "lucide-react";
 import ProcessStepMedia from "./ProcessStepMedia";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ProcessStepCard({ step, index, onChange, onRemove, dragHandleProps, isDragging }) {
   const set = (patch) => onChange({ ...step, ...patch });
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className={`border border-border/60 rounded-xl bg-card overflow-hidden ${isDragging ? "shadow-lg ring-2 ring-primary/30" : ""}`}>
@@ -17,7 +23,7 @@ export default function ProcessStepCard({ step, index, onChange, onRemove, dragH
         <div className="flex-1" />
         <button
           type="button"
-          onClick={onRemove}
+          onClick={() => setConfirmDelete(true)}
           className="no-print flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted-foreground hover:text-destructive transition-colors"
           title="Delete step"
         >
@@ -51,6 +57,26 @@ export default function ProcessStepCard({ step, index, onChange, onRemove, dragH
           <ProcessStepMedia media={step.media || []} onChange={(media) => set({ media })} />
         </div>
       </div>
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete step {index + 1}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the step, its description and its photos. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-white"
+              onClick={() => { setConfirmDelete(false); onRemove(); }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
