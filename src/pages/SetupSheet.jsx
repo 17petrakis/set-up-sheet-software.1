@@ -36,8 +36,6 @@ import { getPartIconPhoto, getSheetThumbnail } from "@/lib/photoSlots";
 import ThumbnailToggle, { ThumbnailBadge } from "@/components/setup-sheet/ThumbnailToggle";
 import { verifyAdminPassword, getEmployeeSession } from "@/lib/employeeSession";
 import { Monitor, ClipboardList } from "lucide-react";
-import useLeaveGuard from "@/hooks/useLeaveGuard";
-import LeaveSheetDialog from "@/components/setup-sheet/LeaveSheetDialog";
 
 export default function SetupSheet() {
   const { id } = useParams();
@@ -59,7 +57,6 @@ export default function SetupSheet() {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null); // "saved" | null
   const [saveFailed, setSaveFailed] = useState(false);
-  const [conflict, setConflict] = useState(false);
   const [debugText, setDebugText] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [showHistory, setShowHistory] = useState(false);
@@ -82,20 +79,14 @@ export default function SetupSheet() {
   const debugFileInputRef = useRef(null);
   const saveTimer = useRef(null);
   const writeQueue = useRef(Promise.resolve());
-  const baseUpdated = useRef(null); // the updated_date we last saw on the server
   const skipAutoSave = useRef(false); // loading / restoring a sheet is not an edit
-  const conflictRef = useRef(false);
   const menuRef = useRef(null);
-
-  // Ask before leaving while editing, so a half-saved sheet can't slip out the door.
-  const leaveGuard = useLeaveGuard({ enabled: mode === "edit" && !loading });
 
   // Put a sheet from the server into the editor without writing anything back.
   const hydrateSheet = useCallback((sheet) => {
     const { tools: t, turning_tools: tt, part_zero: pz, operations: ops, photos: ph, turning_chuck: tc, citizen_workholding: cw, mc_machining_data: mc, preparation_screen: ps, ...gen } = sheet;
     const isTurning = gen.machine_type === "turning";
     skipAutoSave.current = true;
-    baseUpdated.current = sheet.updated_date || null;
     setGeneral({ ...emptyGeneral, ...gen });
     setTools(t?.length ? t : [{ ...emptyTool }]);
     setTurningTools(tt && (tt.turrets?.length || tt.axial || tt.radial) ? tt : { ...emptyTurningTools });
@@ -127,22 +118,12 @@ export default function SetupSheet() {
 
   // The one place that writes the sheet. Writes are chained, so a debounced save
   // and a leave-save can never land out of order.
-  const writeSheet = useCallback((force = false) => {
+  const writeSheet = useCallback(() => {
     const run = async () => {
       if (!id) return "ok";
       setSaving(true);
       try {
-        // Someone else may have saved since we loaded — never silently
-        // overwrite their work.
-        if (!force && baseUpdated.current) {
-          const current = await base44.entities.SetupSheet.get(id);
-          if (current?.updated_date && current.updated_date !== baseUpdated.current) {
-            conflictRef.current = true;
-            setConflict(true);
-            return "conflict";
-          }
-        }
-        const saved = await base44.entities.SetupSheet.update(id, {
+        await base44.entities.SetupSheet.update(id, {
           ...generalRef.current,
           // Tools are always stored in ascending T# order
           tools: sortToolsByTNumber(toolsRef.current),
@@ -156,7 +137,6 @@ export default function SetupSheet() {
           mc_machining_data: mcMachiningDataRef.current,
           preparation_screen: preparationScreenRef.current,
         });
-        if (saved?.updated_date) baseUpdated.current = saved.updated_date;
         setSaveFailed(false);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus(null), 2000);
@@ -179,7 +159,6 @@ export default function SetupSheet() {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       saveTimer.current = null;
-      if (conflictRef.current) return;
       const result = await writeSheet();
       if (result === "error") {
         setSaveFailed(true);
@@ -511,13 +490,12 @@ export default function SetupSheet() {
     // Persist the restored snapshot (with sorted tools). Record fields and the
     // lock state stay exactly as they are now.
     const { id: _rid, created_date: _rcd, updated_date: _rud, created_by_id: _rcb, published: _rpub, ...rest } = snap;
-    const saved = await base44.entities.SetupSheet.update(id, {
+    await base44.entities.SetupSheet.update(id, {
       ...rest,
       tools: sortToolsByTNumber(snap.tools || []),
       turning_tools: sortTurningToolsByTNumber(snap.turning_tools),
       published: keepPublished,
     });
-    if (saved?.updated_date) baseUpdated.current = saved.updated_date;
     setShowHistory(false);
   };
 
@@ -548,32 +526,12 @@ export default function SetupSheet() {
 
     const result = await writeSheet();
     if (result === "error") setSaveFailed(true);
-    // "conflict" keeps the operator on the page too — the dialog explains why.
     return result === "ok";
   }, [id, writeSheet]);
 
   const handleSaveAndExit = async () => {
     await flushSave();
     setMode("view");
-  };
-
-  // Keep my work: overwrite whatever the other person saved.
-  const handleKeepMyVersion = async () => {
-    conflictRef.current = false;
-    setConflict(false);
-    await writeSheet(true);
-  };
-
-  // Take their work: reload the sheet from the server and drop my unsaved edits.
-  const handleTakeTheirVersion = async () => {
-    conflictRef.current = false;
-    setConflict(false);
-    try {
-      const sheet = await base44.entities.SetupSheet.get(id);
-      hydrateSheet(sheet);
-    } catch (e) {
-      navigate("/", { replace: true });
-    }
   };
 
   const handleDeleteSheet = async () => {
@@ -601,10 +559,10 @@ export default function SetupSheet() {
 
   const isLocked = general.published && !isAdmin;
 
-  // Header back button — confirms before leaving while editing
+  // Header back button — leaves right away; any pending save flushes on unmount.
   const handleBackClick = () => {
     const to = `/?folder=${general.folder_id || ""}&pn=${encodeURIComponent(general.part_number || "")}&cu=${encodeURIComponent(general.customer || "")}`;
-    leaveGuard.requestLeave({ type: "path", to });
+    navigate(to);
   };
 
   const handleAttemptEdit = () => {
@@ -898,27 +856,6 @@ export default function SetupSheet() {
 
       <DebugPDFModal text={debugText} onClose={() => setDebugText(null)} />
       <RevisionHistory sheetId={id} open={showHistory} onClose={() => setShowHistory(false)} onRestore={handleRestore} />
-
-      <LeaveSheetDialog
-        open={leaveGuard.promptOpen}
-        onStay={leaveGuard.cancelLeave}
-        onSave={flushSave}
-        onLeave={leaveGuard.leaveNow}
-      />
-      <AlertDialog open={conflict} onOpenChange={(open) => !open && setConflict(false)}>
-        <AlertDialogContent className="!inset-0 !m-auto !h-fit !translate-x-0 !translate-y-0 !w-[calc(100%-2rem)] max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Someone else saved this sheet</AlertDialogTitle>
-            <AlertDialogDescription>
-              Another person changed this setup sheet while you were working on it. Choose which version to keep.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel onClick={handleTakeTheirVersion}>Use their version</AlertDialogCancel>
-            <AlertDialogAction onClick={handleKeepMyVersion}>Keep my version</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
