@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { signEmployeeToken, verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import { signEmployeeToken, verifyEmployeeToken, getSessionSecret } from '../../shared/employeeToken.ts';
 import {
   loginThrottleKeys,
   unlockThrottleKeys,
@@ -19,7 +19,7 @@ async function readSetting(base44, key, fallback) {
 
 export default async function (req) {
   try {
-    const secret = getSyncSecret();
+    const secret = getSessionSecret();
     if (!secret) return Response.json({ error: 'Server not configured' }, { status: 500 });
 
     const body = await req.json().catch(() => ({}));

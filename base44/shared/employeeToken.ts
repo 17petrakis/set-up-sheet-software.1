@@ -57,6 +57,15 @@ export async function verifyEmployeeToken(token, secret) {
   }
 }
 
+// Key for the procedure-app sync handshake. It is handed to an external system,
+// so it is never used to sign anything this app trusts.
 export function getSyncSecret() {
   return Deno.env.get("SETUP_SHEET_SYNC_KEY") || "";
+}
+
+// Key that signs shop-floor session tokens. This secret stays inside this app's
+// environment — it is never sent to another system — so a leak on the procedure
+// app side cannot be turned into an employee or admin session here.
+export function getSessionSecret() {
+  return Deno.env.get("EMPLOYEE_SESSION_SECRET") || "";
 }

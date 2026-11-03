@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import { verifyEmployeeToken, getSyncSecret, getSessionSecret } from '../../shared/employeeToken.ts';
 import { sanitizeTurretList } from '../../shared/toolPayloadValidation.ts';
 
 export default async function (req) {
@@ -27,7 +27,7 @@ export default async function (req) {
     }
 
     // Only an admin shop-floor session may push turret lists to a machine.
-    const session = await verifyEmployeeToken(String(employeeToken || ''), syncKey);
+    const session = await verifyEmployeeToken(String(employeeToken || ''), getSessionSecret());
     if (!session || !session.isAdmin) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
