@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { signEmployeeToken, verifyEmployeeToken, getSessionSecret } from '../../shared/employeeToken.ts';
+import { signEmployeeToken, verifyEmployeeToken } from '../../shared/employeeToken.ts';
+import { getEmployeeSessionKey } from '../../shared/employeeSessionKey.ts';
 import {
   loginThrottleKeys,
   unlockThrottleKeys,
@@ -19,12 +20,13 @@ async function readSetting(base44, key, fallback) {
 
 export default async function (req) {
   try {
-    const secret = getSessionSecret();
-    if (!secret) return Response.json({ error: 'Server not configured' }, { status: 500 });
-
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
     const base44 = createClientFromRequest(req);
+
+    // Signing key for shop-floor tokens — its own key, never the sync key.
+    const secret = await getEmployeeSessionKey(base44);
+    if (!secret) return Response.json({ error: 'Server not configured' }, { status: 500 });
 
     const sessionFromToken = async () => {
       const payload = await verifyEmployeeToken(body?.token, secret);

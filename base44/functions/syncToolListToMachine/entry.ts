@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
-import { verifyEmployeeToken, getSyncSecret, getSessionSecret } from '../../shared/employeeToken.ts';
+import { verifyEmployeeToken, getSyncSecret } from '../../shared/employeeToken.ts';
+import { getEmployeeSessionKey } from '../../shared/employeeSessionKey.ts';
 import { sanitizeToolList } from '../../shared/toolPayloadValidation.ts';
 
 export default async function (req) {
@@ -27,7 +28,7 @@ export default async function (req) {
     }
 
     // Only an admin shop-floor session may push tool lists to a machine.
-    const session = await verifyEmployeeToken(String(employeeToken || ''), getSessionSecret());
+    const session = await verifyEmployeeToken(String(employeeToken || ''), await getEmployeeSessionKey(base44));
     if (!session || !session.isAdmin) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }

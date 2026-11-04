@@ -32,7 +32,8 @@
           "data.key": {
             "$nin": [
               "login_code",
-              "admin_code"
+              "admin_code",
+              "employee_session_key"
             ]
           }
         }
