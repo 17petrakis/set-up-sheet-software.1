@@ -82,7 +82,7 @@ function PhotoSlot({ label, url, note, annotations, onAnnotationsChange, onUploa
         <ImageAnnotator
           imageUrl={url}
           initialAnnotations={annotations || []}
-          onSave={(newAnns) => { onAnnotationsChange(newAnns); setAnnotating(false); }}
+          onSave={(newAnns, newUrl) => { onAnnotationsChange(newAnns, newUrl); setAnnotating(false); }}
           onCancel={() => setAnnotating(false)}
         />
       )}
@@ -325,8 +325,14 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
     updateSlots(slots.map(s => s.id === id ? { ...s, label: newLabel } : s));
   };
 
-  const handleSlotAnnotationsChange = (id, annotations) => {
-    updateSlots(slots.map(s => s.id === id ? { ...s, annotations } : s));
+  // Saving the markup can also hand back a rotated or cropped copy of the photo.
+  const handleSlotMarkupSaved = (id, annotations, newUrl) => {
+    const slot = slotsRef.current.find((s) => s.id === id);
+    // A replacement photo must not leave the part thumbnail pointing at the old one.
+    if (newUrl && slot?.url && thumbnailImage === slot.url) onThumbnailChange?.(newUrl);
+    updateSlots(slotsRef.current.map(s => (s.id === id
+      ? { ...s, annotations, ...(newUrl ? { url: newUrl } : {}) }
+      : s)));
   };
 
   const iconSlotId = getEffectiveIconSlotId(photos);
@@ -416,7 +422,7 @@ export default function PhotoSection({ photos = {}, onChange, readOnly = false, 
             url={slot.url}
             note={slot.note}
             annotations={slot.annotations}
-            onAnnotationsChange={(annotations) => handleSlotAnnotationsChange(slot.id, annotations)}
+            onAnnotationsChange={(annotations, newUrl) => handleSlotMarkupSaved(slot.id, annotations, newUrl)}
             onUpload={(url) => handleSlotUpload(slot.id, url)}
             onRemove={() => handleSlotClearImage(slot.id)}
             onOpenPhoto={() => setLightboxId(slot.id)}

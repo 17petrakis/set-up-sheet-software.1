@@ -119,7 +119,11 @@ export default function MediaNoteSection({ data, onChange, title, icon, permanen
         <ImageAnnotator
           imageUrl={d.photo}
           initialAnnotations={d.annotations || []}
-          onSave={(newAnns) => { set("annotations", newAnns); setAnnotating(false); }}
+          onSave={(newAnns, newUrl) => {
+            if (newUrl && thumbnailImage && thumbnailImage === d.photo) onThumbnailChange?.(newUrl);
+            onChange({ ...d, ...(newUrl ? { photo: newUrl } : {}), annotations: newAnns });
+            setAnnotating(false);
+          }}
           onCancel={() => setAnnotating(false)}
         />
       )}

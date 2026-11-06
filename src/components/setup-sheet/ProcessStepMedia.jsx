@@ -124,7 +124,10 @@ export default function ProcessStepMedia({ media = [], onChange }) {
         <ImageAnnotator
           imageUrl={media[annotating].url}
           initialAnnotations={media[annotating].annotations || []}
-          onSave={(anns) => { updateItem(annotating, { annotations: anns }); setAnnotating(null); }}
+          onSave={(anns, newUrl) => {
+            updateItem(annotating, newUrl ? { annotations: anns, url: newUrl } : { annotations: anns });
+            setAnnotating(null);
+          }}
           onCancel={() => setAnnotating(null)}
         />
       )}

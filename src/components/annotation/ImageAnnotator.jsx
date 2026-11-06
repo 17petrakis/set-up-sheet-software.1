@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   MousePointer2, ArrowRight, Minus, Square, Circle, Type, Pencil,
-  Undo2, Redo2, Trash2, X, Check, ChevronDown,
+  Undo2, Redo2, Trash2, X, Check, ChevronDown, RotateCcw, RotateCw, Crop,
 } from "lucide-react";
 import AnnotationRenderer from "./AnnotationRenderer";
 import TextEditorOverlay from "./TextEditorOverlay";
+import CropOverlay from "./CropOverlay";
 import { convertShape } from "./annotationGeometry";
+import { rotatedSize, rotateAnnotations, rotateRect, cropAnnotations, bakePhoto } from "./photoTransform";
+import { base44 } from "@/api/base44Client";
 
 const TOOLS = [
   { id: "select", label: "Select", Icon: MousePointer2 },
@@ -48,6 +51,14 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
   const [showFillDropdown, setShowFillDropdown] = useState(false);
   const [showConvertDropdown, setShowConvertDropdown] = useState(false);
 
+  // Photo rotation (in 90° steps) and the area that will be kept.
+  const [rotation, setRotation] = useState(0);
+  const [crop, setCrop] = useState(null);
+  const [cropping, setCropping] = useState(false);
+  const [cropRect, setCropRect] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -61,16 +72,22 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
     img.src = imageUrl;
   }, [imageUrl]);
 
+  const rot = rotatedSize(natural.w, natural.h, rotation);
+  const fullFrame = { x: 0, y: 0, w: rot.w, h: rot.h };
+  // While the crop box is open the whole photo is shown, so it can always be
+  // re-cropped from the full picture.
+  const view = cropping || !crop ? fullFrame : crop;
+
   // Compute display dimensions to fit container
   useEffect(() => {
     if (natural.w === 0 || !containerRef.current) return;
     const compute = () => {
       const c = containerRef.current;
-      if (!c || natural.w === 0) return;
+      if (!c || natural.w === 0 || !view.w || !view.h) return;
       const cw = c.clientWidth - 32;
       const ch = c.clientHeight - 32;
-      const ratio = natural.w / natural.h;
-      let dw = Math.min(cw, natural.w);
+      const ratio = view.w / view.h;
+      let dw = Math.min(cw, view.w);
       let dh = dw / ratio;
       if (dh > ch) {
         dh = ch;
@@ -82,9 +99,13 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
     const ro = new ResizeObserver(compute);
     ro.observe(containerRef.current);
     return () => ro.disconnect();
-  }, [natural]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [natural.w, natural.h, rotation, crop, cropping]);
 
-  const scaleFactor = dims.w > 0 ? natural.w / dims.w : 1;
+  const scale = dims.w > 0 && view.w > 0 ? dims.w / view.w : 0; // screen px per photo px
+  const frameW = rot.w * scale;
+  const frameH = rot.h * scale;
+  const scaleFactor = scale > 0 ? 1 / scale : 1;
 
   const selected = annotations.find(a => a.id === selectedId);
 
@@ -191,8 +212,51 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
     setShowConvertDropdown(false);
   };
 
-  const handleSave = () => {
-    onSave(annotations);
+  // Turning the photo carries the markup with it, so labels keep pointing at the
+  // same feature. It can be undone like any other change.
+  const handleRotate = (clockwise) => {
+    if (cropping) return;
+    pushHistory();
+    setAnnotations(prev => rotateAnnotations(prev, rot.w, rot.h, clockwise));
+    setCrop(prev => rotateRect(prev, rot.w, rot.h, clockwise));
+    setRotation(prev => ((prev + (clockwise ? 90 : -90)) % 360 + 360) % 360);
+    setSelectedId(null);
+    setEditingTextId(null);
+  };
+
+  const startCropping = () => {
+    setCropRect(crop ? { ...crop } : { ...fullFrame });
+    setCropping(true);
+    setSelectedId(null);
+    setEditingTextId(null);
+  };
+
+  const applyCrop = () => {
+    const r = cropRect;
+    if (!r) { setCropping(false); return; }
+    const isFull = r.x <= 1 && r.y <= 1 && r.w >= rot.w - 1 && r.h >= rot.h - 1;
+    setCrop(isFull ? null : r);
+    setCropping(false);
+  };
+
+  const handleSave = async () => {
+    const changed = rotation % 360 !== 0 || !!crop;
+    if (!changed) {
+      onSave(annotations);
+      return;
+    }
+    setSaving(true);
+    setSaveError("");
+    try {
+      const file = await bakePhoto(imageUrl, rotation, crop);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const area = crop || fullFrame;
+      onSave(cropAnnotations(annotations, area), file_url);
+    } catch (err) {
+      setSaveError("Couldn't apply the rotation or crop. Nothing was changed — try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const isTextTool = tool === "text";
@@ -215,6 +279,37 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
               <span className="hidden lg:inline">{label}</span>
             </button>
           ))}
+        </div>
+
+        {/* Photo rotation and crop */}
+        <div className="flex items-center gap-0.5 bg-white/10 rounded-lg p-1">
+          <button
+            onClick={() => handleRotate(false)}
+            disabled={cropping}
+            title="Rotate left"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-30"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline">Rotate</span>
+          </button>
+          <button
+            onClick={() => handleRotate(true)}
+            disabled={cropping}
+            title="Rotate right"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-30"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline">Rotate</span>
+          </button>
+          <button
+            onClick={startCropping}
+            disabled={cropping}
+            title="Crop photo"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors disabled:opacity-30 ${crop ? "bg-blue-500 text-white" : "text-white/70 hover:text-white hover:bg-white/10"}`}
+          >
+            <Crop className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline">Crop</span>
+          </button>
         </div>
 
         {/* Shape converter */}
@@ -347,46 +442,90 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
         </button>
         <button
           onClick={handleSave}
-          className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold bg-green-600 hover:bg-green-500 text-white transition-colors"
+          disabled={saving || cropping}
+          className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold bg-green-600 hover:bg-green-500 text-white transition-colors disabled:opacity-50"
         >
-          <Check className="w-3.5 h-3.5" /> Save
+          {saving ? (
+            <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          ) : (
+            <Check className="w-3.5 h-3.5" />
+          )}
+          {saving ? "Saving…" : "Save"}
         </button>
       </div>
+
+      {saveError && (
+        <p className="bg-red-900/60 text-red-100 text-xs font-medium text-center px-4 py-2 shrink-0">{saveError}</p>
+      )}
 
       {/* Canvas area */}
       <div ref={containerRef} className="flex-1 flex items-center justify-center overflow-hidden p-4 relative">
         {loadError ? (
           <p className="text-white/50 text-sm">Failed to load image.</p>
         ) : dims.w > 0 ? (
-          <div className="relative" style={{ width: dims.w, height: dims.h }}>
-            <img
-              src={imageUrl}
-              alt="Annotating"
-              className="absolute inset-0 w-full h-full object-contain rounded-lg"
-              style={{ pointerEvents: "none", userSelect: "none" }}
-              draggable={false}
-            />
-            <AnnotationRenderer
-              annotations={annotations}
-              selectedId={selectedId}
-              tool={tool}
-              width={dims.w}
-              height={dims.h}
-              naturalWidth={natural.w}
-              naturalHeight={natural.h}
-              currentStyle={defaultStyle}
-              svgRef={svgRef}
-              onAnnotationsChange={handleAnnotationsChange}
-              onBeginAction={handleBeginAction}
-              onSelect={setSelectedId}
-              onTextEdit={handleTextEdit}
-            />
+          <div className="relative overflow-hidden rounded-lg" style={{ width: dims.w, height: dims.h }}>
+            {/* The photo and its markup sit in one frame, offset to show the kept area */}
+            <div
+              className="absolute"
+              style={{
+                left: -view.x * scale,
+                top: -view.y * scale,
+                width: frameW,
+                height: frameH,
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt="Annotating"
+                className="absolute"
+                style={{
+                  left: (frameW - natural.w * scale) / 2,
+                  top: (frameH - natural.h * scale) / 2,
+                  width: natural.w * scale,
+                  height: natural.h * scale,
+                  transform: `rotate(${rotation}deg)`,
+                  transformOrigin: "50% 50%",
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+                draggable={false}
+              />
+              <div className="absolute inset-0" style={{ pointerEvents: cropping ? "none" : "auto" }}>
+                <AnnotationRenderer
+                  annotations={annotations}
+                  selectedId={selectedId}
+                  tool={tool}
+                  width={frameW}
+                  height={frameH}
+                  naturalWidth={rot.w}
+                  naturalHeight={rot.h}
+                  currentStyle={defaultStyle}
+                  svgRef={svgRef}
+                  onAnnotationsChange={handleAnnotationsChange}
+                  onBeginAction={handleBeginAction}
+                  onSelect={setSelectedId}
+                  onTextEdit={handleTextEdit}
+                />
+              </div>
+            </div>
+
+            {cropping && cropRect && (
+              <CropOverlay
+                width={frameW}
+                height={frameH}
+                naturalWidth={rot.w}
+                naturalHeight={rot.h}
+                rect={cropRect}
+                onChange={setCropRect}
+              />
+            )}
+
             {editingTextId && (
               <TextEditorOverlay
                 ann={annotations.find(a => a.id === editingTextId)}
                 svgRef={svgRef}
-                naturalWidth={natural.w}
-                naturalHeight={natural.h}
+                naturalWidth={rot.w}
+                naturalHeight={rot.h}
                 onChange={handleTextChange}
                 onClose={() => setEditingTextId(null)}
               />
@@ -397,9 +536,37 @@ export default function ImageAnnotator({ imageUrl, initialAnnotations = [], onSa
         )}
       </div>
 
-      <p className="text-center text-xs text-white/30 pb-2 px-4">
-        {tool === "select" ? "Click to select • Drag to move • Double-click text to edit" : `Click and drag to draw ${tool}`}
-      </p>
+      {cropping ? (
+        <div className="flex flex-wrap items-center justify-center gap-2 pb-3 px-4">
+          <p className="w-full sm:w-auto text-center text-xs text-white/60">
+            Drag the corners of the box to choose what to keep.
+          </p>
+          {crop && (
+            <button
+              onClick={() => { setCrop(null); setCropRect({ ...fullFrame }); }}
+              className="px-3 py-1.5 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Remove crop
+            </button>
+          )}
+          <button
+            onClick={() => setCropping(false)}
+            className="px-3 py-1.5 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={applyCrop}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+          >
+            <Check className="w-3.5 h-3.5" /> Apply crop
+          </button>
+        </div>
+      ) : (
+        <p className="text-center text-xs text-white/30 pb-2 px-4">
+          {tool === "select" ? "Click to select • Drag to move • Double-click text to edit" : `Click and drag to draw ${tool}`}
+        </p>
+      )}
     </div>
   );
 }

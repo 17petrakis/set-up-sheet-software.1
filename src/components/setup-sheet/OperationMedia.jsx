@@ -236,7 +236,10 @@ export default function OperationMedia({ items, onChange, onAddNote, thumbnailIm
         <ImageAnnotator
           imageUrl={media[annotatingIdx].url}
           initialAnnotations={media[annotatingIdx].annotations || []}
-          onSave={(newAnns) => { updateItem(annotatingIdx, { annotations: newAnns }); setAnnotatingIdx(null); }}
+          onSave={(newAnns, newUrl) => {
+            updateItem(annotatingIdx, newUrl ? { annotations: newAnns, url: newUrl } : { annotations: newAnns });
+            setAnnotatingIdx(null);
+          }}
           onCancel={() => setAnnotatingIdx(null)}
         />
       )}
